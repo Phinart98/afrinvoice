@@ -1,0 +1,356 @@
+---
+const guideLinks = [
+  { href: '/how-to-invoice-ghana/',         label: 'Invoice Clients in Ghana' },
+  { href: '/how-to-invoice-nigeria/',       label: 'Invoice Clients in Nigeria' },
+  { href: '/how-to-invoice-kenya/',         label: 'Invoice Clients in Kenya' },
+  { href: '/how-to-invoice-south-africa/',  label: 'Invoice Clients in South Africa' },
+  { href: '/invoice-number-format/',        label: 'Invoice Number Format Guide' },
+];
+
+const mobileLinks = [
+  { href: '/invoice-templates/',              label: 'Invoice Templates' },
+  { href: '/freelancer-invoice/',             label: 'Freelancer Invoice' },
+  { href: '/mobile-money-invoice/',           label: 'Mobile Money Invoice' },
+  { href: '/receipt-generator/',              label: 'Receipt Generator' },
+  { divider: 'Guides' },
+  { href: '/how-to-invoice-ghana/',           label: 'How to Invoice in Ghana' },
+  { href: '/how-to-invoice-nigeria/',         label: 'How to Invoice in Nigeria' },
+  { href: '/how-to-invoice-kenya/',           label: 'How to Invoice in Kenya' },
+  { href: '/how-to-invoice-south-africa/',   label: 'How to Invoice in South Africa' },
+  { href: '/invoice-number-format/',          label: 'Invoice Number Format' },
+  { divider: 'More' },
+  { href: '/about/',                          label: 'About' },
+  { href: '/contact/',                        label: 'Contact' },
+];
+
+const pathname = Astro.url.pathname;
+const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
+---
+
+<header class="nav-header" role="banner">
+  <div class="nav-inner">
+
+    <!-- Logo -->
+    <a href="/" class="nav-logo" aria-label="Afrinvoice home">
+      <svg class="nav-logo-icon" width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+        <rect x="2" y="1" width="17" height="22" rx="2.5" fill="#111827" stroke="#F59E0B" stroke-width="1.5"/>
+        <rect x="2" y="1" width="17" height="7" rx="2.5" fill="#F59E0B"/>
+        <rect x="2" y="5.5" width="17" height="2.5" fill="#F59E0B"/>
+        <line x1="5.5" y1="12.5" x2="16.5" y2="12.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
+        <line x1="5.5" y1="15.5" x2="13"   y2="15.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
+        <line x1="5.5" y1="19.5" x2="16.5" y2="19.5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Checkmark badge -->
+        <circle cx="20" cy="20" r="5" fill="#0A0F1E" stroke="#F59E0B" stroke-width="1.25"/>
+        <path d="M17.5 20l1.8 1.8 3.2-3.2" stroke="#F59E0B" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="nav-logo-text">Afr<span class="nav-logo-bold">invoice</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <nav class="nav-links hidden md:flex" aria-label="Main navigation">
+
+      <a
+        href="/invoice-templates/"
+        class:list={['nav-link', { active: pathname.startsWith('/invoice-templates/') }]}
+      >
+        Templates
+      </a>
+
+      <!-- Guides dropdown -->
+      <div class="nav-dropdown" id="nav-guides-dropdown">
+        <button
+          class:list={['nav-link', 'nav-dropdown-trigger', { active: isGuidesActive }]}
+          aria-expanded="false"
+          aria-haspopup="true"
+          id="nav-guides-btn"
+        >
+          Guides
+          <svg class="nav-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="nav-dropdown-panel" id="nav-guides-panel" aria-hidden="true" role="menu">
+          {guideLinks.map(link => (
+            <a
+              href={link.href}
+              class:list={['nav-dropdown-item', { active: pathname === link.href }]}
+              role="menuitem"
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+    </nav>
+
+    <!-- Mobile toggle -->
+    <button
+      class="nav-mobile-btn flex md:hidden"
+      id="nav-toggle"
+      aria-label="Toggle navigation"
+      aria-expanded="false"
+      aria-controls="nav-mobile-menu"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <line id="burger-top" x1="3" y1="5"  x2="17" y2="5"  stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+        <line id="burger-mid" x1="3" y1="10" x2="17" y2="10" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+        <line id="burger-bot" x1="3" y1="15" x2="17" y2="15" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="nav-mobile-menu" id="nav-mobile-menu" aria-hidden="true">
+    {mobileLinks.map((item) =>
+      'divider' in item ? (
+        <span class="nav-mobile-divider">{item.divider}</span>
+      ) : (
+        <a
+          href={item.href}
+          class:list={['nav-mobile-link', { active: pathname === item.href || pathname.startsWith(item.href) }]}
+        >
+          {item.label}
+        </a>
+      )
+    )}
+  </div>
+</header>
+
+<script>
+  // Mobile hamburger
+  const toggle = document.getElementById('nav-toggle');
+  const menu   = document.getElementById('nav-mobile-menu');
+  let isOpen   = false;
+
+  toggle?.addEventListener('click', () => {
+    isOpen = !isOpen;
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    menu?.setAttribute('aria-hidden', String(!isOpen));
+    menu?.classList.toggle('open', isOpen);
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768 && isOpen) {
+      isOpen = false;
+      toggle?.setAttribute('aria-expanded', 'false');
+      menu?.setAttribute('aria-hidden', 'true');
+      menu?.classList.remove('open');
+    }
+  });
+
+  // Guides dropdown
+  const dropdownWrap  = document.getElementById('nav-guides-dropdown');
+  const dropdownBtn   = document.getElementById('nav-guides-btn');
+  const dropdownPanel = document.getElementById('nav-guides-panel');
+  let   dropdownOpen  = false;
+
+  function openDropdown() {
+    dropdownOpen = true;
+    dropdownWrap?.classList.add('open');
+    dropdownBtn?.setAttribute('aria-expanded', 'true');
+    dropdownPanel?.setAttribute('aria-hidden', 'false');
+  }
+  function closeDropdown() {
+    dropdownOpen = false;
+    dropdownWrap?.classList.remove('open');
+    dropdownBtn?.setAttribute('aria-expanded', 'false');
+    dropdownPanel?.setAttribute('aria-hidden', 'true');
+  }
+
+  dropdownBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownOpen ? closeDropdown() : openDropdown();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (dropdownOpen && !dropdownWrap?.contains(e.target as Node)) closeDropdown();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dropdownOpen) closeDropdown();
+  });
+</script>
+
+<style>
+  /* ── Nav shell ───────────────────────────────────── */
+  .nav-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(250, 249, 246, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid #DDD7CF;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+  }
+
+  .nav-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 3.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  /* ── Logo ────────────────────────────────────────── */
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .nav-logo-icon { flex-shrink: 0; }
+
+  .nav-logo-text {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #9A918A;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .nav-logo-bold {
+    color: #1C1612;
+    font-weight: 800;
+  }
+  .nav-logo:hover .nav-logo-text { color: #6B6058; }
+  .nav-logo:hover .nav-logo-bold { color: #1C1612; }
+
+  /* ── Desktop links ───────────────────────────────── */
+  .nav-links {
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6B6058;
+    text-decoration: none;
+    transition: all 150ms;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .nav-link:hover  { color: #1C1612; background: rgba(0,0,0,0.04); }
+  .nav-link.active { color: #D97706; }
+
+  /* ── Guides dropdown ─────────────────────────────── */
+  .nav-dropdown { position: relative; }
+
+  .nav-chevron { transition: transform 200ms; flex-shrink: 0; }
+  .nav-dropdown.open .nav-chevron { transform: rotate(180deg); }
+
+  .nav-dropdown-panel {
+    position: absolute;
+    top: calc(100% + 0.625rem);
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    width: 260px;
+    background: #FFFFFF;
+    border: 1px solid #DDD7CF;
+    border-radius: 10px;
+    padding: 0.375rem;
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms, transform 180ms;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+  }
+  .nav-dropdown.open .nav-dropdown-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .nav-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    color: #6B6058;
+    text-decoration: none;
+    transition: all 150ms;
+  }
+  .nav-dropdown-item:hover { color: #1C1612; background: rgba(0,0,0,0.04); }
+  .nav-dropdown-item.active { color: #D97706; }
+  .nav-dropdown-item svg { flex-shrink: 0; opacity: 0.4; }
+  .nav-dropdown-item:hover svg { opacity: 0.7; }
+
+  /* ── Mobile button ───────────────────────────────── */
+  .nav-mobile-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.375rem;
+    align-items: center;
+    border-radius: 6px;
+    transition: background 150ms;
+  }
+  .nav-mobile-btn:hover { background: rgba(255,255,255,0.06); }
+
+  /* ── Mobile menu ─────────────────────────────────── */
+  .nav-mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid #DDD7CF;
+    background: rgba(250, 249, 246, 0.98);
+    backdrop-filter: blur(20px);
+  }
+  .nav-mobile-menu.open { display: flex; }
+
+  .nav-mobile-link {
+    display: block;
+    padding: 0.5625rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9375rem;
+    color: #6B6058;
+    text-decoration: none;
+    transition: all 150ms;
+  }
+  .nav-mobile-link:hover  { color: #1C1612; background: rgba(0,0,0,0.04); }
+  .nav-mobile-link.active { color: #D97706; }
+
+  .nav-mobile-divider {
+    display: block;
+    padding: 0.625rem 0.75rem 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #B8B0A8;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  /* ── Hamburger → X animation ─────────────────────── */
+  #burger-top, #burger-mid, #burger-bot {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 260ms ease, opacity 260ms ease;
+  }
+  #nav-toggle[aria-expanded="true"] #burger-top { transform: translateY(5px) rotate(45deg); }
+  #nav-toggle[aria-expanded="true"] #burger-mid { opacity: 0; }
+  #nav-toggle[aria-expanded="true"] #burger-bot { transform: translateY(-5px) rotate(-45deg); }
+</style>

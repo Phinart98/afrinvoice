@@ -1,0 +1,479 @@
+---
+import Base from '../../layouts/Base.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import AffiliateCallout from '../../components/AffiliateCallout.astro';
+import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+
+const pageUrl   = 'https://afrinvoice.app/invoice-templates/';
+const schema    = webAppSchema(
+  'Free Invoice Templates for Africa — 3 PDF Designs',
+  pageUrl,
+  'Download free Africa-ready invoice templates. Classic, Modern, and Minimal PDF designs. VAT-aware, mobile money payment fields. No sign-up required.',
+);
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'Invoice Templates', url: pageUrl },
+]);
+
+const templates = [
+  {
+    name: 'Minimal',
+    tag: 'Default',
+    description: 'Ultra-clean. No color blocks, hairline rules only, maximum whitespace. Lets your figures speak. The professional\'s choice for high-value consulting invoices.',
+    features: ['No color fill rows', 'Hairline rules only', 'Maximum whitespace', 'Elegant large invoice number'],
+    best: 'Consultants & executives',
+  },
+  {
+    name: 'Modern',
+    tag: 'Bold',
+    description: 'Customisable header band with accent colour. Alternating row shading. Bold invoice number. Perfect for tech companies, agencies, and creative freelancers.',
+    features: ['Custom header + accent colours', 'Alternating row shading', 'Bold invoice number accent', 'Contemporary feel'],
+    best: 'Agencies & tech freelancers',
+  },
+  {
+    name: 'Classic',
+    tag: 'Corporate',
+    description: 'Formal, clean, professional. Dark header row, customisable total accent colour, clear section separators. Suits corporate clients, law firms, accountants.',
+    features: ['Dark table header row', 'Custom accent colour', 'Clean horizontal rules', 'Full business logo support'],
+    best: 'Formal B2B invoicing',
+  },
+];
+
+const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'Are these invoice templates free to download?',
+    a: 'Yes — all three templates are completely free. No account, no watermark, no hidden fees. Generate your invoice, pick a template, and download the PDF instantly.',
+  },
+  {
+    q: 'Do the templates work for all 17 African countries?',
+    a: 'Yes. The template controls the visual design only — the country-specific data (currency, VAT label, mobile money providers) is separate. Select your country first, then choose whichever template suits you.',
+  },
+  {
+    q: 'Can I customise the template colours?',
+    a: 'Yes. The Modern template lets you pick your header band colour and accent colour. The Classic template lets you customise the total amount accent colour. Minimal keeps its clean look without colour options — that\'s the point.',
+  },
+  {
+    q: 'Can I add my business logo to the PDF?',
+    a: 'Yes. Upload your logo (PNG or JPG) in the Your Business section. It appears in the top-left of every template PDF at a consistent size.',
+  },
+  {
+    q: 'Which template is best for Ghanaian, Nigerian, or Kenyan businesses?',
+    a: 'All three work across every African market. <strong>Minimal</strong> is the default — clean and universally trusted. <strong>Classic</strong> suits formal B2B and corporate clients. <strong>Modern</strong> works well for agencies and tech freelancers who want a branded feel.',
+  },
+];
+---
+
+<Base
+  title="Free Invoice Templates for Africa — Classic, Modern, Minimal PDF — Afrinvoice"
+  description="Download free Africa-ready invoice templates. Classic, Modern, and Minimal PDF designs with GRA VAT, KRA VAT, mobile money payment fields. No sign-up required."
+  schema={[schema, breadcrumb, faqSchema(faqs)]}
+>
+
+  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+  <section class="tpl-hero" aria-labelledby="tpl-heading">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Invoice Templates</span>
+      </nav>
+
+      <h1 id="tpl-heading" class="tpl-heading">
+        Free Invoice Templates<br />
+        <span class="shimmer">for Africa</span>
+      </h1>
+
+      <p class="tpl-sub">
+        3 professional PDF invoice designs — VAT-aware, mobile money ready,
+        branded with your logo. Choose your template, fill your details, download instantly.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Template Gallery ───────────────────────────────────────────── -->
+  <section class="section-sm" aria-labelledby="gallery-heading">
+    <div class="container">
+      <h2 id="gallery-heading" class="sr-only">Template designs</h2>
+      <div class="gallery">
+        {templates.map(t => (
+          <div class="tpl-card">
+            <div class="tpl-preview">
+              <!-- Visual preview mockup -->
+              <div class="mock-invoice">
+                {t.name === 'Modern' ? (
+                  <!-- Modern: full-bleed dark header band with amber INVOICE text -->
+                  <div class="mock-band-modern">
+                    <div class="mock-biz">
+                      <div class="mock-logo mock-logo--dark"></div>
+                      <div class="mock-lines">
+                        <div class="mock-line mock-line--w-bold" style="width: 65px"></div>
+                        <div class="mock-line mock-line--w-dim"  style="width: 45px"></div>
+                      </div>
+                    </div>
+                    <span class="mock-inv-amber">INVOICE</span>
+                  </div>
+                ) : t.name === 'Minimal' ? (
+                  <!-- Minimal: standard layout but large invoice number as typographic hero -->
+                  <>
+                    <div class="mock-header">
+                      <div class="mock-biz">
+                        <div class="mock-logo"></div>
+                        <div class="mock-lines">
+                          <div class="mock-line mock-line--bold" style="width: 80px"></div>
+                          <div class="mock-line" style="width: 55px"></div>
+                        </div>
+                      </div>
+                      <div class="mock-meta mock-meta--minimal">
+                        <div class="mock-inv-label-minimal">INVOICE</div>
+                        <div class="mock-inv-number-hero"></div>
+                        <div class="mock-line" style="width: 40px"></div>
+                      </div>
+                    </div>
+                    <div class="mock-rule mock-rule--heavy"></div>
+                  </>
+                ) : (
+                  <!-- Classic: standard header row -->
+                  <>
+                    <div class="mock-header">
+                      <div class="mock-biz">
+                        <div class="mock-logo"></div>
+                        <div class="mock-lines">
+                          <div class="mock-line mock-line--bold" style="width: 80px"></div>
+                          <div class="mock-line" style="width: 60px"></div>
+                        </div>
+                      </div>
+                      <div class="mock-meta">
+                        <div class="mock-inv-label">INVOICE</div>
+                        <div class="mock-line" style="width: 55px"></div>
+                        <div class="mock-line" style="width: 45px"></div>
+                      </div>
+                    </div>
+                    <div class="mock-rule"></div>
+                  </>
+                )}
+                <div class:list={['mock-table-header', { 'mock-th-modern': t.name === 'Modern', 'mock-th-minimal': t.name === 'Minimal' }]}></div>
+                <div class="mock-row"></div>
+                <div class:list={['mock-row', { 'mock-row-alt': t.name !== 'Minimal' }]}></div>
+                <div class="mock-row"></div>
+                {t.name === 'Minimal' ? (
+                  <!-- Minimal total: hairline rule + bold text, no fill -->
+                  <div class="mock-total mock-total--minimal">
+                    <div class="mock-total-rule"></div>
+                    <div class="mock-total-text-minimal"></div>
+                  </div>
+                ) : (
+                  <div class="mock-total">
+                    <div class="mock-total-amt"></div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div class="tpl-info">
+              <div class="tpl-name-row">
+                <h3 class="tpl-name">{t.name}</h3>
+                <span class:list={['tpl-tag', { 'tpl-tag--bold': t.tag === 'Bold', 'tpl-tag--corporate': t.tag === 'Corporate' }]}>{t.tag}</span>
+              </div>
+              <p class="tpl-desc">{t.description}</p>
+              <ul class="tpl-features">
+                {t.features.map(f => <li>{f}</li>)}
+              </ul>
+              <p class="tpl-best">Best for: <strong>{t.best}</strong></p>
+              <a href={`/?template=${t.name.toLowerCase()}`} class="tpl-use-btn">
+                Use {t.name} template →
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Affiliate callout ──────────────────────────────────────────── -->
+  <div class="container affiliate-wrap">
+    <AffiliateCallout affiliate="freshbooks" />
+  </div>
+
+  <!-- ── FAQ ───────────────────────────────────────────────────────── -->
+  <section class="section" aria-labelledby="tpl-faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Invoice Templates — FAQs" />
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  .tpl-hero {
+    padding: 4rem 0 3rem;
+    text-align: center;
+  }
+
+  .breadcrumb {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: var(--text-4);
+    margin-bottom: 1.5rem;
+  }
+  .breadcrumb a { color: var(--text-3); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+
+  .tpl-heading {
+    font-size: clamp(1.875rem, 5vw, 3rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+    max-width: 38rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .tpl-sub {
+    font-size: clamp(1rem, 2vw, 1.0625rem);
+    color: var(--text-3);
+    line-height: 1.75;
+    max-width: 34rem;
+    margin: 0 auto;
+  }
+
+  /* ── Gallery ──────────────────────────────────────────────────────── */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 900px) { .gallery { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+
+  .tpl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow var(--ease);
+  }
+  .tpl-card:hover:not(.tpl-card--disabled) { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+  /* ── Mock invoice preview ─────────────────────────────────────────── */
+  .tpl-preview {
+    background: #F1F5F9;
+    padding: 1.25rem 1rem;
+    display: flex;
+    justify-content: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mock-invoice {
+    background: #ffffff;
+    width: 100%;
+    max-width: 220px;
+    padding: 0.875rem;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  .mock-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+  .mock-biz    { display: flex; align-items: flex-start; gap: 0.375rem; }
+
+  .mock-logo {
+    width: 22px;
+    height: 22px;
+    background: var(--border);
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .mock-lines { display: flex; flex-direction: column; gap: 3px; }
+
+  .mock-line {
+    height: 5px;
+    background: #E2E8F0;
+    border-radius: 2px;
+  }
+  .mock-line--bold  { background: #94A3B8; height: 6px; }
+  .mock-line--w-bold { background: rgba(255,255,255,0.80); height: 6px; }
+  .mock-line--w-dim  { background: rgba(255,255,255,0.35); }
+
+  /* Modern header band */
+  .mock-band-modern {
+    background: #0F172A;
+    margin: -0.875rem -0.875rem 0.5rem;
+    padding: 0.625rem 0.875rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 4px 4px 0 0;
+  }
+  .mock-logo--dark { background: rgba(255,255,255,0.20); }
+  .mock-inv-amber {
+    font-size: 11px;
+    font-weight: 800;
+    color: #F59E0B;
+    letter-spacing: -0.01em;
+    font-family: sans-serif;
+  }
+
+  .mock-meta { text-align: right; }
+
+  .mock-inv-label {
+    font-size: 9px;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.01em;
+    margin-bottom: 3px;
+  }
+
+  /* Minimal-specific header elements */
+  .mock-meta--minimal { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .mock-inv-label-minimal {
+    font-size: 7px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: #94A3B8;
+    font-family: sans-serif;
+  }
+  /* Large invoice number — the typographic hero of Minimal */
+  .mock-inv-number-hero {
+    width: 55px;
+    height: 9px;
+    background: #1E293B;
+    border-radius: 2px;
+  }
+
+  .mock-rule { height: 1px; background: #E2E8F0; margin: 0.5rem 0; }
+  .mock-rule--heavy { height: 1.5px; background: #475569; margin: 0.5rem 0; }
+
+  .mock-table-header {
+    height: 12px;
+    background: #0F172A;
+    border-radius: 2px;
+    margin-bottom: 2px;
+  }
+  .mock-th-modern { background: #1E3A5F; }
+  .mock-th-minimal { background: transparent; border-top: 1px solid #CBD5E1; border-bottom: 1px solid #CBD5E1; height: 10px; }
+
+  .mock-row     { height: 10px; background: #fff; margin-bottom: 2px; }
+  .mock-row-alt { background: #F8FAFC; }
+
+  .mock-total     { display: flex; justify-content: flex-end; padding-top: 4px; border-top: 1px solid #E2E8F0; margin-top: 2px; }
+  .mock-total-amt { width: 40px; height: 8px; background: #F59E0B; border-radius: 2px; }
+
+  /* Minimal total: hairline + bold text, no fill */
+  .mock-total--minimal { flex-direction: column; align-items: flex-end; gap: 3px; border-top: 1.5px solid #475569; }
+  .mock-total-rule     { display: none; } /* border already on parent */
+  .mock-total-text-minimal { width: 50px; height: 7px; background: #1E293B; border-radius: 2px; }
+
+  /* ── Template info ────────────────────────────────────────────────── */
+  .tpl-info {
+    padding: 1.125rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  .tpl-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tpl-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+  }
+
+  .tpl-tag {
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 9999px;
+    background: rgba(245, 158, 11, 0.1);
+    color: #D97706;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tpl-tag--bold {
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563EB;
+  }
+  .tpl-tag--corporate {
+    background: rgba(100, 116, 139, 0.1);
+    color: #475569;
+  }
+
+  .tpl-desc {
+    font-size: 0.8125rem;
+    color: var(--text-3);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .tpl-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .tpl-features li {
+    font-size: 0.75rem;
+    color: var(--text-4);
+    padding-left: 1rem;
+    position: relative;
+  }
+  .tpl-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #16A34A;
+    font-weight: 700;
+  }
+
+  .tpl-best {
+    font-size: 0.75rem;
+    color: var(--text-4);
+    margin: 0;
+  }
+  .tpl-best strong { color: var(--text-3); }
+
+  .tpl-use-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: #F59E0B;
+    color: #ffffff;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    border-radius: 6px;
+    text-decoration: none;
+    align-self: flex-start;
+    transition: background var(--ease);
+    margin-top: auto;
+  }
+  .tpl-use-btn:hover { background: #D97706; }
+
+
+  .affiliate-wrap { padding-top: 1rem; padding-bottom: 1rem; }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>

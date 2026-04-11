@@ -1,0 +1,276 @@
+---
+import Base from '../../layouts/Base.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import AffiliateCallout from '../../components/AffiliateCallout.astro';
+import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+
+const pageUrl   = 'https://afrinvoice.app/how-to-invoice-ghana/';
+const schema    = articleSchema(
+  'How to Invoice Clients in Ghana — GRA VAT Guide',
+  pageUrl,
+  'Complete guide to invoicing clients in Ghana. GRA VAT 15%, invoice number formats, MTN MoMo payment, late payment terms, and a free invoice generator.',
+);
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'How to Invoice Clients in Ghana', url: pageUrl },
+]);
+
+const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'Do I need to charge GRA VAT if I am a freelancer in Ghana?',
+    a: 'Only if your annual taxable turnover exceeds <strong>GH₵ 750,000</strong> (threshold raised under Ghana VAT Act 2025, effective January 2026). Below this threshold, VAT registration is not required. Above GH₵ 750,000, register with the GRA and charge <strong>20% total</strong> (15% VAT + 2.5% NHIL + 2.5% GETFund levies).',
+  },
+  {
+    q: 'What is the standard payment term for Ghana invoices?',
+    a: 'Net 30 days is the most common for B2B invoices in Ghana. Freelancers often use Net 14 days. Add your terms in the Notes field: e.g. "Payment due within 30 days of invoice date."',
+  },
+  {
+    q: 'Can I invoice in USD from Ghana?',
+    a: 'Yes. Many Ghanaian freelancers, especially those on international platforms, invoice in USD. Change the currency to USD in the tool, set tax to 0% for export services, and provide Wise or Payoneer bank details.',
+  },
+  {
+    q: 'What information must appear on a Ghana invoice?',
+    a: 'A professional Ghana invoice must include: your name and contact, the client\'s name and address, a unique invoice number, invoice date and due date, an itemised list of services, the tax label (GRA VAT + levies — 20% total if VAT-registered), totals, and payment instructions.',
+  },
+];
+---
+
+<Base
+  title="How to Invoice Clients in Ghana — GRA VAT Guide — Afrinvoice"
+  description="Complete guide to invoicing clients in Ghana. GRA VAT 15%, invoice formats, MTN MoMo payment instructions, due dates, and a free invoice generator."
+  schema={[schema, breadcrumb, faqSchema(faqs)]}
+>
+
+  <article class="guide-wrap" aria-labelledby="guide-heading">
+    <div class="container-narrow">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">How to Invoice Clients in Ghana</span>
+      </nav>
+
+      <header class="guide-header">
+        <div class="guide-badge">🇬🇭 Ghana · GRA VAT 20% · MTN MoMo</div>
+        <h1 id="guide-heading" class="guide-heading">How to Invoice Clients in Ghana</h1>
+        <p class="guide-lead">
+          Whether you're a freelance designer in Accra, a consultant billing a corporate client, or a
+          small business owner sending your first invoice — this guide walks you through everything
+          you need to know about invoicing in Ghana correctly.
+        </p>
+      </header>
+
+      <section class="guide-section">
+        <h2>What goes on a Ghana invoice?</h2>
+        <p>A professional Ghana invoice must include these fields:</p>
+        <ul>
+          <li><strong>Your business name, email, phone, and address</strong> — or your full name if you're a sole trader</li>
+          <li><strong>Client name and address</strong></li>
+          <li><strong>Unique invoice number</strong> — e.g. GH-0001, GH-0002 (sequential, never repeat)</li>
+          <li><strong>Invoice date</strong> and <strong>due date</strong></li>
+          <li><strong>Itemised services</strong> — description, quantity, unit price, and line total</li>
+          <li><strong>GRA VAT + Levies (20% total)</strong> — 15% VAT + 2.5% NHIL + 2.5% GETFund — only if VAT-registered</li>
+          <li><strong>Grand total</strong> in Ghana Cedi (GH₵)</li>
+          <li><strong>Payment instructions</strong> — MTN MoMo number, bank account, or both</li>
+        </ul>
+      </section>
+
+      <section class="guide-section">
+        <h2>Do you need to charge GRA VAT?</h2>
+        <p>
+          VAT registration in Ghana is required once your annual taxable turnover exceeds
+          <strong>GH₵ 750,000</strong> (raised under Ghana VAT Act 2025, effective January 2026).
+          Below this threshold, you are not required to charge VAT.
+        </p>
+        <p>
+          If you are VAT-registered, the total rate is <strong>20%</strong>: 15% VAT + 2.5% NHIL
+          (National Health Insurance Levy) + 2.5% GETFund Levy — all charged on the same taxable base.
+          GRA also requires VAT receipts to be issued through an approved Electronic Invoicing System (EIS).
+        </p>
+        <div class="guide-callout">
+          <strong>Not sure if you're VAT-registered?</strong> Check your GRA TIN certificate or
+          contact the GRA Taxpayer Education unit on their website.
+        </div>
+      </section>
+
+      <section class="guide-section">
+        <h2>Mobile money payment instructions</h2>
+        <p>
+          Ghana has strong mobile money adoption. It is entirely normal — and expected — to include
+          your <strong>MTN MoMo</strong>, <strong>Telecel Cash</strong>, or <strong>AirtelTigo Money</strong>
+          number on your invoice. Most Ghanaian clients can pay instantly via MoMo.
+        </p>
+        <ul>
+          <li><strong>MTN MoMo</strong>: 024, 054, 055, 059 numbers. USSD: *170#</li>
+          <li><strong>Telecel Cash</strong> (formerly Vodafone Cash): 020, 050 numbers. USSD: *110#</li>
+          <li><strong>AirtelTigo Money</strong>: 027, 057 numbers. USSD: *110#</li>
+        </ul>
+        <p>Include your full name and number. For amounts above GH₵ 5,000, bank transfer is often preferred.</p>
+      </section>
+
+      <section class="guide-section">
+        <h2>Invoice number format for Ghana</h2>
+        <p>
+          There is no legally mandated format, but a good practice is to use a
+          <strong>country prefix + zero-padded number</strong>:
+        </p>
+        <div class="guide-example">
+          <code>GH-0001</code> → <code>GH-0002</code> → <code>GH-0003</code>
+        </div>
+        <p>
+          This makes invoices easy to track, sort, and reference in client conversations.
+          Afrinvoice auto-generates these and increments on each download.
+        </p>
+      </section>
+
+      <section class="guide-section">
+        <h2>Payment terms</h2>
+        <p>Standard payment terms in Ghana:</p>
+        <ul>
+          <li><strong>Freelancers:</strong> Net 14 days (or 50% upfront, 50% on delivery)</li>
+          <li><strong>B2B services:</strong> Net 30 days</li>
+          <li><strong>Large corporate:</strong> Net 45–60 days (negotiate for shorter)</li>
+        </ul>
+        <p>Add your terms in the Notes field: <em>"Payment due within 14 days of invoice date. Late payments incur 2% monthly interest."</em></p>
+      </section>
+
+      <div class="guide-cta-wrap">
+        <a href="/ghana-invoice-generator/" class="guide-cta">
+          Create your Ghana invoice →
+        </a>
+        <p class="guide-cta-sub">GRA VAT 15% pre-filled · MTN MoMo fields · Free PDF</p>
+      </div>
+
+    </div>
+  </article>
+
+  <div class="container affiliate-wrap">
+    <AffiliateCallout affiliate="freshbooks" />
+  </div>
+
+  <section class="section" aria-labelledby="gh-guide-faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Ghana Invoicing — FAQs" />
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  .guide-wrap { padding: 3rem 0; }
+
+  .guide-badge {
+    display: inline-block;
+    padding: 0.3125rem 0.875rem;
+    background: rgba(245, 158, 11, 0.06);
+    border: 1px solid rgba(245, 158, 11, 0.18);
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #D97706;
+    margin-bottom: 1rem;
+  }
+
+  .guide-heading {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+
+  .guide-lead {
+    font-size: 1.0625rem;
+    color: var(--text-3);
+    line-height: 1.75;
+    margin-bottom: 0;
+  }
+
+  .guide-section {
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .guide-section h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.875rem;
+  }
+
+  .guide-section p {
+    font-size: 0.9375rem;
+    color: var(--text-2);
+    line-height: 1.75;
+    margin-bottom: 0.75rem;
+  }
+
+  .guide-section ul {
+    margin: 0.5rem 0 0.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .guide-section li {
+    font-size: 0.9375rem;
+    color: var(--text-2);
+    line-height: 1.65;
+  }
+
+  .guide-callout {
+    margin-top: 1rem;
+    padding: 0.875rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 0.875rem;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+
+  .guide-example {
+    margin: 0.75rem 0;
+    padding: 0.75rem 1rem;
+    background: var(--surface-2);
+    border-radius: var(--radius);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875rem;
+    color: var(--text);
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .guide-cta-wrap {
+    margin-top: 3rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .guide-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.875rem 2rem;
+    background: #F59E0B;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background var(--ease);
+  }
+  .guide-cta:hover { background: #D97706; }
+
+  .guide-cta-sub {
+    margin-top: 0.625rem;
+    font-size: 0.8125rem;
+    color: var(--text-4);
+  }
+
+  .affiliate-wrap { padding-top: 2rem; padding-bottom: 1rem; }
+</style>

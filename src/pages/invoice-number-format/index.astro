@@ -1,0 +1,179 @@
+---
+import Base from '../../layouts/Base.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import AffiliateCallout from '../../components/AffiliateCallout.astro';
+import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+
+const pageUrl   = 'https://afrinvoice.app/invoice-number-format/';
+const schema    = articleSchema(
+  'Invoice Number Format Guide — Best Practices',
+  pageUrl,
+  'How to format invoice numbers professionally. Sequential formats, country prefixes, date-based systems. Examples for Ghana, Nigeria, Kenya, and more.',
+);
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'Invoice Number Format Guide', url: pageUrl },
+]);
+
+const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'Can I reuse invoice numbers?',
+    a: 'No. Invoice numbers must be unique. Reusing invoice numbers creates accounting confusion, can trigger audit flags, and is unprofessional. Always increment sequentially and never skip or reuse numbers.',
+  },
+  {
+    q: 'Is there a legally required invoice number format in Africa?',
+    a: 'No specific format is legally mandated in most African countries. GRA (Ghana), KRA (Kenya), and NRS (Nigeria) require invoices to have unique sequential numbers, but the exact format is at your discretion. The format matters less than consistency and uniqueness.',
+  },
+  {
+    q: 'Should I include the year in my invoice number?',
+    a: 'For businesses issuing many invoices, a year prefix (INV-2026-0001) helps with filing and retrieval. For freelancers with fewer invoices, a simple sequential format (GH-0001) is cleaner and sufficient.',
+  },
+  {
+    q: 'What format does Afrinvoice use for invoice numbers?',
+    a: 'Afrinvoice uses a country prefix + zero-padded sequential number: GH-0001 for Ghana, NG-0001 for Nigeria, KE-0001 for Kenya, etc. This is auto-generated and increments on each PDF download. You can override it at any time.',
+  },
+];
+---
+
+<Base
+  title="Invoice Number Format — Best Practices for African Businesses — Afrinvoice"
+  description="How to format invoice numbers professionally. Sequential formats, country prefixes, date-based systems. Best practices for Ghana, Nigeria, Kenya, South Africa."
+  schema={[schema, breadcrumb, faqSchema(faqs)]}
+>
+
+  <article class="guide-wrap" aria-labelledby="guide-heading">
+    <div class="container-narrow">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Invoice Number Format Guide</span>
+      </nav>
+
+      <header class="guide-header">
+        <div class="guide-badge">Evergreen guide · All countries</div>
+        <h1 id="guide-heading" class="guide-heading">Invoice Number Format — Best Practices</h1>
+        <p class="guide-lead">
+          Every invoice needs a unique number. Here's how to format it professionally,
+          stay consistent, and avoid common mistakes — with examples for Ghana, Nigeria, Kenya,
+          and South Africa.
+        </p>
+      </header>
+
+      <section class="guide-section">
+        <h2>Why invoice numbers matter</h2>
+        <p>
+          Invoice numbers serve three purposes:
+        </p>
+        <ul>
+          <li><strong>Traceability</strong> — you and your client can reference "Invoice GH-0047" in emails without confusion</li>
+          <li><strong>Accounting</strong> — sequential numbers make it easy to verify no invoice was skipped or duplicated</li>
+          <li><strong>Tax compliance</strong> — tax authorities (GRA, KRA, NRS) require invoices to have unique, sequential numbers</li>
+        </ul>
+      </section>
+
+      <section class="guide-section">
+        <h2>Common invoice number formats</h2>
+
+        <h3>1. Simple sequential (most common for freelancers)</h3>
+        <div class="guide-example">
+          <code>INV-0001</code><code>INV-0002</code><code>INV-0003</code>
+        </div>
+        <p>Clean, universal. Works for any country or currency. Best for freelancers with a single business.</p>
+
+        <h3>2. Country prefix + sequential (recommended)</h3>
+        <div class="guide-example">
+          <code>GH-0001</code><code>NG-0001</code><code>KE-0001</code><code>ZA-0001</code>
+        </div>
+        <p>Afrinvoice auto-generates these. Useful if you invoice clients in multiple countries — each invoice is immediately identifiable by market.</p>
+
+        <h3>3. Year + sequential</h3>
+        <div class="guide-example">
+          <code>2026-0001</code><code>2026-0002</code><code>INV-2026-001</code>
+        </div>
+        <p>Best for businesses with high invoice volumes. Resets to 001 each year, making annual filing and audits easier.</p>
+
+        <h3>4. Client prefix + sequential</h3>
+        <div class="guide-example">
+          <code>ACME-001</code><code>ACME-002</code><code>ZENITH-001</code>
+        </div>
+        <p>Useful for agencies managing multiple ongoing client relationships. Each client gets their own sequence.</p>
+
+        <h3>5. Date-based</h3>
+        <div class="guide-example">
+          <code>20260409-001</code><code>20260410-001</code>
+        </div>
+        <p>Rarely used but guarantees chronological ordering. Overly complex for most freelancers.</p>
+      </section>
+
+      <section class="guide-section">
+        <h2>Rules to follow</h2>
+        <ul>
+          <li><strong>Never reuse a number</strong> — even for cancelled invoices. Mark cancelled ones as "VOID"</li>
+          <li><strong>Never skip numbers</strong> — gaps in sequences raise audit flags</li>
+          <li><strong>Zero-pad to at least 4 digits</strong> — 0001 sorts correctly; 1 does not</li>
+          <li><strong>Be consistent</strong> — pick one format and stick to it across all clients</li>
+          <li><strong>Start at 0001, not 1</strong> — avoids accidentally creating a very short sequence early on</li>
+        </ul>
+      </section>
+
+      <section class="guide-section">
+        <h2>Afrinvoice default formats by country</h2>
+        <div class="format-table">
+          <div class="fmt-row fmt-header">
+            <span>Country</span><span>Format</span><span>Example</span>
+          </div>
+          <div class="fmt-row"><span>🇬🇭 Ghana</span><span>GH-XXXX</span><span class="fmt-mono">GH-0001</span></div>
+          <div class="fmt-row"><span>🇳🇬 Nigeria</span><span>NG-XXXX</span><span class="fmt-mono">NG-0001</span></div>
+          <div class="fmt-row"><span>🇰🇪 Kenya</span><span>KE-XXXX</span><span class="fmt-mono">KE-0001</span></div>
+          <div class="fmt-row"><span>🇿🇦 South Africa</span><span>ZA-XXXX</span><span class="fmt-mono">ZA-0001</span></div>
+          <div class="fmt-row"><span>🇿🇼 Zimbabwe</span><span>ZW-XXXX</span><span class="fmt-mono">ZW-0001</span></div>
+          <div class="fmt-row"><span>🇺🇬 Uganda</span><span>UG-XXXX</span><span class="fmt-mono">UG-0001</span></div>
+          <div class="fmt-row"><span>🇹🇿 Tanzania</span><span>TZ-XXXX</span><span class="fmt-mono">TZ-0001</span></div>
+          <div class="fmt-row"><span>🇷🇼 Rwanda</span><span>RW-XXXX</span><span class="fmt-mono">RW-0001</span></div>
+        </div>
+        <p>You can override the invoice number in the tool at any time — just type your preferred format in the field.</p>
+      </section>
+
+      <div class="guide-cta-wrap">
+        <a href="/" class="guide-cta">Generate your first invoice →</a>
+        <p class="guide-cta-sub">Auto-numbered · Free · No sign-up</p>
+      </div>
+
+    </div>
+  </article>
+
+  <div class="container" style="padding-top: 2rem; padding-bottom: 1rem;">
+    <AffiliateCallout affiliate="freshbooks" />
+  </div>
+
+  <section class="section" aria-labelledby="inv-num-faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Invoice Number Format — FAQs" />
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  .guide-wrap { padding: 3rem 0; }
+  .guide-badge { display: inline-block; padding: 0.3125rem 0.875rem; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #D97706; margin-bottom: 1rem; }
+  .guide-heading { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.2; letter-spacing: -0.025em; color: var(--text); margin-bottom: 1rem; }
+  .guide-lead { font-size: 1.0625rem; color: var(--text-3); line-height: 1.75; }
+  .guide-section { margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--border); }
+  .guide-section h2 { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; margin-bottom: 0.875rem; }
+  .guide-section h3 { font-size: 1rem; font-weight: 700; color: var(--text-2); margin: 1.25rem 0 0.5rem; }
+  .guide-section p { font-size: 0.9375rem; color: var(--text-2); line-height: 1.75; margin-bottom: 0.75rem; }
+  .guide-section ul { margin: 0.5rem 0 0.75rem 1.25rem; display: flex; flex-direction: column; gap: 0.375rem; }
+  .guide-section li { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; }
+  .guide-example { margin: 0.5rem 0 0.75rem; padding: 0.75rem 1rem; background: var(--surface-2); border-radius: var(--radius); font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--text); display: flex; gap: 1rem; flex-wrap: wrap; }
+  .format-table { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1rem 0; }
+  .fmt-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 0.625rem 0.875rem; font-size: 0.875rem; border-bottom: 1px solid var(--border); }
+  .fmt-row:last-child { border-bottom: none; }
+  .fmt-header { background: var(--surface-2); font-weight: 700; font-size: 0.75rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+  .fmt-mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; color: var(--accent); }
+  .guide-cta-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border); text-align: center; }
+  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #F59E0B; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
+  .guide-cta:hover { background: #D97706; }
+  .guide-cta-sub { margin-top: 0.625rem; font-size: 0.8125rem; color: var(--text-4); }
+</style>

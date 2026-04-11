@@ -1,0 +1,375 @@
+---
+import Base from '../layouts/Base.astro';
+import AdUnit from '../components/AdUnit.astro';
+import FaqSection from '../components/FaqSection.astro';
+import AffiliateCallout from '../components/AffiliateCallout.astro';
+import InvoiceGenerator from '../components/InvoiceGenerator.vue';
+import { webAppSchema, faqSchema } from '../utils/schema';
+
+const schema = webAppSchema(
+  'Afrinvoice — Free Invoice Generator for Africa',
+  'https://afrinvoice.app',
+  'Create professional invoices with GRA VAT, MTN MoMo, M-Pesa payment instructions. Free, no sign-up, instant PDF download.',
+);
+
+const tier1Countries = [
+  { flag: '🇬🇭', name: 'Ghana',        href: '/ghana-invoice-generator/',        hint: 'GRA VAT 20%' },
+  { flag: '🇳🇬', name: 'Nigeria',      href: '/nigeria-invoice-generator/',      hint: 'NRS VAT 7.5%' },
+  { flag: '🇰🇪', name: 'Kenya',        href: '/kenya-invoice-generator/',        hint: 'KRA VAT 16%' },
+  { flag: '🇿🇦', name: 'South Africa', href: '/south-africa-invoice-generator/', hint: 'SARS VAT 15%' },
+  { flag: '🇿🇼', name: 'Zimbabwe',     href: '/zimbabwe-invoice-generator/',     hint: 'EcoCash' },
+];
+
+const features = [
+  {
+    icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 3v5l3 3" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    title: 'Country-smart tax rates',
+    body: 'GRA 15% (Ghana), NRS 7.5% (Nigeria), KRA 16% (Kenya) — pre-filled and editable.',
+  },
+  {
+    icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" stroke="#F59E0B" stroke-width="1.5"/><path d="M3 8h14" stroke="#F59E0B" stroke-width="1.5"/><circle cx="7" cy="12" r="1.25" fill="#F59E0B"/></svg>`,
+    title: 'Mobile money instructions',
+    body: 'MTN MoMo, M-Pesa, EcoCash, OPay — correct providers per country, not a generic list.',
+  },
+  {
+    icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h12v1H4zM4 7h8M4 10h10M4 13h6" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/><rect x="2" y="2" width="16" height="16" rx="2" stroke="#F59E0B" stroke-width="1.5"/></svg>`,
+    title: '3 PDF templates',
+    body: 'Classic, Modern, and Minimal — download instantly with no watermark, no sign-up.',
+  },
+  {
+    icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v5l3.5 3.5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/><path d="M5 15.5A8 8 0 1015.5 5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/><path d="M5 11V15.5H9.5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    title: 'Business details saved',
+    body: 'Your name, email, and payment info are auto-saved in your browser. Ready next time.',
+  },
+];
+
+const faqs: import('../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'Is Afrinvoice really free?',
+    a: 'Yes — completely free. No account, no watermark, no hidden fees. Your data stays in your browser and never touches our servers.',
+  },
+  {
+    q: 'Which African countries are supported?',
+    a: 'All <strong>17 African countries</strong> are available in the tool — select your country and the tax authority, VAT rate, currency, and correct payment providers auto-fill. <strong>Ghana, Nigeria, Kenya, South Africa, and Zimbabwe</strong> each have dedicated country pages with tailored guides. More country pages are being added regularly.',
+  },
+  {
+    q: 'Can I add MTN MoMo, M-Pesa or EcoCash payment details?',
+    a: 'Yes. The payment section adapts per country — MTN MoMo for Ghana, M-Pesa for Kenya, EcoCash for Zimbabwe. Nigeria defaults to bank transfer (the B2B standard), with OPay and PalmPay as mobile options.',
+  },
+  {
+    q: 'Does it support GRA VAT, NRS/FIRS, and KRA VAT?',
+    a: 'Yes. Select your country and the tool auto-fills the correct authority and rate — GRA 15% (Ghana), NRS 7.5% (Nigeria), KRA 16% (Kenya), SARS 15% (South Africa), ZIMRA 15% (Zimbabwe), and more. Every field is editable if your situation differs.',
+  },
+  {
+    q: 'Will my business details be saved for next time?',
+    a: 'Your business name, email, address, logo, and payment details are saved automatically in your browser\'s local storage. They reload on your next visit. Client details and invoice numbers are <em>per-invoice</em> and are not saved.',
+  },
+  {
+    q: 'Can I download my invoice as a PDF?',
+    a: 'Yes. Choose from 3 templates — Classic (formal), Modern (navy + amber), Minimal (ultra-clean) — and download your PDF instantly. No sign-up, no watermark.',
+  },
+];
+---
+
+<Base
+  title="Free Invoice Generator for Africa — Afrinvoice"
+  description="Create professional invoices with GRA VAT, M-Pesa, MTN MoMo payment instructions. Free, no sign-up, instant PDF download. Built for Ghana, Nigeria, Kenya, South Africa, Zimbabwe."
+  schema={[schema, faqSchema(faqs)]}
+>
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────── -->
+  <section class="hero" aria-labelledby="hero-heading">
+    <!-- Ambient glow behind headline -->
+    <div class="hero-glow" aria-hidden="true"></div>
+
+    <div class="container">
+      <div class="hero-content">
+
+        <div class="hero-badge anim-fade-up anim-delay-1">
+          VAT-aware &middot; MoMo-ready &middot; Instant PDF
+        </div>
+
+        <h1 id="hero-heading" class="hero-heading anim-fade-up anim-delay-2">
+          Create your invoice.<br />
+          <span class="shimmer">Get paid faster.</span>
+        </h1>
+
+        <p class="hero-sub anim-fade-up anim-delay-3">
+          Select your country — VAT rate, currency, and payment instructions fill in automatically. For Africa's freelancers, consultants, and businesses.
+          <strong>Free. No sign-up. Instant PDF.</strong>
+        </p>
+
+        <!-- Country chips -->
+        <div class="hero-chips anim-fade-up anim-delay-4" role="list" aria-label="Country-specific invoice generators">
+          {tier1Countries.map(c => (
+            <a href={c.href} class="country-chip" role="listitem" title={`Invoice generator for ${c.name} (${c.hint})`}>
+              <span aria-hidden="true">{c.flag}</span>
+              {c.name}
+            </a>
+          ))}
+        </div>
+
+        <!-- Stats strip -->
+        <div class="hero-stats anim-fade-up anim-delay-5" aria-label="Afrinvoice key statistics">
+          <div class="hero-stat">
+            <span class="hero-stat-num mono">17</span>
+            <span class="hero-stat-label">African countries</span>
+          </div>
+          <div class="hero-stat-sep" aria-hidden="true"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-num mono">3</span>
+            <span class="hero-stat-label">PDF templates</span>
+          </div>
+          <div class="hero-stat-sep" aria-hidden="true"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-num mono">100%</span>
+            <span class="hero-stat-label">browser-only</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Invoice Generator ────────────────────────────────────────────── -->
+  <section class="tool-section" aria-label="Invoice generator">
+    <div class="container">
+      <div class="tool-shell">
+        <InvoiceGenerator client:only="vue" />
+      </div>
+    </div>
+  </section>
+
+  <AdUnit slot="tool-below" />
+
+  <!-- ── Features ──────────────────────────────────────────────────────── -->
+  <section class="features section" aria-labelledby="features-heading">
+    <div class="container">
+      <h2 id="features-heading" class="features-heading">
+        Built for how African business actually works
+      </h2>
+      <div class="features-grid">
+        {features.map(f => (
+          <div class="feature-card">
+            <div class="feature-icon" set:html={f.icon} aria-hidden="true" />
+            <h3 class="feature-title">{f.title}</h3>
+            <p class="feature-body">{f.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Affiliate callout ──────────────────────────────────────────────── -->
+  <div class="container affiliate-wrap">
+    <AffiliateCallout affiliate="freshbooks" />
+  </div>
+
+  <!-- ── FAQ ───────────────────────────────────────────────────────────── -->
+  <section class="section" aria-labelledby="faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Frequently Asked Questions" />
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  /* ── Hero ─────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    padding: 6rem 0 4rem;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  /* Radial amber glow — ambient warmth behind the headline */
+  .hero-glow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 500px;
+    background: radial-gradient(ellipse 70% 60% at 50% 15%, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 50%, transparent 75%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.625rem;
+    max-width: 52rem;
+    margin: 0 auto;
+  }
+
+  /* Badge */
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3125rem 0.875rem;
+    background: rgba(245, 158, 11, 0.06);
+    border: 1px solid rgba(245, 158, 11, 0.18);
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #D97706;
+    letter-spacing: 0.01em;
+  }
+
+  /* Headline */
+  .hero-heading {
+    font-size: clamp(2.125rem, 6vw, 3.75rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--text);
+  }
+
+  /* Subtext */
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.125rem);
+    color: var(--text-3);
+    line-height: 1.75;
+    max-width: 38rem;
+  }
+  .hero-sub strong {
+    color: var(--text-2);
+    font-weight: 500;
+  }
+
+  /* Country chips */
+  .hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  /* Stats strip */
+  .hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: 0.5rem;
+  }
+
+  .hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+  }
+
+  .hero-stat-num {
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .hero-stat-label {
+    font-size: 0.7rem;
+    color: var(--text-4);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 400px) {
+    .hero-stats    { gap: 0.875rem; }
+    .hero-stat-num { font-size: 1.125rem; }
+    .hero-stat-label { font-size: 0.6rem; letter-spacing: 0.03em; }
+    .hero-stat-sep { height: 1.5rem; }
+  }
+
+  .hero-stat-sep {
+    width: 1px;
+    height: 2rem;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── Tool section ─────────────────────────────────── */
+  .tool-section {
+    padding: 0 0 2rem;
+  }
+
+  /* Shell that gives the Vue island its border/radius and enforces height */
+  .tool-shell {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: var(--surface);
+    min-height: 640px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Features ─────────────────────────────────────── */
+  .features-heading {
+    text-align: center;
+    margin-bottom: 3rem;
+    max-width: 36rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  @media (min-width: 640px) {
+    .features-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .feature-card {
+    background: var(--surface);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    transition: background var(--ease);
+  }
+  .feature-card:hover { background: var(--surface-2); }
+
+  .feature-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-subtle);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    border-radius: 8px;
+    margin-bottom: 0.25rem;
+  }
+
+  .feature-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .feature-body {
+    font-size: 0.875rem;
+    color: var(--text-3);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ── Affiliate wrap ───────────────────────────────── */
+  .affiliate-wrap {
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+  }
+</style>

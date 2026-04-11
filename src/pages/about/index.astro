@@ -1,0 +1,110 @@
+---
+import Base from '../../layouts/Base.astro';
+import { breadcrumbSchema } from '../../utils/schema';
+
+const pageUrl    = 'https://afrinvoice.app/about/';
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'About', url: pageUrl },
+]);
+---
+
+<Base
+  title="About Afrinvoice — Free Invoice Generator for Africa"
+  description="Afrinvoice is a free invoice generator built specifically for African freelancers and small businesses. No sign-up, no watermark, no fluff."
+  schema={breadcrumb}
+>
+  <article class="about-wrap" aria-labelledby="about-heading">
+    <div class="container-narrow">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">About</span>
+      </nav>
+
+      <header class="about-header">
+        <h1 id="about-heading" class="about-heading">About Afrinvoice</h1>
+        <p class="about-lead">
+          A free invoice generator built for Africa — not adapted from a tool built for somewhere else.
+        </p>
+      </header>
+
+      <section class="about-section">
+        <h2>Why this exists</h2>
+        <p>
+          Most free invoice generators are built for US or UK businesses. They default to USD,
+          list payment options like "Venmo" or "Zelle," and have no idea what GRA VAT, KRA eTIMS,
+          or MTN MoMo are.
+        </p>
+        <p>
+          African freelancers and small business owners deserve a tool that speaks their language —
+          Ghana Cedi, Naira, Kenya Shilling, M-Pesa, bank NUBAN numbers, and the right tax authority
+          labels on every invoice. That's Afrinvoice.
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>What it does</h2>
+        <ul>
+          <li>Generates professional PDF invoices — free, no watermark, no account required</li>
+          <li>Pre-fills the correct currency, tax rate, and tax authority for your country</li>
+          <li>Supports mobile money payment fields — MTN MoMo, M-Pesa, EcoCash, OPay, and more</li>
+          <li>Remembers your business details in your browser — no server, no cloud storage</li>
+          <li>Works on any device — mobile, tablet, or desktop</li>
+          <li>Covers 17 African countries at launch, with more being added</li>
+        </ul>
+      </section>
+
+      <section class="about-section">
+        <h2>How it works</h2>
+        <p>
+          Everything runs in your browser. Your invoice data never leaves your device — there is no
+          server, no database, and no login. Business details (name, email, payment info) are saved
+          to your browser's local storage so you don't have to retype them. Client details and
+          invoice content are cleared after each session.
+        </p>
+        <p>
+          PDFs are generated client-side using <a href="https://github.com/parallax/jsPDF" target="_blank" rel="noopener noreferrer">jsPDF</a>.
+          The tool is built with Astro and Vue 3, deployed on Cloudflare Pages.
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>Coverage</h2>
+        <p>
+          Afrinvoice currently supports Ghana, Nigeria, Kenya, South Africa, Zimbabwe, Uganda,
+          Tanzania, Rwanda, and more. Country-specific data — VAT rates, tax authority names,
+          mobile money providers — is researched from official government and regulatory sources
+          and updated when rates change.
+        </p>
+        <p>
+          If something looks wrong for your country, use the <strong>"Something wrong? Tell us →"</strong>
+          link near the tax and payment fields in the tool. Users in-country catch changes before we do.
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>Contact</h2>
+        <p>
+          Questions, corrections, or feedback — reach out via the <a href="/contact/">contact page</a>.
+        </p>
+      </section>
+
+    </div>
+  </article>
+</Base>
+
+<style>
+  .about-wrap { padding: 3rem 0 5rem; }
+  .about-heading { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.2; letter-spacing: -0.025em; color: var(--text); margin-bottom: 0.75rem; }
+  .about-lead { font-size: 1.0625rem; color: var(--text-3); line-height: 1.75; margin-bottom: 0; }
+  .about-section { margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--border); }
+  .about-section h2 { font-size: 1.125rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+  .about-section p { font-size: 0.9375rem; color: var(--text-2); line-height: 1.75; margin-bottom: 0.75rem; }
+  .about-section p:last-child { margin-bottom: 0; }
+  .about-section ul { margin: 0.5rem 0 0 1.25rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .about-section li { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; }
+  .about-section a { color: var(--accent); text-decoration: none; }
+  .about-section a:hover { text-decoration: underline; }
+</style>

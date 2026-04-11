@@ -1,0 +1,175 @@
+---
+import Base from '../../layouts/Base.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import AffiliateCallout from '../../components/AffiliateCallout.astro';
+import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+
+const pageUrl   = 'https://afrinvoice.app/how-to-invoice-nigeria/';
+const schema    = articleSchema(
+  'How to Invoice Clients in Nigeria — NRS VAT Guide',
+  pageUrl,
+  'Complete guide to invoicing clients in Nigeria. NRS VAT 7.5%, bank transfer for B2B, OPay/PalmPay mobile options, invoice number formats, and a free invoice generator.',
+);
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'How to Invoice Clients in Nigeria', url: pageUrl },
+]);
+
+const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'What VAT rate should a freelancer charge in Nigeria?',
+    a: 'Nigeria Revenue Service (NRS) VAT is <strong>7.5%</strong>. However, you must register for VAT before charging it. The VAT registration threshold in Nigeria is ₦ 25 million annual turnover. Most freelancers are below this — set tax to 0% unless registered.',
+  },
+  {
+    q: 'Bank transfer or mobile money for Nigerian B2B invoices?',
+    a: '<strong>Bank transfer (NEFT/NIBSS)</strong> is the standard for B2B invoicing in Nigeria. Provide your bank name, account name, and 10-digit NUBAN account number. OPay and PalmPay are growing but mostly used for consumer transactions.',
+  },
+  {
+    q: 'What is Withholding Tax (WHT) and how does it affect Nigerian invoices?',
+    a: 'WHT in Nigeria is typically 5% on professional and consultancy fees (10% for non-residents). It is deducted at source by the client — they pay you the net amount and remit WHT to the NRS. You should note on your invoice: "Subject to 5% WHT deduction." You then use your WHT credit note to offset income tax.',
+  },
+  {
+    q: 'Can I invoice in USD as a Nigerian freelancer?',
+    a: 'Yes. Many Nigerian freelancers on Upwork, Fiverr, and Toptal invoice in USD. Change the currency to USD in the tool, set tax to 0% for export services, and provide your Wise or Payoneer account details.',
+  },
+];
+---
+
+<Base
+  title="How to Invoice Clients in Nigeria — NRS VAT Guide — Afrinvoice"
+  description="Complete guide to invoicing clients in Nigeria. NRS VAT 7.5%, bank transfer for B2B, OPay and PalmPay mobile options, Withholding Tax explained. Free invoice generator."
+  schema={[schema, breadcrumb, faqSchema(faqs)]}
+>
+
+  <article class="guide-wrap" aria-labelledby="guide-heading">
+    <div class="container-narrow">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">How to Invoice Clients in Nigeria</span>
+      </nav>
+
+      <header class="guide-header">
+        <div class="guide-badge">🇳🇬 Nigeria · NRS VAT 7.5% · Bank Transfer</div>
+        <h1 id="guide-heading" class="guide-heading">How to Invoice Clients in Nigeria</h1>
+        <p class="guide-lead">
+          Invoicing in Nigeria has a few nuances that trip up freelancers and small business owners:
+          Withholding Tax, the right payment method for B2B, and knowing when to charge VAT.
+          This guide covers everything clearly.
+        </p>
+      </header>
+
+      <section class="guide-section">
+        <h2>What goes on a Nigeria invoice?</h2>
+        <ul>
+          <li><strong>Your business name, contact, and address</strong></li>
+          <li><strong>Client name and address</strong></li>
+          <li><strong>Unique invoice number</strong> — e.g. NG-0001</li>
+          <li><strong>Invoice date and due date</strong></li>
+          <li><strong>Itemised services</strong> with quantities and rates in ₦ (Naira)</li>
+          <li><strong>VAT 7.5%</strong> — only if VAT-registered (threshold: ₦ 25 million/year)</li>
+          <li><strong>Withholding Tax note</strong> — e.g. "Subject to 5% WHT deduction"</li>
+          <li><strong>Bank account details</strong> — bank name, account name, 10-digit NUBAN number</li>
+        </ul>
+      </section>
+
+      <section class="guide-section">
+        <h2>NRS VAT — when to charge it</h2>
+        <p>
+          The Nigeria Revenue Service (NRS, formerly FIRS) VAT rate is <strong>7.5%</strong>
+          (raised from 5% in 2020). You are only required to charge VAT if your annual turnover
+          exceeds <strong>₦ 25 million</strong>. Most freelancers are below this.
+        </p>
+        <p>
+          If your client is a large company, they may ask for your VAT registration number (TIN)
+          on the invoice. If you don't have one, note that you are not VAT-registered.
+        </p>
+      </section>
+
+      <section class="guide-section">
+        <h2>Withholding Tax (WHT) — what you need to know</h2>
+        <p>
+          WHT is one of the most confusing aspects of Nigerian invoicing for freelancers.
+          Here's how it works:
+        </p>
+        <ul>
+          <li>Your client deducts <strong>5% WHT</strong> from your payment (10% for non-resident companies)</li>
+          <li>They remit this to the NRS and issue you a <strong>WHT credit note</strong></li>
+          <li>You use the credit note to offset your annual income tax liability</li>
+          <li>You should always invoice for the <strong>full amount</strong> (before WHT deduction)</li>
+        </ul>
+        <div class="guide-callout">
+          Add a line to your Notes: <em>"This invoice is subject to 5% Withholding Tax deduction as per Nigerian tax regulations."</em>
+        </div>
+      </section>
+
+      <section class="guide-section">
+        <h2>Bank transfer vs. mobile money</h2>
+        <p>
+          For <strong>B2B invoicing</strong> in Nigeria, bank transfer (NEFT via NIBSS) is the
+          standard. Include your:
+        </p>
+        <ul>
+          <li><strong>Bank name</strong> — e.g. Zenith Bank, GTBank, Access Bank, UBA</li>
+          <li><strong>Account name</strong> — must match exactly</li>
+          <li><strong>Account number</strong> — 10-digit NUBAN format</li>
+        </ul>
+        <p>
+          OPay and PalmPay are increasingly used for consumer payments and small B2B transactions.
+          For invoices to startups and tech companies, including your OPay number is acceptable.
+        </p>
+      </section>
+
+      <section class="guide-section">
+        <h2>Payment terms</h2>
+        <ul>
+          <li><strong>Freelancers:</strong> Net 14–21 days, or 30–50% deposit upfront</li>
+          <li><strong>B2B services:</strong> Net 30 days</li>
+          <li><strong>Enterprise/government:</strong> Net 45–90 days (be prepared)</li>
+        </ul>
+        <p>
+          Nigeria has a culture of late payment — especially in corporate and government sectors.
+          Always send a reminder at Net 25 days, and specify interest on late payment in your terms.
+        </p>
+      </section>
+
+      <div class="guide-cta-wrap">
+        <a href="/nigeria-invoice-generator/" class="guide-cta">
+          Create your Nigeria invoice →
+        </a>
+        <p class="guide-cta-sub">NRS VAT 7.5% pre-filled · Bank transfer fields · Free PDF</p>
+      </div>
+
+    </div>
+  </article>
+
+  <div class="container affiliate-wrap">
+    <AffiliateCallout affiliate="freshbooks" />
+  </div>
+
+  <section class="section" aria-labelledby="ng-guide-faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Nigeria Invoicing — FAQs" />
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  .guide-wrap { padding: 3rem 0; }
+  .guide-badge { display: inline-block; padding: 0.3125rem 0.875rem; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #D97706; margin-bottom: 1rem; }
+  .guide-heading { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.2; letter-spacing: -0.025em; color: var(--text); margin-bottom: 1rem; }
+  .guide-lead { font-size: 1.0625rem; color: var(--text-3); line-height: 1.75; }
+  .guide-section { margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--border); }
+  .guide-section h2 { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; margin-bottom: 0.875rem; }
+  .guide-section p { font-size: 0.9375rem; color: var(--text-2); line-height: 1.75; margin-bottom: 0.75rem; }
+  .guide-section ul { margin: 0.5rem 0 0.75rem 1.25rem; display: flex; flex-direction: column; gap: 0.375rem; }
+  .guide-section li { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; }
+  .guide-callout { margin-top: 1rem; padding: 0.875rem 1rem; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
+  .guide-cta-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border); text-align: center; }
+  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #F59E0B; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
+  .guide-cta:hover { background: #D97706; }
+  .guide-cta-sub { margin-top: 0.625rem; font-size: 0.8125rem; color: var(--text-4); }
+  .affiliate-wrap { padding-top: 2rem; padding-bottom: 1rem; }
+</style>

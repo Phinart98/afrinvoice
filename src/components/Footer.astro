@@ -1,0 +1,210 @@
+---
+const invoiceTools = [
+  { href: '/ghana-invoice-generator/',        label: '🇬🇭 Ghana' },
+  { href: '/nigeria-invoice-generator/',      label: '🇳🇬 Nigeria' },
+  { href: '/kenya-invoice-generator/',        label: '🇰🇪 Kenya' },
+  { href: '/south-africa-invoice-generator/', label: '🇿🇦 South Africa' },
+  { href: '/zimbabwe-invoice-generator/',     label: '🇿🇼 Zimbabwe' },
+  { href: '/freelancer-invoice/',             label: 'Freelancer Invoice' },
+  { href: '/mobile-money-invoice/',           label: 'Mobile Money Invoice' },
+  { href: '/receipt-generator/',              label: 'Receipt Generator' },
+];
+
+const resources = [
+  { href: '/invoice-templates/',      label: 'Invoice Templates' },
+  { href: '/how-to-invoice-ghana/',   label: 'How to Invoice in Ghana' },
+  { href: '/how-to-invoice-nigeria/', label: 'How to Invoice in Nigeria' },
+  { href: '/how-to-invoice-kenya/',         label: 'How to Invoice in Kenya' },
+  { href: '/how-to-invoice-south-africa/', label: 'How to Invoice in South Africa' },
+  { href: '/invoice-number-format/',       label: 'Invoice Number Format' },
+];
+
+const site = [
+  { href: '/about/',   label: 'About' },
+  { href: '/contact/', label: 'Contact' },
+];
+---
+
+<footer class="footer">
+  <div class="footer-inner">
+
+    <!-- Brand -->
+    <div class="footer-brand">
+      <a href="/" class="footer-logo" aria-label="Afrinvoice home">
+        <svg width="22" height="22" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+          <rect x="2" y="1" width="17" height="22" rx="2.5" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
+          <rect x="2" y="1" width="17" height="7" rx="2.5" fill="#F59E0B"/>
+          <rect x="2" y="5.5" width="17" height="2.5" fill="#F59E0B"/>
+          <line x1="5.5" y1="12.5" x2="16.5" y2="12.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
+          <line x1="5.5" y1="15.5" x2="13"   y2="15.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
+          <line x1="5.5" y1="19.5" x2="16.5" y2="19.5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="footer-logo-text">Afr<strong>invoice</strong></span>
+      </a>
+      <p class="footer-tagline">
+        Free invoice generator built for African businesses and professionals.
+      </p>
+      <p class="footer-copy">&copy; {new Date().getFullYear()} Afrinvoice</p>
+    </div>
+
+    <!-- Nav groups -->
+    <div class="footer-nav-groups">
+
+      <div class="footer-nav-group">
+        <span class="footer-nav-heading">Invoice Tools</span>
+        <nav aria-label="Invoice tools navigation">
+          {invoiceTools.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
+        </nav>
+      </div>
+
+      <div class="footer-nav-group">
+        <span class="footer-nav-heading">Resources</span>
+        <nav aria-label="Resources navigation">
+          {resources.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
+        </nav>
+      </div>
+
+      <div class="footer-nav-group">
+        <span class="footer-nav-heading">Site</span>
+        <nav aria-label="Site navigation">
+          {site.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
+        </nav>
+      </div>
+
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid rgba(45, 55, 72, 0.5);
+    background: #070C18;
+    padding: 3rem 0 2rem;
+    margin-top: 5rem;
+  }
+
+  .footer-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  /* ── Brand ───────────────────────────────────────── */
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .footer-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+
+  .footer-logo-text {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #64748B;
+    letter-spacing: -0.02em;
+  }
+  .footer-logo-text strong {
+    color: #94A3B8;
+    font-weight: 800;
+  }
+  .footer-logo:hover .footer-logo-text        { color: #94A3B8; }
+  .footer-logo:hover .footer-logo-text strong { color: #F1F5F9; }
+
+  /* Fixed: readable on dark background */
+  .footer-tagline {
+    font-size: 0.8125rem;
+    color: #64748B;
+    line-height: 1.6;
+    max-width: 22ch;
+  }
+
+  .footer-copy {
+    font-size: 0.75rem;
+    color: #475569;
+    line-height: 1;
+    margin-top: 0.25rem;
+  }
+
+  /* ── Nav groups ──────────────────────────────────── */
+  /* Mobile: 2 columns at all sizes — compact, space-efficient */
+  .footer-nav-groups {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem 1.5rem;
+  }
+
+  .footer-nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-nav-heading {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Links must be block so they stack vertically, not flow inline */
+  .footer-nav-group nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .footer-nav-link {
+    display: block;
+    font-size: 0.8125rem;
+    color: #64748B;
+    text-decoration: none;
+    transition: color 150ms;
+    line-height: 1.5;
+  }
+  .footer-nav-link:hover { color: #CBD5E1; }
+
+  /* Small mobile: tighten font so long labels wrap less */
+  @media (max-width: 559px) {
+    .footer-nav-link    { font-size: 0.75rem; }
+    .footer-nav-heading { font-size: 0.625rem; }
+    .footer-nav-groups  { gap: 1.75rem 1.25rem; }
+  }
+
+  /* ── Tablet: brand + nav side-by-side, nav stays 2×2 ── */
+  @media (min-width: 768px) {
+    .footer-inner {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 4rem;
+    }
+    .footer-brand {
+      flex-shrink: 0;
+      width: 180px;
+    }
+    .footer-nav-groups {
+      flex: 1;
+      /* stays 2×2 — columns are wide enough for link text */
+    }
+  }
+
+  /* ── Desktop: expand nav to 3 columns ── */
+  @media (min-width: 1100px) {
+    .footer-brand { width: 220px; }
+    .footer-nav-groups {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem 3rem;
+    }
+  }
+</style>

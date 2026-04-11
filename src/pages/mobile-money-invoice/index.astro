@@ -1,0 +1,183 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdUnit from '../../components/AdUnit.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import AffiliateCallout from '../../components/AffiliateCallout.astro';
+import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
+import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+
+const pageUrl   = 'https://afrinvoice.app/mobile-money-invoice/';
+const schema    = webAppSchema(
+  'Invoice with Mobile Money Payment Instructions — Africa',
+  pageUrl,
+  'Create invoices with MTN MoMo, M-Pesa, EcoCash, OPay payment instructions. Select your country — correct providers auto-fill. Free PDF, no sign-up.',
+);
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'Mobile Money Invoice Generator', url: pageUrl },
+]);
+
+const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'Which mobile money providers are supported?',
+    a: 'Select your country and the correct providers appear automatically: <strong>MTN MoMo</strong>, <strong>Telecel Cash</strong>, <strong>AirtelTigo Money</strong> (Ghana); <strong>M-Pesa</strong>, <strong>Airtel Money</strong> (Kenya); <strong>EcoCash</strong>, <strong>OneMoney</strong> (Zimbabwe); <strong>OPay</strong>, <strong>PalmPay</strong>, <strong>MTN MoMo PSB</strong> (Nigeria); and many more across 17 African countries.',
+  },
+  {
+    q: 'How do I add my MTN MoMo number to my invoice?',
+    a: 'Select Ghana (or your country), switch Payment Details to Mobile Money, choose MTN MoMo from the dropdown, enter your phone number and account name. Your MoMo details appear clearly in the invoice PDF under "Payment Details".',
+  },
+  {
+    q: 'Can I add M-Pesa payment instructions to a Kenya invoice?',
+    a: 'Yes. Select Kenya — the tool defaults to Mobile Money with M-Pesa pre-selected. Enter your Safaricom number (07XXXXXXXX) and the name on your M-Pesa account. Airtel Money is also available.',
+  },
+  {
+    q: 'Should I use mobile money or bank transfer for B2B invoices?',
+    a: 'It depends on the country and client type. In <strong>Ghana</strong> and <strong>Kenya</strong>, mobile money is widely accepted for B2B payments under ~$500. In <strong>Nigeria</strong>, bank transfer (NEFT/NIBSS) is the B2B standard — most businesses prefer account numbers. In <strong>South Africa</strong>, bank EFT is standard for all B2B. This tool defaults correctly per country.',
+  },
+  {
+    q: 'Can I include both bank and mobile money details on the same invoice?',
+    a: 'Currently the tool shows one payment method at a time. To include both, select your primary method, download the PDF, then add the secondary details in the Notes field (e.g. "Also accept MTN MoMo: 024XXXXXXX").',
+  },
+  {
+    q: 'Does EcoCash work for international payments in Zimbabwe?',
+    a: 'EcoCash is primarily for ZWG (Zimbabwe Gold) domestic payments. For USD payments — common in Zimbabwe — use a bank USD account and note it in the payment section. Many Zimbabwean businesses operate dual ZWG/USD accounts.',
+  },
+];
+---
+
+<Base
+  title="Invoice with Mobile Money Payment Instructions — MTN MoMo, M-Pesa — Afrinvoice"
+  description="Create invoices with MTN MoMo, M-Pesa, EcoCash, OPay payment instructions. Select your African country — correct providers auto-fill. Free PDF, no sign-up."
+  schema={[schema, breadcrumb, faqSchema(faqs)]}
+>
+
+  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+  <section class="tool-hero" aria-labelledby="momo-heading">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Mobile Money Invoice Generator</span>
+      </nav>
+
+      <div class="tool-badge">MTN MoMo · M-Pesa · EcoCash · OPay</div>
+
+      <h1 id="momo-heading" class="tool-heading">
+        Invoice with Mobile Money<br />
+        <span class="shimmer">payment instructions</span>
+      </h1>
+
+      <p class="tool-sub">
+        Select your African country and the <strong>correct mobile money providers</strong> fill in automatically —
+        not a generic list. MTN MoMo for Ghana, M-Pesa for Kenya, EcoCash for Zimbabwe.
+        <strong>Free. No sign-up. Instant PDF.</strong>
+      </p>
+
+      <div class="provider-chips" aria-label="Supported mobile money providers">
+        <span class="chip">🇬🇭 MTN MoMo</span>
+        <span class="chip">🇰🇪 M-Pesa</span>
+        <span class="chip">🇿🇼 EcoCash</span>
+        <span class="chip">🇳🇬 OPay</span>
+        <span class="chip">🇺🇬 Airtel Money</span>
+        <span class="chip">🇹🇿 M-Pesa TZ</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Invoice Generator ──────────────────────────────────────────── -->
+  <section class="tool-section" aria-label="Mobile money invoice generator">
+    <div class="container">
+      <div class="tool-shell">
+        <InvoiceGenerator client:only="vue" />
+      </div>
+    </div>
+  </section>
+
+  <AdUnit slot="tool-below" />
+
+  <!-- ── Affiliate callout ──────────────────────────────────────────── -->
+  <div class="container affiliate-wrap">
+    <AffiliateCallout affiliate="wise" />
+  </div>
+
+  <!-- ── FAQ ───────────────────────────────────────────────────────── -->
+  <section class="section" aria-labelledby="momo-faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Mobile Money Invoice — FAQs" />
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  .tool-hero {
+    padding: 4rem 0 3rem;
+    text-align: center;
+  }
+
+  .tool-badge {
+    display: inline-block;
+    padding: 0.3125rem 0.875rem;
+    background: rgba(245, 158, 11, 0.06);
+    border: 1px solid rgba(245, 158, 11, 0.18);
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #D97706;
+    margin-bottom: 1.25rem;
+  }
+
+  .tool-heading {
+    font-size: clamp(1.875rem, 5vw, 3rem);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .tool-sub {
+    font-size: clamp(1rem, 2vw, 1.0625rem);
+    color: var(--text-3);
+    line-height: 1.75;
+    max-width: 36rem;
+    margin: 0 auto 1.75rem;
+  }
+  .tool-sub strong { color: var(--text-2); font-weight: 500; }
+
+  .provider-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3125rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    color: var(--text-2);
+    font-weight: 500;
+  }
+
+  .tool-section { padding: 0 0 2rem; }
+
+  .tool-shell {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: var(--surface);
+    min-height: 640px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .affiliate-wrap { padding-top: 0.5rem; padding-bottom: 1rem; }
+</style>
