@@ -8,7 +8,7 @@ const pageUrl   = 'https://afrinvoice.app/how-to-invoice-ghana/';
 const schema    = articleSchema(
   'How to Invoice Clients in Ghana — GRA VAT Guide',
   pageUrl,
-  'Complete guide to invoicing clients in Ghana. GRA VAT 15%, invoice number formats, MTN MoMo payment, late payment terms, and a free invoice generator.',
+  'Complete guide to invoicing clients in Ghana. GRA VAT 20% (15% VAT + levies), invoice number formats, MTN MoMo payment, late payment terms, and a free invoice generator.',
 );
 const breadcrumb = breadcrumbSchema([
   { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
@@ -36,8 +36,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 ---
 
 <Base
-  title="How to Invoice Clients in Ghana — GRA VAT Guide — Afrinvoice"
-  description="Complete guide to invoicing clients in Ghana. GRA VAT 15%, invoice formats, MTN MoMo payment instructions, due dates, and a free invoice generator."
+  title="How to Invoice in Ghana — GRA VAT Guide"
+  description="Complete guide to invoicing clients in Ghana. GRA VAT 20% (15% VAT + levies), invoice formats, MTN MoMo payment instructions, due dates, and a free invoice generator."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
@@ -138,7 +138,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
         <a href="/ghana-invoice-generator/" class="guide-cta">
           Create your Ghana invoice →
         </a>
-        <p class="guide-cta-sub">GRA VAT 15% pre-filled · MTN MoMo fields · Free PDF</p>
+        <p class="guide-cta-sub">GRA VAT 20% pre-filled · MTN MoMo fields · Free PDF</p>
       </div>
 
     </div>

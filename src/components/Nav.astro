@@ -1,4 +1,12 @@
 ---
+const countryLinks = [
+  { href: '/ghana-invoice-generator/',        label: 'Ghana Invoice Generator' },
+  { href: '/nigeria-invoice-generator/',      label: 'Nigeria Invoice Generator' },
+  { href: '/kenya-invoice-generator/',        label: 'Kenya Invoice Generator' },
+  { href: '/south-africa-invoice-generator/', label: 'South Africa Invoice Generator' },
+  { href: '/zimbabwe-invoice-generator/',     label: 'Zimbabwe Invoice Generator' },
+];
+
 const guideLinks = [
   { href: '/how-to-invoice-ghana/',         label: 'Invoice Clients in Ghana' },
   { href: '/how-to-invoice-nigeria/',       label: 'Invoice Clients in Nigeria' },
@@ -8,6 +16,13 @@ const guideLinks = [
 ];
 
 const mobileLinks = [
+  { divider: 'Countries' },
+  { href: '/ghana-invoice-generator/',        label: 'Ghana' },
+  { href: '/nigeria-invoice-generator/',      label: 'Nigeria' },
+  { href: '/kenya-invoice-generator/',        label: 'Kenya' },
+  { href: '/south-africa-invoice-generator/', label: 'South Africa' },
+  { href: '/zimbabwe-invoice-generator/',     label: 'Zimbabwe' },
+  { divider: 'Tools' },
   { href: '/invoice-templates/',              label: 'Invoice Templates' },
   { href: '/freelancer-invoice/',             label: 'Freelancer Invoice' },
   { href: '/mobile-money-invoice/',           label: 'Mobile Money Invoice' },
@@ -24,6 +39,7 @@ const mobileLinks = [
 ];
 
 const pathname = Astro.url.pathname;
+const isCountriesActive = countryLinks.some(l => pathname.startsWith(l.href));
 const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
 ---
 
@@ -49,6 +65,34 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
     <!-- Desktop nav -->
     <nav class="nav-links hidden md:flex" aria-label="Main navigation">
 
+      <!-- Countries dropdown -->
+      <div class="nav-dropdown" id="nav-countries-dropdown">
+        <button
+          class:list={['nav-link', 'nav-dropdown-trigger', { active: isCountriesActive }]}
+          aria-expanded="false"
+          aria-controls="nav-countries-panel"
+          id="nav-countries-btn"
+        >
+          Countries
+          <svg class="nav-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="nav-dropdown-panel" id="nav-countries-panel" aria-hidden="true">
+          {countryLinks.map(link => (
+            <a
+              href={link.href}
+              class:list={['nav-dropdown-item', { active: pathname === link.href }]}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
       <a
         href="/invoice-templates/"
         class:list={['nav-link', { active: pathname.startsWith('/invoice-templates/') }]}
@@ -61,7 +105,7 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
         <button
           class:list={['nav-link', 'nav-dropdown-trigger', { active: isGuidesActive }]}
           aria-expanded="false"
-          aria-haspopup="true"
+          aria-controls="nav-guides-panel"
           id="nav-guides-btn"
         >
           Guides
@@ -70,12 +114,11 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
           </svg>
         </button>
 
-        <div class="nav-dropdown-panel" id="nav-guides-panel" aria-hidden="true" role="menu">
+        <div class="nav-dropdown-panel" id="nav-guides-panel" aria-hidden="true">
           {guideLinks.map(link => (
             <a
               href={link.href}
               class:list={['nav-dropdown-item', { active: pathname === link.href }]}
-              role="menuitem"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
@@ -143,37 +186,23 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
     }
   });
 
-  // Guides dropdown
-  const dropdownWrap  = document.getElementById('nav-guides-dropdown');
-  const dropdownBtn   = document.getElementById('nav-guides-btn');
-  const dropdownPanel = document.getElementById('nav-guides-panel');
-  let   dropdownOpen  = false;
+  // Generic dropdown factory
+  function initDropdown(wrapperId: string, btnId: string, panelId: string) {
+    const wrap  = document.getElementById(wrapperId);
+    const btn   = document.getElementById(btnId);
+    const panel = document.getElementById(panelId);
+    let open = false;
 
-  function openDropdown() {
-    dropdownOpen = true;
-    dropdownWrap?.classList.add('open');
-    dropdownBtn?.setAttribute('aria-expanded', 'true');
-    dropdownPanel?.setAttribute('aria-hidden', 'false');
-  }
-  function closeDropdown() {
-    dropdownOpen = false;
-    dropdownWrap?.classList.remove('open');
-    dropdownBtn?.setAttribute('aria-expanded', 'false');
-    dropdownPanel?.setAttribute('aria-hidden', 'true');
+    function openD()  { open = true;  wrap?.classList.add('open');    btn?.setAttribute('aria-expanded', 'true');  panel?.setAttribute('aria-hidden', 'false'); }
+    function closeD() { open = false; wrap?.classList.remove('open'); btn?.setAttribute('aria-expanded', 'false'); panel?.setAttribute('aria-hidden', 'true');  }
+
+    btn?.addEventListener('click', (e) => { e.stopPropagation(); open ? closeD() : openD(); });
+    document.addEventListener('click', (e) => { if (open && !wrap?.contains(e.target as Node)) closeD(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) closeD(); });
   }
 
-  dropdownBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownOpen ? closeDropdown() : openDropdown();
-  });
-
-  document.addEventListener('click', (e) => {
-    if (dropdownOpen && !dropdownWrap?.contains(e.target as Node)) closeDropdown();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && dropdownOpen) closeDropdown();
-  });
+  initDropdown('nav-countries-dropdown', 'nav-countries-btn', 'nav-countries-panel');
+  initDropdown('nav-guides-dropdown',    'nav-guides-btn',    'nav-guides-panel');
 </script>
 
 <style>

@@ -6,6 +6,8 @@ export function webAppSchema(name: string, url: string, description?: string) {
     name,
     url,
     ...(description ? { description } : {}),
+    inLanguage: 'en',
+    audience: { '@type': 'Audience', geographicArea: { '@type': 'Place', name: 'Africa' } },
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
     isAccessibleForFree: true,
@@ -32,16 +34,18 @@ export function faqSchema(items: { q: string; a: string }[]) {
 }
 
 /** Generates an Article JSON-LD schema for guide/how-to pages. */
-export function articleSchema(title: string, url: string, description: string) {
+export function articleSchema(title: string, url: string, description: string, dateModified?: string) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: title,
     url,
     description,
+    inLanguage: 'en',
     author: { '@type': 'Organization', name: 'Afrinvoice', url: 'https://afrinvoice.app' },
     publisher: { '@type': 'Organization', name: 'Afrinvoice', url: 'https://afrinvoice.app' },
     datePublished: '2026-04-01',
+    dateModified: dateModified ?? '2026-04-01',
   };
 }
 
