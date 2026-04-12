@@ -1,4 +1,7 @@
 ---
+// Set to true once affiliate accounts are approved
+const AFFILIATES_ENABLED = false;
+
 type Affiliate = 'freshbooks' | 'quickbooks' | 'wise';
 type Variant   = 'inline' | 'compact';
 
@@ -42,7 +45,7 @@ const configs: Record<Affiliate, {
 const c = configs[affiliate];
 ---
 
-<aside class:list={['affiliate', `affiliate--${variant}`]} aria-label={`Recommended: ${c.label}`}>
+{AFFILIATES_ENABLED && <aside class:list={['affiliate', `affiliate--${variant}`]} aria-label={`Recommended: ${c.label}`}>
   <span class="affiliate-icon" aria-hidden="true">{c.icon}</span>
   <div class="affiliate-body">
     <p class="affiliate-text">
@@ -52,7 +55,7 @@ const c = configs[affiliate];
   <a href={c.href} rel="nofollow sponsored noopener" target="_blank" class="affiliate-cta">
     {c.cta}
   </a>
-</aside>
+</aside>}
 
 <style>
   .affiliate {
