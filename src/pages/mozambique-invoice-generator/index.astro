@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdUnit from '../../components/AdUnit.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import AffiliateCallout from '../../components/AffiliateCallout.astro';
+import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
+import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+
+const pageUrl  = 'https://afrinvoice.app/mozambique-invoice-generator/';
+const schema   = webAppSchema(
+  'Mozambique Invoice Generator — IVA 16% Pre-filled',
+  pageUrl,
+  'Create professional Mozambique invoices with AT IVA 16% auto-filled. M-Pesa Vodacom and e-Mola payment instructions. Free PDF, no sign-up.',
+);
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'Mozambique Invoice Generator', url: pageUrl },
+]);
+
+const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'Does this Mozambique invoice generator auto-fill IVA?',
+    a: 'Yes. Mozambique\'s Autoridade Tributária (AT) IVA (Imposto sobre o Valor Acrescentado) at <strong>16%</strong> is pre-filled when you select Mozambique. IVA is the Portuguese-language equivalent of VAT.',
+  },
+  {
+    q: 'Which M-Pesa is used in Mozambique?',
+    a: 'Mozambique\'s M-Pesa is operated by <strong>Vodacom Mozambique</strong> — it is completely separate from Safaricom\'s M-Pesa in Kenya. Both services share the name but are different platforms. This tool correctly lists it as "M-Pesa (Vodacom)". Enter your number in the format 84XXXXXXX.',
+  },
+  {
+    q: 'What currency does the Mozambique invoice use?',
+    a: 'Mozambican Metical (MZN), displayed as <strong>MT</strong>. All amounts — subtotal, IVA 16%, and total — appear in Metical.',
+  },
+  {
+    q: 'Can I invoice in USD from Mozambique?',
+    a: 'Yes. The natural resources sector and many international service contracts in Mozambique are denominated in USD. Change the currency to USD in the tool. For export services, IVA is typically zero-rated — verify with a local tax adviser for your specific situation.',
+  },
+];
+---
+
+<Base
+  title="Mozambique Invoice Generator — AT IVA 16%"
+  description="Create Mozambique invoices with AT IVA 16% pre-filled. M-Pesa Vodacom and e-Mola payment instructions included. Free PDF download, no sign-up required."
+  schema={[schema, breadcrumb, faqSchema(faqs)]}
+>
+  <section class="country-hero" aria-labelledby="mz-heading">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Mozambique Invoice Generator</span>
+      </nav>
+      <div class="country-badge"><span aria-hidden="true">🇲🇿</span> Mozambique · MZN · IVA 16%</div>
+      <h1 id="mz-heading" class="country-heading">
+        Mozambique Invoice Generator<br />
+        <span class="shimmer">with AT IVA auto-filled</span>
+      </h1>
+      <p class="country-sub">
+        Select Mozambique: <strong>Metical currency</strong>, <strong>IVA 16%</strong>, and <strong>M-Pesa (Vodacom)</strong> payment fields.
+        Download a professional PDF instantly. No account. No watermark.
+      </p>
+      <div class="country-highlights">
+        <div class="highlight"><span class="hl-val">16%</span><span class="hl-label">AT IVA rate</span></div>
+        <div class="hl-sep" aria-hidden="true"></div>
+        <div class="highlight"><span class="hl-val">MT</span><span class="hl-label">Mozambican Metical</span></div>
+        <div class="hl-sep" aria-hidden="true"></div>
+        <div class="highlight"><span class="hl-val">M-Pesa</span><span class="hl-label">Vodacom · e-Mola</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool-section" aria-label="Mozambique invoice generator">
+    <div class="container">
+      <div class="tool-shell">
+        <InvoiceGenerator client:only="vue" countryPreset="mozambique" />
+      </div>
+    </div>
+  </section>
+
+  <AdUnit slot="tool-below" />
+
+  <div class="container affiliate-wrap">
+    <AffiliateCallout affiliate="freshbooks" />
+  </div>
+
+  <div class="container guide-link-wrap">
+    <a href="/mobile-money-invoice/" class="guide-link">Invoice with mobile money payment fields →</a>
+  </div>
+
+  <section class="section" aria-labelledby="mz-faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Mozambique Invoice Generator — FAQs" headingId="mz-faq-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .country-hero { padding: 4rem 0 3rem; text-align: center; }
+  .breadcrumb { display: flex; justify-content: center; align-items: center; gap: 0.375rem; font-size: 0.8125rem; color: var(--text-4); margin-bottom: 1.5rem; }
+  .breadcrumb a { color: var(--text-3); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .country-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3125rem 0.875rem; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #D97706; margin-bottom: 1.25rem; }
+  .country-heading { font-size: clamp(1.875rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -0.03em; color: var(--text); margin-bottom: 1.25rem; max-width: 42rem; margin-left: auto; margin-right: auto; }
+  .country-sub { font-size: clamp(1rem, 2vw, 1.0625rem); color: var(--text-3); line-height: 1.75; max-width: 36rem; margin: 0 auto 2rem; }
+  .country-sub strong { color: var(--text-2); font-weight: 500; }
+  .country-highlights { display: flex; align-items: center; justify-content: center; gap: 1.5rem; }
+  .highlight { display: flex; flex-direction: column; align-items: center; gap: 0.125rem; }
+  .hl-val { font-size: 1.25rem; font-weight: 700; color: var(--text); font-family: 'Sora', sans-serif; line-height: 1; }
+  .hl-label { font-size: 0.6875rem; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+  .hl-sep { width: 1px; height: 2rem; background: var(--border); flex-shrink: 0; }
+  .tool-section { padding: 0 0 2rem; }
+  .tool-shell { border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; background: var(--surface); min-height: 640px; display: flex; flex-direction: column; }
+  .affiliate-wrap { padding-top: 0.5rem; padding-bottom: 1rem; }
+</style>

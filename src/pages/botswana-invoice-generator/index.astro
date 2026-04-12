@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdUnit from '../../components/AdUnit.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import AffiliateCallout from '../../components/AffiliateCallout.astro';
+import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
+import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+
+const pageUrl  = 'https://afrinvoice.app/botswana-invoice-generator/';
+const schema   = webAppSchema(
+  'Botswana Invoice Generator — BURS VAT 14% Pre-filled',
+  pageUrl,
+  'Create professional Botswana invoices with BURS VAT 14% auto-filled. Bank transfer and Orange Money payment instructions. Free PDF, no sign-up.',
+);
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'Botswana Invoice Generator', url: pageUrl },
+]);
+
+const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'Does this Botswana invoice generator auto-fill BURS VAT?',
+    a: 'Yes. Botswana Unified Revenue Service (BURS) VAT at <strong>14%</strong> is pre-filled when you select Botswana. The VAT registration threshold is BWP 1,000,000 in annual turnover. Below that, VAT registration is optional.',
+  },
+  {
+    q: 'What is the preferred payment method for Botswana invoices?',
+    a: '<strong>Bank transfer (EFT)</strong> is the standard for business-to-business invoicing in Botswana, especially for corporate clients. Orange Money and Mascom MyZaka are used for smaller consumer payments. This tool defaults to bank transfer for Botswana.',
+  },
+  {
+    q: 'What currency does the Botswana invoice use?',
+    a: 'Botswana Pula (BWP), displayed as <strong>P</strong>. The Pula is one of the stronger and more stable currencies in Africa, backed by Botswana\'s diamond export revenues and conservative fiscal policy.',
+  },
+  {
+    q: 'What withholding tax (WHT) applies on Botswana invoices?',
+    a: 'Botswana imposes WHT of <strong>7.5%</strong> on management and consulting fees paid to resident companies, and higher rates on payments to non-residents. WHT is deducted by the paying client. Note this in your invoice Notes field if your client is required to withhold.',
+  },
+];
+---
+
+<Base
+  title="Botswana Invoice Generator — BURS VAT 14%"
+  description="Create Botswana invoices with BURS VAT 14% pre-filled. Bank EFT and Orange Money payment instructions included. Free PDF download, no sign-up required."
+  schema={[schema, breadcrumb, faqSchema(faqs)]}
+>
+  <section class="country-hero" aria-labelledby="bw-heading">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Botswana Invoice Generator</span>
+      </nav>
+      <div class="country-badge"><span aria-hidden="true">🇧🇼</span> Botswana · BWP · BURS VAT 14%</div>
+      <h1 id="bw-heading" class="country-heading">
+        Botswana Invoice Generator<br />
+        <span class="shimmer">with BURS VAT auto-filled</span>
+      </h1>
+      <p class="country-sub">
+        Select Botswana: <strong>Pula currency</strong>, <strong>BURS VAT 14%</strong>, and <strong>bank transfer</strong> payment fields.
+        Download a professional PDF instantly. No account. No watermark.
+      </p>
+      <div class="country-highlights">
+        <div class="highlight"><span class="hl-val">14%</span><span class="hl-label">BURS VAT rate</span></div>
+        <div class="hl-sep" aria-hidden="true"></div>
+        <div class="highlight"><span class="hl-val">P</span><span class="hl-label">Botswana Pula</span></div>
+        <div class="hl-sep" aria-hidden="true"></div>
+        <div class="highlight"><span class="hl-val">EFT</span><span class="hl-label">Bank Transfer · Orange</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool-section" aria-label="Botswana invoice generator">
+    <div class="container">
+      <div class="tool-shell">
+        <InvoiceGenerator client:only="vue" countryPreset="botswana" />
+      </div>
+    </div>
+  </section>
+
+  <AdUnit slot="tool-below" />
+
+  <div class="container affiliate-wrap">
+    <AffiliateCallout affiliate="freshbooks" />
+  </div>
+
+  <div class="container guide-link-wrap">
+    <a href="/mobile-money-invoice/" class="guide-link">Invoice with mobile money payment fields →</a>
+  </div>
+
+  <section class="section" aria-labelledby="bw-faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Botswana Invoice Generator — FAQs" headingId="bw-faq-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .country-hero { padding: 4rem 0 3rem; text-align: center; }
+  .breadcrumb { display: flex; justify-content: center; align-items: center; gap: 0.375rem; font-size: 0.8125rem; color: var(--text-4); margin-bottom: 1.5rem; }
+  .breadcrumb a { color: var(--text-3); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .country-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3125rem 0.875rem; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #D97706; margin-bottom: 1.25rem; }
+  .country-heading { font-size: clamp(1.875rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -0.03em; color: var(--text); margin-bottom: 1.25rem; max-width: 42rem; margin-left: auto; margin-right: auto; }
+  .country-sub { font-size: clamp(1rem, 2vw, 1.0625rem); color: var(--text-3); line-height: 1.75; max-width: 36rem; margin: 0 auto 2rem; }
+  .country-sub strong { color: var(--text-2); font-weight: 500; }
+  .country-highlights { display: flex; align-items: center; justify-content: center; gap: 1.5rem; }
+  .highlight { display: flex; flex-direction: column; align-items: center; gap: 0.125rem; }
+  .hl-val { font-size: 1.25rem; font-weight: 700; color: var(--text); font-family: 'Sora', sans-serif; line-height: 1; }
+  .hl-label { font-size: 0.6875rem; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+  .hl-sep { width: 1px; height: 2rem; background: var(--border); flex-shrink: 0; }
+  .tool-section { padding: 0 0 2rem; }
+  .tool-shell { border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; background: var(--surface); min-height: 640px; display: flex; flex-direction: column; }
+  .affiliate-wrap { padding-top: 0.5rem; padding-bottom: 1rem; }
+</style>

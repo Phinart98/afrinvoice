@@ -382,3 +382,20 @@ select.input {
   background: rgba(217, 119, 6, 0.15);
   color: var(--accent-deep);
 }
+
+/* ── Print ───────────────────────────────────────────── */
+@media print {
+  .nav-header,
+  .footer,
+  .ad-unit,
+  .affiliate-wrap,
+  .guide-link-wrap,
+  .country-hero,
+  .breadcrumb { display: none !important; }
+
+  body         { background: white !important; padding: 0 !important; margin: 0 !important; }
+  body::before { display: none !important; }
+  .tool-section { padding: 0 !important; }
+  .tool-shell   { border: none !important; border-radius: 0 !important; min-height: auto !important; }
+  .container    { padding: 0 !important; max-width: 100% !important; }
+}

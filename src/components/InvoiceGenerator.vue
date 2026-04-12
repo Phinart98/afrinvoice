@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { DEFAULT_INVOICE_STATE } from '../types/invoice';
 import type { InvoiceState } from '../types/invoice';
 import { COUNTRY_CONFIGS, TIER_1_KEYS, TIER_2_KEYS } from '../data/countryConfigs';
 import { loadBusiness, saveBusiness } from '../utils/invoiceStorage';
-import { generateInvoicePDF } from '../utils/invoicePDF';
+import { generateInvoicePDF, printInvoicePDF } from '../utils/invoicePDF';
 import InvoicePreview from './InvoicePreview.vue';
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -37,6 +37,10 @@ function handleDocClick(e: MouseEvent) {
 // ── Country ───────────────────────────────────────────────────────────────────
 const currentConfig = computed(() => COUNTRY_CONFIGS[state.value.countryKey] ?? COUNTRY_CONFIGS['ghana']);
 
+function formatInvoiceNumber(prefix: string, counter: number): string {
+  return `${prefix}${String(counter).padStart(4, '0')}`;
+}
+
 function applyCountry(key: string) {
   const cfg = COUNTRY_CONFIGS[key];
   if (!cfg) return;
@@ -49,10 +53,13 @@ function applyCountry(key: string) {
   state.value.paymentType    = cfg.defaultPaymentType;
   state.value.momoProvider   = cfg.mobileProviders[0]?.name ?? '';
 
-  // Refresh invoice number prefix (no counter increment — preview only)
-  const stored = loadBusiness();
-  const next   = (stored.invoiceCounter ?? 0) + 1;
-  state.value.invoiceNumber = `${cfg.invoicePrefix}${String(next).padStart(4, '0')}`;
+  // Only refresh the preview invoice number when no invoice has been locked.
+  // After a Download/Print the number must stay stable — don't let a country
+  // switch silently reset it and bypass the double-increment guard.
+  if (!invoiceNumberLocked.value) {
+    const stored = loadBusiness();
+    state.value.invoiceNumber = formatInvoiceNumber(cfg.invoicePrefix, (stored.invoiceCounter ?? 0) + 1);
+  }
 }
 
 // ── Mobile provider meta (for label / placeholder) ────────────────────────────
@@ -111,6 +118,7 @@ function saveBusinessFields() {
     swiftCode:       state.value.swiftCode,
     momoNumber:      state.value.momoNumber,
     momoName:        state.value.momoName,
+    momoProvider:    state.value.momoProvider,
   });
   showSaved.value = true;
   clearTimeout(saveTimer);
@@ -121,6 +129,11 @@ function saveBusinessFields() {
 function handleLogoUpload(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file) return;
+  if (!['image/png', 'image/jpeg'].includes(file.type)) {
+    alert('Only PNG and JPEG logos are supported.');
+    (e.target as HTMLInputElement).value = '';
+    return;
+  }
   const reader = new FileReader();
   reader.onload = () => {
     state.value.businessLogo = reader.result as string;
@@ -133,16 +146,43 @@ function removeLogo() {
   saveBusiness({ businessLogo: '' });
 }
 
-// ── Download ──────────────────────────────────────────────────────────────────
-function handleDownload() {
-  // Assign real invoice number (increments counter)
+// ── Invoice number assignment ─────────────────────────────────────────────────
+// Lock prevents double-increment when user uses both Download and Print for the
+// same invoice. First action wins; subsequent clicks reuse the same number.
+// If the user manually edits the invoice number field, the lock resets so the
+// next Download/Print generates a fresh counter-based number.
+const invoiceNumberLocked = ref(false);
+let   lockedInvoiceNumber = '';
+
+function assignInvoiceNumber() {
+  if (invoiceNumberLocked.value) return;
   const stored  = loadBusiness();
   const counter = (stored.invoiceCounter ?? 0) + 1;
   saveBusiness({ invoiceCounter: counter });
-  const prefix  = currentConfig.value.invoicePrefix;
-  state.value.invoiceNumber = `${prefix}${String(counter).padStart(4, '0')}`;
+  const newNum = formatInvoiceNumber(currentConfig.value.invoicePrefix, counter);
+  // Set sentinel and lock BEFORE writing state so the watcher's immediate
+  // firing sees the lock already in place and skips the reset branch.
+  lockedInvoiceNumber       = newNum;
+  invoiceNumberLocked.value = true;
+  state.value.invoiceNumber = newNum;
+}
 
-  generateInvoicePDF({ ...state.value });
+watch(() => state.value.invoiceNumber, (val) => {
+  if (invoiceNumberLocked.value && val !== lockedInvoiceNumber) {
+    invoiceNumberLocked.value = false;
+  }
+});
+
+// ── Download ──────────────────────────────────────────────────────────────────
+function handleDownload() {
+  assignInvoiceNumber();
+  generateInvoicePDF(state.value);
+}
+
+// ── Print ─────────────────────────────────────────────────────────────────────
+function handlePrint() {
+  assignInvoiceNumber();
+  printInvoicePDF(state.value);
 }
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -175,10 +215,9 @@ onMounted(() => {
     ? props.countryPreset
     : state.value.countryKey;
   applyCountry(countryToApply);
-
-  // Set preview invoice number (no counter increment)
-  const next = (s.invoiceCounter ?? 0) + 1;
-  state.value.invoiceNumber = `${currentConfig.value.invoicePrefix}${String(next).padStart(4, '0')}`;
+  // Restore momoProvider AFTER applyCountry — applyCountry resets it to the
+  // country default, so the stored value must win when present.
+  if (s.momoProvider) state.value.momoProvider = s.momoProvider;
 });
 
 onUnmounted(() => { clearTimeout(saveTimer); document.removeEventListener('click', handleDocClick); });
@@ -604,7 +643,7 @@ onUnmounted(() => { clearTimeout(saveTimer); document.removeEventListener('click
           <p v-if="!state.visible.tax && state.taxRate > 0" class="vis-tax-warn">
             Tax hidden — client sees a lower total. Only hide if you are not VAT-registered.
           </p>
-          <a href="#correction-placeholder" class="correction-link" @click.prevent>
+          <a href="/contact/" class="correction-link">
             Incorrect tax data? Let us know →
           </a>
         </div>
@@ -669,6 +708,7 @@ onUnmounted(() => { clearTimeout(saveTimer); document.removeEventListener('click
                 id="momo-provider"
                 v-model="state.momoProvider"
                 class="form-select"
+                @change="saveBusinessFields"
               >
                 <option v-for="p in currentConfig.mobileProviders" :key="p.name" :value="p.name">
                   {{ p.name }}
@@ -704,9 +744,8 @@ onUnmounted(() => { clearTimeout(saveTimer); document.removeEventListener('click
 
           <a
             v-if="!currentConfig.isCustom"
-            href="#correction-placeholder"
+            href="/contact/"
             class="correction-link"
-            @click.prevent
           >
             Incorrect provider data? Let us know →
           </a>
@@ -734,15 +773,26 @@ onUnmounted(() => { clearTimeout(saveTimer); document.removeEventListener('click
           />
         </div>
 
-        <!-- ── Download ───────────────────────────────────────────────── -->
+        <!-- ── Download / Print ──────────────────────────────────────── -->
         <div class="form-card download-card">
-          <button class="download-btn" @click="handleDownload">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-              <path d="M9 2v9m0 0l-3-3m3 3l3-3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M3 13v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-            </svg>
-            Download Invoice PDF
-          </button>
+          <div class="dl-row">
+            <button class="download-btn" @click="handleDownload">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path d="M9 2v9m0 0l-3-3m3 3l3-3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 13v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+              </svg>
+              Download PDF
+            </button>
+            <button class="print-btn" @click="handlePrint">
+              <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true">
+                <rect x="3" y="1" width="11" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M3 6h11v7H3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M5.5 10h6M5.5 12.5h4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+                <rect x="1" y="5.5" width="15" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              Print
+            </button>
+          </div>
           <p class="download-hint">{{ state.template.charAt(0).toUpperCase() + state.template.slice(1) }} template · No watermark · No sign-up</p>
         </div>
 
@@ -1211,11 +1261,17 @@ onUnmounted(() => { clearTimeout(saveTimer); document.removeEventListener('click
   gap: 0.5rem;
 }
 
+.dl-row {
+  display: flex;
+  gap: 0.625rem;
+  width: 100%;
+}
+
 .download-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.875rem 2rem;
+  padding: 0.875rem 1.5rem;
   background: #F59E0B;
   color: #ffffff;
   font-size: 0.9375rem;
@@ -1225,12 +1281,32 @@ onUnmounted(() => { clearTimeout(saveTimer); document.removeEventListener('click
   border-radius: 8px;
   cursor: pointer;
   transition: background 150ms, transform 100ms;
-  width: 100%;
+  flex: 1;
   justify-content: center;
   letter-spacing: -0.01em;
 }
 .download-btn:hover  { background: #D97706; }
 .download-btn:active { transform: scale(0.99); }
+
+.print-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.875rem 1.25rem;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 150ms, color 150ms, transform 100ms;
+  white-space: nowrap;
+}
+.print-btn:hover  { background: var(--surface-3); color: var(--text); }
+.print-btn:active { transform: scale(0.99); }
 
 .download-hint {
   font-size: 0.6875rem;
@@ -1381,4 +1457,5 @@ onUnmounted(() => { clearTimeout(saveTimer); document.removeEventListener('click
   white-space: nowrap;
 }
 .color-reset-btn:hover { color: var(--accent); border-color: var(--accent); }
+
 </style>

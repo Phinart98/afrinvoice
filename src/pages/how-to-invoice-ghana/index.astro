@@ -37,7 +37,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
 <Base
   title="How to Invoice in Ghana — GRA VAT Guide"
-  description="Complete guide to invoicing clients in Ghana. GRA VAT 20% (15% VAT + levies), invoice formats, MTN MoMo payment instructions, due dates, and a free invoice generator."
+  description="Complete guide to invoicing clients in Ghana. GRA VAT 20% (15% VAT + levies), MTN MoMo payment instructions, due dates, and a free invoice generator."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
@@ -150,7 +150,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
   <section class="section" aria-labelledby="gh-guide-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Ghana Invoicing — FAQs" />
+      <FaqSection items={faqs} heading="Ghana Invoicing — FAQs" headingId="gh-guide-faq-heading" />
     </div>
   </section>
 

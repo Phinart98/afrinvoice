@@ -24,7 +24,7 @@ const features = [
   {
     icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 3v5l3 3" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
     title: 'Country-smart tax rates',
-    body: 'GRA 15% (Ghana), NRS 7.5% (Nigeria), KRA 16% (Kenya) — pre-filled and editable.',
+    body: 'GRA VAT 20% (Ghana), NRS 7.5% (Nigeria), KRA 16% (Kenya) — pre-filled and editable.',
   },
   {
     icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" stroke="#F59E0B" stroke-width="1.5"/><path d="M3 8h14" stroke="#F59E0B" stroke-width="1.5"/><circle cx="7" cy="12" r="1.25" fill="#F59E0B"/></svg>`,
@@ -58,7 +58,7 @@ const faqs: import('../components/FaqSection.astro').FaqItem[] = [
   },
   {
     q: 'Does it support GRA VAT, NRS/FIRS, and KRA VAT?',
-    a: 'Yes. Select your country and the tool auto-fills the correct authority and rate — GRA 15% (Ghana), NRS 7.5% (Nigeria), KRA 16% (Kenya), SARS 15% (South Africa), ZIMRA 15% (Zimbabwe), and more. Every field is editable if your situation differs.',
+    a: 'Yes. Select your country and the tool auto-fills the correct authority and rate — GRA VAT 20% (Ghana), NRS 7.5% (Nigeria), KRA 16% (Kenya), SARS 15% (South Africa), ZIMRA VAT 15.5% (Zimbabwe), and more. Every field is editable if your situation differs.',
   },
   {
     q: 'Will my business details be saved for next time?',
@@ -72,8 +72,8 @@ const faqs: import('../components/FaqSection.astro').FaqItem[] = [
 ---
 
 <Base
-  title="Free Invoice Generator for Africa — Afrinvoice"
-  description="Create professional invoices with GRA VAT, M-Pesa, MTN MoMo payment instructions. Free, no sign-up, instant PDF download. Built for Ghana, Nigeria, Kenya, South Africa, Zimbabwe."
+  title="Free Invoice Generator for African Freelancers — Afrinvoice"
+  description="Create invoices with GRA VAT, M-Pesa, MTN MoMo payment instructions. Free, no sign-up, instant PDF. Built for Ghana, Nigeria, Kenya, South Africa and more."
   schema={[schema, faqSchema(faqs)]}
 >
 

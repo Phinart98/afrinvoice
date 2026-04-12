@@ -39,10 +39,3 @@ export function saveBusiness(data: Partial<StoredBusiness>): void {
     // Silently ignore — private browsing or quota exceeded
   }
 }
-
-export function nextInvoiceNumber(prefix = 'INV'): string {
-  const stored = loadBusiness();
-  const counter = (stored.invoiceCounter ?? 0) + 1;
-  saveBusiness({ invoiceCounter: counter });
-  return `${prefix}-${String(counter).padStart(4, '0')}`;
-}

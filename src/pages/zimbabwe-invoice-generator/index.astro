@@ -10,7 +10,7 @@ const pageUrl  = 'https://afrinvoice.app/zimbabwe-invoice-generator/';
 const schema   = webAppSchema(
   'Zimbabwe Invoice Generator — EcoCash & ZIMRA VAT',
   pageUrl,
-  'Create professional Zimbabwe invoices with ZIMRA VAT 15% and EcoCash payment instructions auto-filled. Free PDF download, no sign-up.',
+  'Create professional Zimbabwe invoices with ZIMRA VAT 15.5% and EcoCash payment instructions auto-filled. Free PDF download, no sign-up.',
 );
 const breadcrumb = breadcrumbSchema([
   { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
@@ -20,7 +20,7 @@ const breadcrumb = breadcrumbSchema([
 const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   {
     q: 'Does this Zimbabwe invoice generator auto-fill ZIMRA VAT?',
-    a: 'Yes. Zimbabwe Revenue Authority (ZIMRA) VAT at <strong>15%</strong> is pre-filled when you select Zimbabwe. You can edit the rate or set it to 0% for exempt or zero-rated supplies.',
+    a: 'Yes. Zimbabwe Revenue Authority (ZIMRA) VAT at <strong>15.5%</strong> is pre-filled when you select Zimbabwe. You can edit the rate or set it to 0% for exempt or zero-rated supplies.',
   },
   {
     q: 'Can I add EcoCash payment instructions to my Zimbabwe invoice?',
@@ -46,8 +46,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 ---
 
 <Base
-  title="Zimbabwe Invoice Generator — ZIMRA VAT 15%"
-  description="Create Zimbabwe invoices with ZIMRA VAT 15% and EcoCash payment instructions auto-filled. ZWG or USD currency. Free PDF download, no sign-up."
+  title="Zimbabwe Invoice Generator — ZIMRA VAT 15.5%"
+  description="Create Zimbabwe invoices with ZIMRA VAT 15.5% and EcoCash payment instructions auto-filled. ZWG or USD currency. Free PDF download, no sign-up."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
@@ -62,7 +62,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
       <div class="country-badge">
         <span aria-hidden="true">🇿🇼</span>
-        Zimbabwe · ZWG · ZIMRA VAT 15%
+        Zimbabwe · ZWG · ZIMRA VAT 15.5%
       </div>
 
       <h1 id="zw-heading" class="country-heading">
@@ -71,14 +71,14 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </h1>
 
       <p class="country-sub">
-        Select Zimbabwe and your invoice is ready: <strong>ZWG currency</strong>, <strong>ZIMRA VAT 15%</strong>,
+        Select Zimbabwe and your invoice is ready: <strong>ZWG currency</strong>, <strong>ZIMRA VAT 15.5%</strong>,
         and <strong>EcoCash payment fields</strong>. Switch to USD anytime.
         Download a professional PDF instantly. No account. No watermark.
       </p>
 
       <div class="country-highlights">
         <div class="highlight">
-          <span class="hl-val">15%</span>
+          <span class="hl-val">15.5%</span>
           <span class="hl-label">ZIMRA VAT rate</span>
         </div>
         <div class="hl-sep" aria-hidden="true"></div>
@@ -114,7 +114,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   <!-- ── FAQ ───────────────────────────────────────────────────────── -->
   <section class="section" aria-labelledby="zw-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Zimbabwe Invoice Generator — FAQs" />
+      <FaqSection items={faqs} heading="Zimbabwe Invoice Generator — FAQs" headingId="zw-faq-heading" />
     </div>
   </section>
 

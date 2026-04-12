@@ -6,13 +6,13 @@ import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
 
 const pageUrl   = 'https://afrinvoice.app/how-to-invoice-nigeria/';
 const schema    = articleSchema(
-  'How to Invoice Clients in Nigeria — NRS VAT Guide',
+  'How to Invoice in Nigeria — NRS VAT Guide',
   pageUrl,
   'Complete guide to invoicing clients in Nigeria. NRS VAT 7.5%, bank transfer for B2B, OPay/PalmPay mobile options, invoice number formats, and a free invoice generator.',
 );
 const breadcrumb = breadcrumbSchema([
   { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
-  { name: 'How to Invoice Clients in Nigeria', url: pageUrl },
+  { name: 'How to Invoice in Nigeria', url: pageUrl },
 ]);
 
 const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
@@ -36,8 +36,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 ---
 
 <Base
-  title="How to Invoice Clients in Nigeria — NRS VAT Guide — Afrinvoice"
-  description="Complete guide to invoicing clients in Nigeria. NRS VAT 7.5%, bank transfer for B2B, OPay and PalmPay mobile options, Withholding Tax explained. Free invoice generator."
+  title="How to Invoice in Nigeria — NRS VAT Guide — Afrinvoice"
+  description="Complete guide to invoicing clients in Nigeria. NRS VAT 7.5%, bank transfer for B2B, OPay mobile option, Withholding Tax explained. Free invoice generator."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
@@ -47,12 +47,12 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">Afrinvoice</a>
         <span aria-hidden="true">›</span>
-        <span aria-current="page">How to Invoice Clients in Nigeria</span>
+        <span aria-current="page">How to Invoice in Nigeria</span>
       </nav>
 
       <header class="guide-header">
         <div class="guide-badge">🇳🇬 Nigeria · NRS VAT 7.5% · Bank Transfer</div>
-        <h1 id="guide-heading" class="guide-heading">How to Invoice Clients in Nigeria</h1>
+        <h1 id="guide-heading" class="guide-heading">How to Invoice in Nigeria</h1>
         <p class="guide-lead">
           Invoicing in Nigeria has a few nuances that trip up freelancers and small business owners:
           Withholding Tax, the right payment method for B2B, and knowing when to charge VAT.
@@ -150,7 +150,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
   <section class="section" aria-labelledby="ng-guide-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Nigeria Invoicing — FAQs" />
+      <FaqSection items={faqs} heading="Nigeria Invoicing — FAQs" headingId="ng-guide-faq-heading" />
     </div>
   </section>
 

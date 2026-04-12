@@ -39,7 +39,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
 <Base
   title="Uganda Invoice Generator — URA VAT 18%"
-  description="Create Uganda invoices with URA VAT 18% pre-filled. MTN MoMo and Airtel Money payment instructions. Free PDF download, no sign-up."
+  description="Create Uganda invoices with URA VAT 18% pre-filled. MTN MoMo and Airtel Money payment instructions included. Free PDF download, no sign-up required."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
   <section class="country-hero" aria-labelledby="ug-heading">
@@ -83,12 +83,12 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   </div>
 
   <div class="container guide-link-wrap">
-    <a href="/" class="guide-link">Browse all African invoice generators →</a>
+    <a href="/mobile-money-invoice/" class="guide-link">Invoice with mobile money payment fields →</a>
   </div>
 
   <section class="section" aria-labelledby="ug-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Uganda Invoice Generator — FAQs" />
+      <FaqSection items={faqs} heading="Uganda Invoice Generator — FAQs" headingId="ug-faq-heading" />
     </div>
   </section>
 </Base>

@@ -4,7 +4,7 @@
 // Sources documented in docs/research-sources.md
 //
 // KEY FACTS that differentiate Afrinvoice from every competitor:
-// - Nigeria: Bank transfer preferred for B2B (NOT mobile money); VAT = 7.5% (NRS)
+// - Nigeria: Bank transfer preferred for B2B (NOT mobile money); VAT = 7.5% (FIRS)
 // - Zimbabwe: EcoCash dominates (~95%) — NOT MTN MoMo
 // - Tanzania: M-Pesa (Vodacom) is #1 — Tigo rebranded to Mixx by Yas
 // - West Africa CFA: Orange Money + Wave — NOT MTN primarily
@@ -72,8 +72,8 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     name: 'Nigeria',
     currency: 'NGN',
     currencySymbol: '₦',
-    taxAuthority: 'NRS',
-    taxAuthorityFull: 'Nigeria Revenue Service (formerly FIRS)',
+    taxAuthority: 'FIRS',
+    taxAuthorityFull: 'Federal Inland Revenue Service (FIRS)',
     vatLabel: 'VAT',
     vatRate: 7.5,
     whtLabel: 'WHT',

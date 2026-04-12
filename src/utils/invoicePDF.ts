@@ -54,6 +54,14 @@ function fmtCurrency(amount: number, symbol: string): string {
 
 // Convert a CSS hex colour string to an RGB tuple for jsPDF.
 // Guards against partial/malformed strings (NaN would silently corrupt all PDF colours).
+// Returns the jsPDF image format for a data URL. Throws for unsupported formats
+// (caught by the surrounding try/catch in each render function).
+function logoFormat(dataUrl: string): 'PNG' | 'JPEG' {
+  if (dataUrl.startsWith('data:image/png'))  return 'PNG';
+  if (dataUrl.startsWith('data:image/jpeg')) return 'JPEG';
+  throw new Error('Unsupported logo format');
+}
+
 function hexToRgb(hex: string): readonly [number, number, number] {
   const h = hex.replace('#', '');
   if (!/^[0-9a-fA-F]{6}$/.test(h)) return [245, 158, 11]; // amber fallback
@@ -127,6 +135,7 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
   // Respect visibility flags — hidden tax means total = subtotal
   const effectiveTaxRate = s.visible.tax ? s.taxRate : 0;
   const { subtotal, taxAmount, total } = computeTotals(s.items, effectiveTaxRate);
+  const sym = pdfSym(s);
   let y = 18;
 
   // ── Header: logo + business info (left) ─────────────────────────────────
@@ -135,7 +144,7 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
   if (s.businessLogo) {
     try {
       // Detect format from data URL prefix
-      const fmt = s.businessLogo.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+      const fmt = logoFormat(s.businessLogo);
       doc.addImage(s.businessLogo, fmt, ML, y, 22, 22);
       textStartX = ML + 26;
     } catch {
@@ -250,7 +259,7 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
 
     // Unit price
     doc.text(
-      fmtCurrency(item.unitPrice, pdfSym(s)),
+      fmtCurrency(item.unitPrice, sym),
       ML + COL_DESC + COL_QTY + COL_PRICE - 3,
       rowTextY,
       { align: 'right' },
@@ -258,7 +267,7 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
 
     // Amount
     rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(amount, pdfSym(s)), RIGHT_X - 3, rowTextY, { align: 'right' });
+    doc.text(fmtCurrency(amount, sym), RIGHT_X - 3, rowTextY, { align: 'right' });
 
     y += ROW_H;
     y = checkNewPage(doc, y, 40); // leave room for totals block at minimum
@@ -278,14 +287,14 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
   rgb(doc, C_MID, 'text');
   doc.text('Subtotal', TOTALS_LABEL_X, y);
   rgb(doc, C_DARK, 'text');
-  doc.text(fmtCurrency(subtotal, pdfSym(s)), RIGHT_X - 3, y, { align: 'right' });
+  doc.text(fmtCurrency(subtotal, sym), RIGHT_X - 3, y, { align: 'right' });
   y += 5.5;
 
   if (s.taxRate > 0 && s.visible.tax) {
     rgb(doc, C_MID, 'text');
     doc.text(`${s.taxLabel} (${s.taxRate}%)`, TOTALS_LABEL_X, y);
     rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(taxAmount, pdfSym(s)), RIGHT_X - 3, y, { align: 'right' });
+    doc.text(fmtCurrency(taxAmount, sym), RIGHT_X - 3, y, { align: 'right' });
     y += 5.5;
   }
 
@@ -300,7 +309,7 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
   rgb(doc, C_DARK, 'text');
   doc.text('TOTAL', TOTALS_LABEL_X, y);
   rgb(doc, hexToRgb(s.classicAccent || '#F59E0B'), 'text');
-  doc.text(fmtCurrency(total, pdfSym(s)), RIGHT_X - 3, y, { align: 'right' });
+  doc.text(fmtCurrency(total, sym), RIGHT_X - 3, y, { align: 'right' });
   y += 11;
 
   // ── Payment details ──────────────────────────────────────────────────────
@@ -319,7 +328,7 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
     doc.setFontSize(8.5);
 
     for (const [label, value] of paymentFields(s)) {
-      if (!value) continue;
+      if (!value.trim()) continue;
       rgb(doc, C_MID, 'text');
       doc.text(`${label}:`, ML, y);
       rgb(doc, C_DARK, 'text');
@@ -347,14 +356,16 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
     rgb(doc, C_MID, 'text');
     const noteLines = doc.splitTextToSize(s.notes, CW);
     doc.text(noteLines, ML, y);
+    y += noteLines.length * 4.5;
   }
 
   // ── Footer (user-defined, no hardcoded branding) ─────────────────────────
   if (s.footerNote?.trim()) {
+    const footerLines = doc.splitTextToSize(s.footerNote.trim(), CW);
+    if (y + footerLines.length * 4.5 > PAGE_H - 14) doc.addPage();
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8);
     rgb(doc, C_LIGHT, 'text');
-    const footerLines = doc.splitTextToSize(s.footerNote.trim(), CW);
     doc.text(footerLines, PAGE_W / 2, PAGE_H - 12, { align: 'center' });
   }
 }
@@ -367,6 +378,7 @@ function renderClassic(doc: jsPDF, s: InvoiceState): void {
 function renderModern(doc: jsPDF, s: InvoiceState): void {
   const effectiveTaxRate = s.visible.tax ? s.taxRate : 0;
   const { subtotal, taxAmount, total } = computeTotals(s.items, effectiveTaxRate);
+  const sym = pdfSym(s);
 
   // User-customisable colours (fall back to brand defaults)
   const CU_HEADER = hexToRgb(s.modernHeader || '#0F172A');
@@ -382,7 +394,7 @@ function renderModern(doc: jsPDF, s: InvoiceState): void {
   let bizX = ML;
   if (s.businessLogo) {
     try {
-      const fmt = s.businessLogo.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+      const fmt = logoFormat(s.businessLogo);
       doc.addImage(s.businessLogo, fmt, ML, 9, 18, 18);
       bizX = ML + 22;
     } catch { /* ignore */ }
@@ -488,13 +500,13 @@ function renderModern(doc: jsPDF, s: InvoiceState): void {
     rgb(doc, C_MID, 'text');
     doc.text(String(item.quantity), ML + COL_DESC + COL_QTY / 2, rowTextY, { align: 'center' });
     doc.text(
-      fmtCurrency(item.unitPrice, pdfSym(s)),
+      fmtCurrency(item.unitPrice, sym),
       ML + COL_DESC + COL_QTY + COL_PRICE - 3,
       rowTextY,
       { align: 'right' },
     );
     rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(amount, pdfSym(s)), RIGHT_X - 3, rowTextY, { align: 'right' });
+    doc.text(fmtCurrency(amount, sym), RIGHT_X - 3, rowTextY, { align: 'right' });
 
     y += ROW_H;
     y = checkNewPage(doc, y, 40);
@@ -510,14 +522,14 @@ function renderModern(doc: jsPDF, s: InvoiceState): void {
   rgb(doc, C_MID, 'text');
   doc.text('Subtotal', TOTALS_LABEL_X, y);
   rgb(doc, C_DARK, 'text');
-  doc.text(fmtCurrency(subtotal, pdfSym(s)), RIGHT_X - 3, y, { align: 'right' });
+  doc.text(fmtCurrency(subtotal, sym), RIGHT_X - 3, y, { align: 'right' });
   y += 5.5;
 
   if (s.taxRate > 0 && s.visible.tax) {
     rgb(doc, C_MID, 'text');
     doc.text(`${s.taxLabel} (${s.taxRate}%)`, TOTALS_LABEL_X, y);
     rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(taxAmount, pdfSym(s)), RIGHT_X - 3, y, { align: 'right' });
+    doc.text(fmtCurrency(taxAmount, sym), RIGHT_X - 3, y, { align: 'right' });
     y += 5.5;
   }
 
@@ -531,7 +543,7 @@ function renderModern(doc: jsPDF, s: InvoiceState): void {
   rgb(doc, C_WHITE, 'text');
   const totalTextY = y + TOTAL_H / 2 + 1.5;
   doc.text('TOTAL', TOTALS_LABEL_X, totalTextY);
-  doc.text(fmtCurrency(total, pdfSym(s)), RIGHT_X - 3, totalTextY, { align: 'right' });
+  doc.text(fmtCurrency(total, sym), RIGHT_X - 3, totalTextY, { align: 'right' });
   y += TOTAL_H + 9;
 
   // ── Payment details ──────────────────────────────────────────────────────
@@ -550,7 +562,7 @@ function renderModern(doc: jsPDF, s: InvoiceState): void {
     doc.setFontSize(8.5);
 
     for (const [label, value] of paymentFields(s)) {
-      if (!value) continue;
+      if (!value.trim()) continue;
       rgb(doc, C_MID, 'text');
       doc.text(`${label}:`, ML, y);
       rgb(doc, C_DARK, 'text');
@@ -573,15 +585,19 @@ function renderModern(doc: jsPDF, s: InvoiceState): void {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     rgb(doc, C_MID, 'text');
-    doc.text(doc.splitTextToSize(s.notes, CW), ML, y);
+    const noteLines = doc.splitTextToSize(s.notes, CW);
+    doc.text(noteLines, ML, y);
+    y += noteLines.length * 4.5;
   }
 
   // ── Footer ───────────────────────────────────────────────────────────────
   if (s.footerNote?.trim()) {
+    const footerLines = doc.splitTextToSize(s.footerNote.trim(), CW);
+    if (y + footerLines.length * 4.5 > PAGE_H - 14) doc.addPage();
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8);
     rgb(doc, C_LIGHT, 'text');
-    doc.text(doc.splitTextToSize(s.footerNote.trim(), CW), PAGE_W / 2, PAGE_H - 12, { align: 'center' });
+    doc.text(footerLines, PAGE_W / 2, PAGE_H - 12, { align: 'center' });
   }
 }
 
@@ -593,13 +609,14 @@ function renderModern(doc: jsPDF, s: InvoiceState): void {
 function renderMinimal(doc: jsPDF, s: InvoiceState): void {
   const effectiveTaxRate = s.visible.tax ? s.taxRate : 0;
   const { subtotal, taxAmount, total } = computeTotals(s.items, effectiveTaxRate);
+  const sym = pdfSym(s);
   let y = 22;
 
   // ── Header ───────────────────────────────────────────────────────────────
   let textStartX = ML;
   if (s.businessLogo) {
     try {
-      const fmt = s.businessLogo.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+      const fmt = logoFormat(s.businessLogo);
       doc.addImage(s.businessLogo, fmt, ML, y - 6, 20, 20);
       textStartX = ML + 24;
     } catch { /* ignore */ }
@@ -708,13 +725,13 @@ function renderMinimal(doc: jsPDF, s: InvoiceState): void {
     rgb(doc, C_MID, 'text');
     doc.text(String(item.quantity), ML + COL_DESC + COL_QTY / 2, rowTextY, { align: 'center' });
     doc.text(
-      fmtCurrency(item.unitPrice, pdfSym(s)),
+      fmtCurrency(item.unitPrice, sym),
       ML + COL_DESC + COL_QTY + COL_PRICE - 1,
       rowTextY,
       { align: 'right' },
     );
     rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(amount, pdfSym(s)), RIGHT_X - 1, rowTextY, { align: 'right' });
+    doc.text(fmtCurrency(amount, sym), RIGHT_X - 1, rowTextY, { align: 'right' });
 
     y += ROW_H;
     y = checkNewPage(doc, y, 40);
@@ -732,14 +749,14 @@ function renderMinimal(doc: jsPDF, s: InvoiceState): void {
   rgb(doc, C_MID, 'text');
   doc.text('Subtotal', TOTALS_LABEL_X, y);
   rgb(doc, C_DARK, 'text');
-  doc.text(fmtCurrency(subtotal, pdfSym(s)), RIGHT_X - 1, y, { align: 'right' });
+  doc.text(fmtCurrency(subtotal, sym), RIGHT_X - 1, y, { align: 'right' });
   y += 5.5;
 
   if (s.taxRate > 0 && s.visible.tax) {
     rgb(doc, C_MID, 'text');
     doc.text(`${s.taxLabel} (${s.taxRate}%)`, TOTALS_LABEL_X, y);
     rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(taxAmount, pdfSym(s)), RIGHT_X - 1, y, { align: 'right' });
+    doc.text(fmtCurrency(taxAmount, sym), RIGHT_X - 1, y, { align: 'right' });
     y += 5.5;
   }
 
@@ -751,7 +768,7 @@ function renderMinimal(doc: jsPDF, s: InvoiceState): void {
   doc.setFontSize(10.5);
   rgb(doc, C_DARK, 'text');
   doc.text('TOTAL', TOTALS_LABEL_X, y);
-  doc.text(fmtCurrency(total, pdfSym(s)), RIGHT_X - 1, y, { align: 'right' });
+  doc.text(fmtCurrency(total, sym), RIGHT_X - 1, y, { align: 'right' });
   y += 11;
 
   // ── Payment details ──────────────────────────────────────────────────────
@@ -767,7 +784,7 @@ function renderMinimal(doc: jsPDF, s: InvoiceState): void {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     for (const [label, value] of paymentFields(s)) {
-      if (!value) continue;
+      if (!value.trim()) continue;
       rgb(doc, C_MID, 'text');
       doc.text(`${label}:`, ML, y);
       rgb(doc, C_DARK, 'text');
@@ -790,36 +807,60 @@ function renderMinimal(doc: jsPDF, s: InvoiceState): void {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     rgb(doc, C_MID, 'text');
-    doc.text(doc.splitTextToSize(s.notes, CW), ML, y);
+    const noteLines = doc.splitTextToSize(s.notes, CW);
+    doc.text(noteLines, ML, y);
+    y += noteLines.length * 4.5;
   }
 
   // ── Footer ───────────────────────────────────────────────────────────────
   if (s.footerNote?.trim()) {
+    const footerLines = doc.splitTextToSize(s.footerNote.trim(), CW);
+    if (y + footerLines.length * 4.5 > PAGE_H - 14) doc.addPage();
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8);
     rgb(doc, C_LIGHT, 'text');
-    doc.text(doc.splitTextToSize(s.footerNote.trim(), CW), PAGE_W / 2, PAGE_H - 12, { align: 'center' });
+    doc.text(footerLines, PAGE_W / 2, PAGE_H - 12, { align: 'center' });
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC API
 // ─────────────────────────────────────────────────────────────────────────────
-export function generateInvoicePDF(state: InvoiceState): void {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
+/** Renders the invoice into a jsPDF document and returns it (no save/print). */
+function buildDoc(state: InvoiceState): jsPDF {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
   switch (state.template) {
     case 'modern':  renderModern(doc, state);  break;
     case 'minimal': renderMinimal(doc, state); break;
     case 'classic':
     default:        renderClassic(doc, state);
   }
+  return doc;
+}
 
+function pdfFilename(state: InvoiceState): string {
   const num    = state.invoiceNumber || 'draft';
   const client = (state.clientName || '').trim()
-    .replace(/[^a-zA-Z0-9 ]/g, '')   // strip special chars
-    .replace(/\s+/g, '-')             // spaces → hyphens
-    .slice(0, 24);                    // keep it brief
-  const filename = client ? `${num}_${client}.pdf` : `${num}.pdf`;
-  doc.save(filename);
+    .replace(/[^a-zA-Z0-9 ]/g, '')
+    .replace(/\s+/g, '-')
+    .slice(0, 24);
+  return client ? `${num}_${client}.pdf` : `${num}.pdf`;
+}
+
+/** Download the invoice as a PDF file. */
+export function generateInvoicePDF(state: InvoiceState): void {
+  buildDoc(state).save(pdfFilename(state));
+}
+
+/** Open the invoice PDF in a new tab and trigger the browser's print dialog.
+ *  This prints the actual PDF (correct colours, A4 layout) rather than the page DOM. */
+export function printInvoicePDF(state: InvoiceState): void {
+  const doc = buildDoc(state);
+  doc.autoPrint();
+  const blob = doc.output('blob');
+  const url  = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  // Revoke after the new tab has had time to read the blob.
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }

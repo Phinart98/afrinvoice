@@ -46,8 +46,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 ---
 
 <Base
-  title="Freelancer Invoice Generator for Africa — Free PDF — Afrinvoice"
-  description="Create professional freelancer invoices for Ghana, Nigeria, Kenya, South Africa and 17 African countries. VAT-aware, MoMo payment fields, instant PDF. Free, no sign-up."
+  title="Freelancer Invoice Generator for Africa — Afrinvoice"
+  description="Create professional freelancer invoices for Ghana, Nigeria, Kenya, South Africa. VAT-aware, MoMo payment fields, instant PDF. Free, no sign-up."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
@@ -101,7 +101,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   <!-- ── FAQ ───────────────────────────────────────────────────────── -->
   <section class="section" aria-labelledby="fl-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Freelancer Invoice — FAQs" />
+      <FaqSection items={faqs} heading="Freelancer Invoice — FAQs" headingId="fl-faq-heading" />
     </div>
   </section>
 

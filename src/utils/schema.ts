@@ -1,3 +1,5 @@
+const OG_IMAGE = 'https://afrinvoice.app/og.png';
+
 /** Generates a WebApplication JSON-LD schema object. */
 export function webAppSchema(name: string, url: string, description?: string) {
   return {
@@ -9,8 +11,10 @@ export function webAppSchema(name: string, url: string, description?: string) {
     inLanguage: 'en',
     audience: { '@type': 'Audience', geographicArea: { '@type': 'Place', name: 'Africa' } },
     applicationCategory: 'BusinessApplication',
+    applicationSubCategory: 'FinanceApplication',
     operatingSystem: 'Web',
     isAccessibleForFree: true,
+    screenshot: OG_IMAGE,
     browserRequirements: 'Requires JavaScript',
     featureList: 'PDF invoice generation, VAT auto-fill, Mobile money payment fields, Bank transfer fields',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
@@ -42,6 +46,7 @@ export function articleSchema(title: string, url: string, description: string, d
     url,
     description,
     inLanguage: 'en',
+    image: OG_IMAGE,
     author: { '@type': 'Organization', name: 'Afrinvoice', url: 'https://afrinvoice.app' },
     publisher: { '@type': 'Organization', name: 'Afrinvoice', url: 'https://afrinvoice.app' },
     datePublished: '2026-04-01',

@@ -7,10 +7,11 @@ export interface FaqItem {
 interface Props {
   items: FaqItem[];
   heading?: string;
+  headingId?: string;
   class?: string;
 }
 
-const { items, heading = 'Frequently Asked Questions', class: className } = Astro.props;
+const { items, heading = 'Frequently Asked Questions', headingId, class: className } = Astro.props;
 ---
 
 <script>
@@ -27,7 +28,7 @@ const { items, heading = 'Frequently Asked Questions', class: className } = Astr
 </script>
 
 <section class:list={['faq-section', className]}>
-  <h2 class="faq-heading">{heading}</h2>
+  <h2 class="faq-heading" id={headingId}>{heading}</h2>
   <div class="faq-list">
     {items.map(({ q, a }) => (
       <details class="faq-item">

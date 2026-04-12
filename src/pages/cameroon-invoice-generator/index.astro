@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdUnit from '../../components/AdUnit.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import AffiliateCallout from '../../components/AffiliateCallout.astro';
+import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
+import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+
+const pageUrl  = 'https://afrinvoice.app/cameroon-invoice-generator/';
+const schema   = webAppSchema(
+  'Cameroon Invoice Generator — TVA 19.25% Pre-filled',
+  pageUrl,
+  'Create professional Cameroon invoices with DGI TVA 19.25% auto-filled. MTN MoMo and Orange Money payment instructions. Free PDF, no sign-up.',
+);
+const breadcrumb = breadcrumbSchema([
+  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'Cameroon Invoice Generator', url: pageUrl },
+]);
+
+const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
+  {
+    q: 'Does this Cameroon invoice generator auto-fill TVA?',
+    a: 'Yes. Cameroon\'s Directorate General of Taxation (DGI) TVA (Taxe sur la Valeur Ajoutée) at <strong>19.25%</strong> is pre-filled when you select Cameroon. This is one of the higher VAT rates in Africa and applies uniformly across the CEMAC zone.',
+  },
+  {
+    q: 'Is TVA the same as VAT in Cameroon?',
+    a: 'Yes. TVA is the French abbreviation for Value Added Tax (VAT). Cameroon is a bilingual country — French is used for official tax terminology. The rate is 19.25% and applies to most business-to-business transactions. This tool labels it as TVA on your invoice.',
+  },
+  {
+    q: 'Can I add MTN MoMo payment instructions to my Cameroon invoice?',
+    a: 'Yes. Cameroon defaults to Mobile Money with MTN MoMo pre-selected, as MTN leads the market. Orange Money is also widely used. Enter your MTN MoMo number in the format 67XXXXXXX or 68XXXXXXX. For Orange Money, use 69XXXXXXX.',
+  },
+  {
+    q: 'What currency does the Cameroon invoice use?',
+    a: 'Central African CFA Franc (XAF), displayed as <strong>FCFA</strong>. The CFA Franc is pegged to the Euro and is used across six CEMAC member states including Cameroon, Chad, and Gabon.',
+  },
+];
+---
+
+<Base
+  title="Cameroon Invoice Generator — DGI TVA 19.25%"
+  description="Create Cameroon invoices with DGI TVA 19.25% pre-filled. MTN MoMo and Orange Money payment instructions included. Free PDF download, no sign-up required."
+  schema={[schema, breadcrumb, faqSchema(faqs)]}
+>
+  <section class="country-hero" aria-labelledby="cm-heading">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Afrinvoice</a>
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">Cameroon Invoice Generator</span>
+      </nav>
+      <div class="country-badge"><span aria-hidden="true">🇨🇲</span> Cameroon · XAF · TVA 19.25%</div>
+      <h1 id="cm-heading" class="country-heading">
+        Cameroon Invoice Generator<br />
+        <span class="shimmer">with DGI TVA auto-filled</span>
+      </h1>
+      <p class="country-sub">
+        Select Cameroon: <strong>FCFA currency</strong>, <strong>TVA 19.25%</strong>, and <strong>MTN MoMo</strong> payment fields.
+        Download a professional PDF instantly. No account. No watermark.
+      </p>
+      <div class="country-highlights">
+        <div class="highlight"><span class="hl-val">19.25%</span><span class="hl-label">DGI TVA rate</span></div>
+        <div class="hl-sep" aria-hidden="true"></div>
+        <div class="highlight"><span class="hl-val">FCFA</span><span class="hl-label">CFA Franc (XAF)</span></div>
+        <div class="hl-sep" aria-hidden="true"></div>
+        <div class="highlight"><span class="hl-val">MoMo</span><span class="hl-label">MTN · Orange Money</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool-section" aria-label="Cameroon invoice generator">
+    <div class="container">
+      <div class="tool-shell">
+        <InvoiceGenerator client:only="vue" countryPreset="cameroon" />
+      </div>
+    </div>
+  </section>
+
+  <AdUnit slot="tool-below" />
+
+  <div class="container affiliate-wrap">
+    <AffiliateCallout affiliate="freshbooks" />
+  </div>
+
+  <div class="container guide-link-wrap">
+    <a href="/mobile-money-invoice/" class="guide-link">Invoice with mobile money payment fields →</a>
+  </div>
+
+  <section class="section" aria-labelledby="cm-faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Cameroon Invoice Generator — FAQs" headingId="cm-faq-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .country-hero { padding: 4rem 0 3rem; text-align: center; }
+  .breadcrumb { display: flex; justify-content: center; align-items: center; gap: 0.375rem; font-size: 0.8125rem; color: var(--text-4); margin-bottom: 1.5rem; }
+  .breadcrumb a { color: var(--text-3); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .country-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.3125rem 0.875rem; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #D97706; margin-bottom: 1.25rem; }
+  .country-heading { font-size: clamp(1.875rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -0.03em; color: var(--text); margin-bottom: 1.25rem; max-width: 42rem; margin-left: auto; margin-right: auto; }
+  .country-sub { font-size: clamp(1rem, 2vw, 1.0625rem); color: var(--text-3); line-height: 1.75; max-width: 36rem; margin: 0 auto 2rem; }
+  .country-sub strong { color: var(--text-2); font-weight: 500; }
+  .country-highlights { display: flex; align-items: center; justify-content: center; gap: 1.5rem; }
+  .highlight { display: flex; flex-direction: column; align-items: center; gap: 0.125rem; }
+  .hl-val { font-size: 1.25rem; font-weight: 700; color: var(--text); font-family: 'Sora', sans-serif; line-height: 1; }
+  .hl-label { font-size: 0.6875rem; color: var(--text-4); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+  .hl-sep { width: 1px; height: 2rem; background: var(--border); flex-shrink: 0; }
+  .tool-section { padding: 0 0 2rem; }
+  .tool-shell { border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; background: var(--surface); min-height: 640px; display: flex; flex-direction: column; }
+  .affiliate-wrap { padding-top: 0.5rem; padding-bottom: 1rem; }
+</style>
