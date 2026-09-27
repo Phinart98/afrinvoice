@@ -32,9 +32,12 @@ const LINE = 4.3;              // body line height (mm) at 8.5pt
 let fontCache: Promise<{ regular: string; bold: string } | null> | null = null;
 
 async function fetchBase64(url: string): Promise<string> {
-  const buf = await (await fetch(url)).arrayBuffer();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Font ${url}: HTTP ${res.status}`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  // A TrueType file starts with 00 01 00 00; anything else (an HTML error page) is not a font.
+  if (bytes[0] !== 0 || bytes[1] !== 1 || bytes[2] !== 0 || bytes[3] !== 0) throw new Error(`Font ${url}: not a TTF`);
   let binary = '';
-  const bytes = new Uint8Array(buf);
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(binary);
 }
@@ -113,32 +116,37 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
   const ensure = (needed: number) => { if (y + needed > bottom) { doc.addPage(); y = 18; } };
 
   // ── Header ────────────────────────────────────────────────────────────────
-  const bandH = 44;
-  if (st.headerBand) { color(st.headerBand, 'fill'); doc.rect(0, 0, W, bandH, 'F'); }
   y = st.headerBand ? 13 : 18;
 
+  // Measure first: the Modern band must grow to fit the header, or light text lands on white paper
   let textX = M;
+  let logo: { fmt: string; w: number; h: number } | null = null;
   const fmt = v.sender.logo ? logoFormat(v.sender.logo) : null;
   if (fmt) {
     try {
       const props = doc.getImageProperties(v.sender.logo);
       const size = 20;
       const ratio = props.width / props.height;
-      const w = ratio >= 1 ? size : size * ratio;
-      const h = ratio >= 1 ? size / ratio : size;
-      doc.addImage(v.sender.logo, fmt, M, y - 4, w, h);
-      textX = M + w + 4;
+      logo = { fmt, w: ratio >= 1 ? size : size * ratio, h: ratio >= 1 ? size / ratio : size };
+      textX = M + logo.w + 4;
     } catch { /* unreadable logo — text-only header */ }
   }
-
   const leftW = CW * 0.55 - (textX - M);
   set(12.5, 'bold', st.headerText);
   const nameLines = wrap(v.sender.name || 'Your Business', leftW);
+  set(8, 'normal', st.headerMuted);
+  const senderLines = v.sender.lines.map(line => wrap(line, leftW));
+  const leftEnd = y + 1 + nameLines.length * 5.5 + senderLines.reduce((sum, l) => sum + l.length * 4, 0);
+  const rightEnd = y + 1 + (s.template === 'minimal' ? 13 : 13.5) + v.meta.length * 4.3;
+  const bandH = Math.max(44, Math.max(leftEnd, rightEnd) + 2);
+  if (st.headerBand) { color(st.headerBand, 'fill'); doc.rect(0, 0, W, bandH, 'F'); }
+
+  if (logo) doc.addImage(v.sender.logo, logo.fmt, M, y - 4, logo.w, logo.h);
+  set(12.5, 'bold', st.headerText);
   doc.text(nameLines, textX, y + 1);
   let leftY = y + 1 + nameLines.length * 5.5;
   set(8, 'normal', st.headerMuted);
-  for (const line of v.sender.lines) {
-    const l = wrap(line, leftW);
+  for (const l of senderLines) {
     doc.text(l, textX, leftY);
     leftY += l.length * 4;
   }
@@ -218,7 +226,10 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
 
   // ── Totals ────────────────────────────────────────────────────────────────
   const TX = M + CW * 0.52;       // label column of the totals block
-  ensure(v.totals.length * 6 + 12);
+  // Keep the totals block together: measure wrapped labels instead of guessing a row height
+  set(8.5, 'normal');
+  ensure(v.totals.reduce((sum, row) => sum + (row.kind === 'grand' || row.kind === 'balance'
+    ? 11.5 : Math.max(1, wrap(row.label, R - TX - 38).length) * LINE + 1.2), 4));
   for (const row of v.totals) {
     if (row.kind === 'grand' || row.kind === 'balance') {
       if (st.grand === 'strip' && row.kind === 'grand') {
@@ -256,7 +267,9 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
   // ── Payment (+ QR) ────────────────────────────────────────────────────────
   if (v.payment.length || v.qr) {
     const qrSize = v.qr ? 27 : 0;
-    const blockH = Math.max(v.payment.length * 5 + 10, qrSize + 12);
+    set(8.5, 'normal');
+    const rowsH = v.payment.reduce((sum, [, value]) => sum + wrap(value, CW - 34 - qrSize - 8).length * LINE + 0.7, 0);
+    const blockH = Math.max(rowsH + 12, qrSize + 12);
     ensure(blockH);
     rule(y, M, R); y += 6;
     const top = y;
@@ -333,7 +346,13 @@ export async function generateInvoicePDF(state: InvoiceState): Promise<void> {
 export async function printInvoicePDF(state: InvoiceState): Promise<void> {
   // Open the tab synchronously (inside the click) so popup blockers allow it, then fill it.
   const win = window.open('', '_blank');
-  const doc = await buildDoc(state);
+  let doc: jsPDF;
+  try {
+    doc = await buildDoc(state);
+  } catch (e) {
+    win?.close(); // don't leave an empty tab behind when generation fails
+    throw e;
+  }
   doc.autoPrint();
   const url = URL.createObjectURL(doc.output('blob'));
   if (win) win.location.href = url; else window.open(url, '_blank');

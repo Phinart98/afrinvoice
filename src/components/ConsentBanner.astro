@@ -26,7 +26,10 @@
     if (stored) { apply(stored); return; }
     var tz = '';
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
-    var inEurope = /^Europe\//.test(tz) || /^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe)$/.test(tz);
+    // EEA/UK/CH, including zones outside "Europe/" (Cyprus, Ceuta, outermost regions, Svalbard)
+    var inEurope = /^Europe\//.test(tz)
+      || /^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe)$/.test(tz)
+      || /^(Asia\/(Nicosia|Famagusta)|Africa\/Ceuta|Arctic\/Longyearbyen|Indian\/(Reunion|Mayotte)|America\/(Cayenne|Guadeloupe|Martinique|St_Barthelemy|Marigot))$/.test(tz);
     if (!inEurope) return;
     var banner = document.getElementById('consent-banner');
     if (!banner) return;

@@ -79,12 +79,20 @@ export function buildInvoiceView(s: InvoiceState): InvoiceView {
   }));
 
   // ── Totals ────────────────────────────────────────────────────────────────
-  const totals: InvoiceView['totals'] = [{ label: L.subtotal, value: money(t.subtotal), kind: 'normal' }];
+  // When nothing sits between subtotal and tax, the subtotal IS the taxable base, and
+  // fr/de/es/it/pt/nl invoices conventionally label it as such ("Total HT", "Nettobetrag").
+  // English keeps the familiar "Subtotal".
+  const netDiffers = t.net !== t.subtotal;
+  const firstLabel = t.taxes.length > 0 && !netDiffers && s.labelsLang !== 'en' ? L.net : L.subtotal;
+  const totals: InvoiceView['totals'] = [{ label: firstLabel, value: money(t.subtotal), kind: 'normal' }];
   if (t.discount > 0) {
     const d = s.discountType === 'percent' ? ` (${pct(s.discountValue, locale)})` : '';
     totals.push({ label: `${L.discount}${d}`, value: money(-t.discount), kind: 'normal' });
   }
   if (t.shipping > 0) totals.push({ label: L.shipping, value: money(t.shipping), kind: 'normal' });
+  // Taxable base: only printed when it differs from the subtotal (discount, shipping
+  // or tax-inclusive prices), so the legally meaningful net figure is always visible.
+  if (t.taxes.length > 0 && netDiffers) totals.push({ label: L.net, value: money(t.net), kind: 'normal' });
 
   const added = t.taxes.filter(x => x.kind === 'add');
   const withheld = t.taxes.filter(x => x.kind === 'withhold');

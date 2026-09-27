@@ -21,6 +21,8 @@ export interface Labels {
   from: string; billTo: string; taxId: string;
   description: string; qty: string; unitPrice: string; amount: string;
   subtotal: string; discount: string; shipping: string; total: string;
+  /** Taxable base after discount/shipping, excl. tax — printed only when it differs from the subtotal. */
+  net: string;
   amountPaid: string; balanceDue: string; pricesIncludeTax: string; ofWhichTax: string;
   paymentDetails: string; bank: string; accountName: string; accountNumber: string;
   iban: string; bic: string; provider: string; mobileNumber: string; upiId: string;
@@ -32,7 +34,7 @@ const en: Labels = {
   number: 'No.', date: 'Date', due: 'Due', validUntil: 'Valid until', paidOn: 'Paid on', reference: 'Reference',
   from: 'From', billTo: 'Bill to', taxId: 'Tax ID',
   description: 'Description', qty: 'Qty', unitPrice: 'Unit price', amount: 'Amount',
-  subtotal: 'Subtotal', discount: 'Discount', shipping: 'Shipping', total: 'Total',
+  subtotal: 'Subtotal', discount: 'Discount', shipping: 'Shipping', net: 'Net amount (excl. tax)', total: 'Total',
   amountPaid: 'Amount paid', balanceDue: 'Balance due', pricesIncludeTax: 'Prices include tax', ofWhichTax: 'incl.',
   paymentDetails: 'Payment details', bank: 'Bank', accountName: 'Account name', accountNumber: 'Account number',
   iban: 'IBAN', bic: 'BIC / SWIFT', provider: 'Provider', mobileNumber: 'Number', upiId: 'UPI ID',
@@ -44,7 +46,7 @@ const fr: Labels = {
   number: 'N°', date: 'Date', due: 'Échéance', validUntil: 'Valable jusqu’au', paidOn: 'Payé le', reference: 'Référence',
   from: 'De', billTo: 'Facturer à', taxId: 'N° TVA',
   description: 'Désignation', qty: 'Qté', unitPrice: 'Prix unitaire', amount: 'Montant',
-  subtotal: 'Total HT', discount: 'Remise', shipping: 'Livraison', total: 'Total TTC',
+  subtotal: 'Sous-total', discount: 'Remise', net: 'Total HT', shipping: 'Livraison', total: 'Total TTC',
   amountPaid: 'Déjà payé', balanceDue: 'Reste à payer', pricesIncludeTax: 'Prix TTC', ofWhichTax: 'dont',
   paymentDetails: 'Coordonnées de paiement', bank: 'Banque', accountName: 'Titulaire', accountNumber: 'N° de compte',
   iban: 'IBAN', bic: 'BIC', provider: 'Opérateur', mobileNumber: 'Numéro', upiId: 'UPI ID',
@@ -56,7 +58,7 @@ const de: Labels = {
   number: 'Nr.', date: 'Datum', due: 'Fällig', validUntil: 'Gültig bis', paidOn: 'Bezahlt am', reference: 'Referenz',
   from: 'Von', billTo: 'Rechnung an', taxId: 'USt-IdNr.',
   description: 'Beschreibung', qty: 'Menge', unitPrice: 'Einzelpreis', amount: 'Betrag',
-  subtotal: 'Nettobetrag', discount: 'Rabatt', shipping: 'Versand', total: 'Gesamtbetrag',
+  subtotal: 'Zwischensumme', discount: 'Rabatt', net: 'Nettobetrag', shipping: 'Versand', total: 'Gesamtbetrag',
   amountPaid: 'Bereits bezahlt', balanceDue: 'Offener Betrag', pricesIncludeTax: 'Preise inkl. USt.', ofWhichTax: 'enthalten',
   paymentDetails: 'Bankverbindung', bank: 'Bank', accountName: 'Kontoinhaber', accountNumber: 'Kontonummer',
   iban: 'IBAN', bic: 'BIC', provider: 'Anbieter', mobileNumber: 'Nummer', upiId: 'UPI ID',
@@ -68,7 +70,7 @@ const es: Labels = {
   number: 'N.º', date: 'Fecha', due: 'Vencimiento', validUntil: 'Válido hasta', paidOn: 'Pagado el', reference: 'Referencia',
   from: 'De', billTo: 'Facturar a', taxId: 'NIF',
   description: 'Concepto', qty: 'Cant.', unitPrice: 'Precio unitario', amount: 'Importe',
-  subtotal: 'Base imponible', discount: 'Descuento', shipping: 'Envío', total: 'Total',
+  subtotal: 'Subtotal', discount: 'Descuento', net: 'Base imponible', shipping: 'Envío', total: 'Total',
   amountPaid: 'Pagado', balanceDue: 'Pendiente', pricesIncludeTax: 'Precios con IVA incluido', ofWhichTax: 'incl.',
   paymentDetails: 'Datos de pago', bank: 'Banco', accountName: 'Titular', accountNumber: 'N.º de cuenta',
   iban: 'IBAN', bic: 'BIC', provider: 'Proveedor', mobileNumber: 'Número', upiId: 'UPI ID',
@@ -80,7 +82,7 @@ const pt: Labels = {
   number: 'N.º', date: 'Data', due: 'Vencimento', validUntil: 'Válido até', paidOn: 'Pago em', reference: 'Referência',
   from: 'De', billTo: 'Faturar a', taxId: 'NIF',
   description: 'Descrição', qty: 'Qtd.', unitPrice: 'Preço unitário', amount: 'Valor',
-  subtotal: 'Subtotal', discount: 'Desconto', shipping: 'Envio', total: 'Total',
+  subtotal: 'Subtotal', discount: 'Desconto', net: 'Base tributável', shipping: 'Envio', total: 'Total',
   amountPaid: 'Valor pago', balanceDue: 'Saldo em dívida', pricesIncludeTax: 'Preços com imposto incluído', ofWhichTax: 'incl.',
   paymentDetails: 'Dados de pagamento', bank: 'Banco', accountName: 'Titular', accountNumber: 'N.º da conta',
   iban: 'IBAN', bic: 'BIC', provider: 'Operador', mobileNumber: 'Número', upiId: 'UPI ID',
@@ -92,7 +94,7 @@ const it: Labels = {
   number: 'N.', date: 'Data', due: 'Scadenza', validUntil: 'Valido fino al', paidOn: 'Pagato il', reference: 'Riferimento',
   from: 'Da', billTo: 'Intestata a', taxId: 'P. IVA',
   description: 'Descrizione', qty: 'Q.tà', unitPrice: 'Prezzo unitario', amount: 'Importo',
-  subtotal: 'Imponibile', discount: 'Sconto', shipping: 'Spedizione', total: 'Totale',
+  subtotal: 'Subtotale', discount: 'Sconto', net: 'Imponibile', shipping: 'Spedizione', total: 'Totale',
   amountPaid: 'Già pagato', balanceDue: 'Netto a pagare', pricesIncludeTax: 'Prezzi IVA inclusa', ofWhichTax: 'di cui',
   paymentDetails: 'Coordinate di pagamento', bank: 'Banca', accountName: 'Intestatario', accountNumber: 'N. conto',
   iban: 'IBAN', bic: 'BIC', provider: 'Operatore', mobileNumber: 'Numero', upiId: 'UPI ID',
@@ -104,7 +106,7 @@ const nl: Labels = {
   number: 'Nr.', date: 'Datum', due: 'Vervaldatum', validUntil: 'Geldig tot', paidOn: 'Betaald op', reference: 'Referentie',
   from: 'Van', billTo: 'Factuur aan', taxId: 'Btw-nr.',
   description: 'Omschrijving', qty: 'Aantal', unitPrice: 'Prijs per stuk', amount: 'Bedrag',
-  subtotal: 'Subtotaal', discount: 'Korting', shipping: 'Verzending', total: 'Totaal',
+  subtotal: 'Subtotaal', discount: 'Korting', net: 'Totaal excl. btw', shipping: 'Verzending', total: 'Totaal',
   amountPaid: 'Reeds betaald', balanceDue: 'Te betalen', pricesIncludeTax: 'Prijzen incl. btw', ofWhichTax: 'waarvan',
   paymentDetails: 'Betaalgegevens', bank: 'Bank', accountName: 'Rekeninghouder', accountNumber: 'Rekeningnummer',
   iban: 'IBAN', bic: 'BIC', provider: 'Aanbieder', mobileNumber: 'Nummer', upiId: 'UPI ID',

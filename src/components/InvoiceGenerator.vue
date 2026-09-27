@@ -6,7 +6,7 @@ import { COUNTRY_BY_KEY, OTHER_COUNTRY, CURRENCIES, countriesByRegion, REGION_NA
 import { LABEL_LANGS, type DocType } from '../i18n/labels';
 import {
   loadProfile, saveProfile, peekNextNumber, takeNextNumber, loadClients, saveClient, deleteClient,
-  loadHistory, addToHistory, deleteHistory, exportAll, importAll, type SavedClient, type HistoryEntry,
+  loadHistory, addToHistory, deleteHistory, exportAll, importAll, type SavedClient, type HistoryEntry, type Profile,
 } from '../utils/invoiceStorage';
 import { generateInvoicePDF, printInvoicePDF } from '../utils/invoicePDF';
 import { paymentQr } from '../utils/paymentQr';
@@ -166,8 +166,21 @@ function refreshNumber() {
   if (!s.invoiceNumber || s.invoiceNumber === autoNumber) s.invoiceNumber = next;
   autoNumber = next;
 }
-watch(() => state.value.docType, (t) => {
-  if (t === 'receipt') state.value.visible.dueDate = false;
+// Receipts have no due date. Remember whether we hid it so switching back restores it.
+let dueHiddenByReceipt = false;
+watch(() => state.value.docType, (t, prev) => {
+  const s = state.value;
+  const v = s.visible;
+  if (t === 'receipt') { dueHiddenByReceipt = v.dueDate; v.dueDate = false; }
+  else if (prev === 'receipt' && dueHiddenByReceipt) { v.dueDate = true; dueHiddenByReceipt = false; }
+  // A locked INV-0003 switched to a credit note is a NEW document and needs its own CN- number.
+  // (Opening a history entry also changes docType, but then the number won't carry the old prefix.)
+  const oldPrefix = prev ? prefixFor(prev, country.value) : '';
+  if (locked.value && oldPrefix !== prefixFor(t, country.value) && s.invoiceNumber.startsWith(oldPrefix)) {
+    locked.value = false;
+    s.invoiceNumber = '';
+    autoNumber = '';
+  }
   refreshNumber();
 });
 watch(() => state.value.invoiceNumber, (val) => { if (locked.value && val !== lockedNumber) locked.value = false; });
@@ -175,7 +188,11 @@ watch(() => state.value.invoiceNumber, (val) => { if (locked.value && val !== lo
 function assignNumber() {
   if (locked.value) return;
   const s = state.value;
-  if (!s.invoiceNumber || s.invoiceNumber === autoNumber) s.invoiceNumber = takeNextNumber(numberPrefix.value);
+  if (!s.invoiceNumber || s.invoiceNumber === autoNumber) {
+    const taken = takeNextNumber(numberPrefix.value);
+    s.invoiceNumber = taken.number;
+    if (!taken.saved) flash('This browser blocked saving your invoice counter, so the next number may repeat. Check it before sending.');
+  }
   lockedNumber = s.invoiceNumber;
   locked.value = true;
 }
@@ -206,7 +223,12 @@ const showHistory = ref(false);
 function openEntry(h: HistoryEntry, duplicate: boolean) {
   const logo = state.value.businessLogo;
   state.value = { ...defaultInvoiceState(), ...JSON.parse(JSON.stringify(h.state)), businessLogo: logo };
+  // The snapshot holds the business/bank details of the day it was issued. A duplicate is a new
+  // document, so it takes today's saved details; an opened entry keeps its originals and is
+  // never auto-saved back over the profile.
+  profileSync = duplicate;
   if (duplicate) {
+    applyProfile(businessOnly(loadProfile()));
     locked.value = false;
     state.value.invoiceDate = localToday();
     state.value.dueDate = '';
@@ -227,6 +249,7 @@ function removeEntry(id: string) { history.value = deleteHistory(id); }
 
 /** Quote → invoice in one click (keeps items and client). */
 function convertToInvoice() {
+  profileSync = true;
   locked.value = false;
   state.value.docType = country.value.documentTitle === 'tax-invoice' && state.value.taxes.length ? 'tax-invoice' : 'invoice';
   state.value.invoiceDate = localToday();
@@ -294,17 +317,34 @@ function handleLogoUpload(e: Event) {
 function removeLogo() { state.value.businessLogo = ''; }
 
 // ── Auto-save business profile ───────────────────────────────────────────────
+// profileSync: off while viewing an old document from history (its details are historical).
+// pageKeep: a country page shows its own country/tax setup without replacing the saved one.
+let profileSync = true;
+let pageKeep: Profile | null = null;
 watch(state, () => {
-  if (!ready.value) return;
+  if (!ready.value || !profileSync) return;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    if (saveProfile(state.value)) savedAt.value = Date.now();
+    const keep = pageKeep && state.value.countryKey === props.countryPreset ? pageKeep : undefined;
+    if (saveProfile(state.value, keep)) savedAt.value = Date.now();
     else flash('Couldn’t save to this browser (private mode or storage full). Your invoice still works.');
   }, 700);
 }, { deep: true });
 const showSaved = computed(() => savedAt.value > 0 && Date.now() - savedAt.value < 2500);
 
-function applyProfile(p: ReturnType<typeof loadProfile>) {
+const COUNTRY_FIELDS = ['countryKey', 'currency', 'labelsLang', 'paper', 'taxes', 'taxNote', 'pricesIncludeTax', 'paymentRail'] as const;
+function businessOnly(p: Profile): Profile {
+  const out: Profile = { ...p };
+  for (const k of COUNTRY_FIELDS) delete out[k];
+  return out;
+}
+function countryOnly(p: Profile): Profile {
+  const out: Record<string, unknown> = {};
+  for (const k of COUNTRY_FIELDS) if (p[k] !== undefined) out[k] = p[k];
+  return out as Profile;
+}
+
+function applyProfile(p: Profile) {
   for (const [k, v] of Object.entries(p)) {
     if (v !== undefined && v !== null && k in state.value) (state.value as unknown as Record<string, unknown>)[k] = v;
   }
@@ -341,11 +381,15 @@ async function output(action: 'download' | 'print') {
 }
 
 // ── Country guess for first-time visitors (no page preset, nothing saved) ──
+// A bare language tag ("de") is as strong a signal as "de-DE" -- don't skip it for a later "en-US"
+const LANG_COUNTRY: Record<string, string> = { de: 'germany', fr: 'france', es: 'spain', it: 'italy', nl: 'netherlands' };
 function guessCountry(): string {
   const byRegion = new Map(COUNTRIES.map(c => [c.locale.split('-')[1], c.key]));
   for (const lang of navigator.languages ?? [navigator.language]) {
-    const region = lang.split('-')[1]?.toUpperCase();
+    const [base, regionRaw] = lang.split('-');
+    const region = regionRaw?.toUpperCase();
     if (region && byRegion.has(region)) return byRegion.get(region)!;
+    if (!region && LANG_COUNTRY[base.toLowerCase()]) return LANG_COUNTRY[base.toLowerCase()];
   }
   return 'united-states';
 }
@@ -360,9 +404,9 @@ onMounted(() => {
   applyCountry(target);
   // Saved settings win — except when a country page asks for a different country
   const sameCountry = !preset || preset === profile.countryKey;
-  const { countryKey: _c, currency, labelsLang, paper, taxes, taxNote, pricesIncludeTax, ...business } = profile;
-  applyProfile(business);
-  if (sameCountry) applyProfile({ currency, labelsLang, paper, taxes, taxNote, pricesIncludeTax });
+  applyProfile(businessOnly(profile));
+  if (sameCountry) applyProfile(countryOnly(profile));
+  else if (profile.countryKey) pageKeep = countryOnly(profile); // auto-save keeps the saved country
   if (!availableRails.value.includes(state.value.paymentRail)) state.value.paymentRail = country.value.rails[0];
 
   if (props.docPreset) state.value.docType = props.docPreset;

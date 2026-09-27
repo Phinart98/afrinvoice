@@ -14,6 +14,18 @@ describe('buildInvoiceView', () => {
     expect(v.totals.at(-1)!.value).toMatch(/1\.190,00\s€/);
   });
 
+  it('prints the real net (HT) separately when a discount or inclusive prices make it differ', () => {
+    const inclusive = make({ countryKey: 'france', labelsLang: 'fr', currency: 'EUR', pricesIncludeTax: true,
+      items: [{ description: 'x', quantity: 1, unitPrice: 120 }], taxes: [{ label: 'TVA', rate: 20, kind: 'add' }] });
+    expect(inclusive.totals.map(t => t.label)).toEqual(['Sous-total', 'Total HT', 'Total TTC', 'dont TVA 20%']);
+    expect(inclusive.totals[1].value).toMatch(/100,00/);
+
+    const discounted = make({ countryKey: 'germany', labelsLang: 'de', currency: 'EUR', discountType: 'percent', discountValue: 10,
+      items: [{ description: 'x', quantity: 1, unitPrice: 1000 }], taxes: [{ label: 'USt.', rate: 19, kind: 'add' }] });
+    expect(discounted.totals.map(t => t.label)).toEqual(['Zwischensumme', 'Rabatt (10%)', 'Nettobetrag', 'USt. 19%', 'Gesamtbetrag']);
+    expect(discounted.totals[2].value).toMatch(/900,00/);
+  });
+
   it('shows withholding as a negative line (Spain)', () => {
     const v = make({ countryKey: 'spain', labelsLang: 'es', currency: 'EUR', items: [{ description: 'x', quantity: 1, unitPrice: 1000 }],
       taxes: [{ label: 'IVA', rate: 21, kind: 'add' }, { label: 'IRPF', rate: 15, kind: 'withhold' }] });

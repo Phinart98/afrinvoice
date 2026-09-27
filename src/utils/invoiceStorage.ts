@@ -17,6 +17,7 @@ const KEY = {
 };
 const LEGACY_KEY = 'afrinvoice_business'; // Afrinvoice v1 (same origin only)
 const HISTORY_LIMIT = 30;
+const LEGACY_PREFIXES = ['GH-', 'NG-', 'KE-', 'ZA-', 'ZW-', 'UG-', 'TZ-', 'RW-', 'ET-', 'ZM-', 'MW-', 'CM-', 'CI-', 'SN-', 'MZ-', 'BW-', 'EG-', 'INV-'];
 
 export const PROFILE_FIELDS = [
   'businessName', 'businessEmail', 'businessPhone', 'businessAddress', 'businessTaxId', 'businessLogo',
@@ -66,10 +67,11 @@ export function loadProfile(): Profile {
   return migrateLegacy();
 }
 
-export function saveProfile(state: InvoiceState): boolean {
+/** `keep` overrides fields that must not be saved from this state (e.g. a country page's preset). */
+export function saveProfile(state: InvoiceState, keep?: Profile): boolean {
   const profile: Record<string, unknown> = {};
   for (const f of PROFILE_FIELDS) profile[f] = state[f];
-  return write(KEY.profile, profile);
+  return write(KEY.profile, { ...profile, ...keep });
 }
 
 /** One-time import of Afrinvoice v1 business details (only reachable on the same origin). */
@@ -84,6 +86,15 @@ function migrateLegacy(): Profile {
     swiftCode: old.swiftCode ?? '', momoProvider: old.momoProvider ?? '', momoNumber: old.momoNumber ?? '', momoName: old.momoName ?? '',
   };
   write(KEY.profile, profile);
+  // v1 kept ONE counter shared by every country, so we can't tell which prefix it
+  // belonged to. Seed all v1 prefixes with it: a gap in numbering is harmless,
+  // reissuing an already-used invoice number is not.
+  const n = Number(old.invoiceCounter) || 0;
+  if (n > 0) {
+    const counters = read<Record<string, number>>(KEY.counters, {});
+    for (const prefix of LEGACY_PREFIXES) counters[prefix] = Math.max(counters[prefix] ?? 0, n);
+    write(KEY.counters, counters);
+  }
   return profile;
 }
 
@@ -93,11 +104,12 @@ export function peekNextNumber(prefix: string): string {
   return formatNumber(prefix, (counters[prefix] ?? 0) + 1);
 }
 
-export function takeNextNumber(prefix: string): string {
+/** Consumes the next number. `saved: false` means the counter couldn't be stored (blocked or full storage). */
+export function takeNextNumber(prefix: string): { number: string; saved: boolean } {
   const counters = read<Record<string, number>>(KEY.counters, {});
   const next = (counters[prefix] ?? 0) + 1;
-  write(KEY.counters, { ...counters, [prefix]: next });
-  return formatNumber(prefix, next);
+  const saved = write(KEY.counters, { ...counters, [prefix]: next });
+  return { number: formatNumber(prefix, next), saved };
 }
 
 export function formatNumber(prefix: string, n: number): string {
@@ -140,8 +152,9 @@ export function addToHistory(state: InvoiceState, total: number): HistoryEntry[]
     currency: state.currency,
     state: snapshot,
   };
-  // Re-issuing the same number replaces the older entry
-  const list = [entry, ...loadHistory().filter(h => h.number !== state.invoiceNumber)].slice(0, HISTORY_LIMIT);
+  // Re-issuing the same document replaces its older entry (same number on another doc type is a different document)
+  const list = [entry, ...loadHistory().filter(h => !(h.number === state.invoiceNumber && h.docType === state.docType))]
+    .slice(0, HISTORY_LIMIT);
   write(KEY.history, list);
   return list;
 }
