@@ -59,7 +59,6 @@ const moreCount = COUNTRIES.length - FEATURED_COUNTRIES.length;
 
 <Base title={pageTitle} description={pageDescription} schema={[schema, faqSchema(faqs)]}>
   <section class="hero" aria-labelledby="hero-heading">
-    <div class="hero-glow" aria-hidden="true"></div>
     <div class="container">
       <div class="hero-content">
         <div class="hero-badge anim-fade-up anim-delay-1">Free · No sign-up · Nothing uploaded</div>
@@ -133,17 +132,6 @@ const moreCount = COUNTRIES.length - FEATURED_COUNTRIES.length;
     text-align: center;
   }
 
-  /* Radial amber glow — ambient warmth behind the headline */
-  .hero-glow {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 800px;
-    height: 500px;
-    background: radial-gradient(ellipse 70% 60% at 50% 15%, rgba(15, 118, 110,0.12) 0%, rgba(15, 118, 110,0.04) 50%, transparent 75%);
-    pointer-events: none;
-  }
 
   .hero-content {
     position: relative;
