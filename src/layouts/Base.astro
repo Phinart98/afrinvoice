@@ -1,6 +1,8 @@
 ---
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import ConsentBanner from '../components/ConsentBanner.astro';
+import { SITE } from '../site';
 import '../styles/global.css';
 
 interface Props {
@@ -20,14 +22,14 @@ interface SchemaObject {
 const {
   title,
   description,
-  canonical = Astro.url.href,
+  canonical = new URL(Astro.url.pathname, SITE.url).href,
   schema,
   ogImage,
 } = Astro.props;
 
-const siteUrl  = 'https://afrinvoice.app';
-const ogImg    = ogImage ?? `${siteUrl}/og.png`;
-const ogTitle  = title.includes('Afrinvoice') ? title : `${title} — Afrinvoice`;
+const ogImg   = ogImage ?? `${SITE.url}/og.png`;
+const ogTitle = title.includes(SITE.name) ? title : `${title} — ${SITE.name}`;
+const ogAlt   = `${SITE.name} — ${SITE.tagline}`;
 ---
 
 <!DOCTYPE html>
@@ -35,15 +37,13 @@ const ogTitle  = title.includes('Afrinvoice') ? title : `${title} — Afrinvoice
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0A0F1E" />
+  <meta name="theme-color" content="#0F766E" />
 
-  <!-- Primary meta -->
   <title>{ogTitle}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
   <meta name="robots" content="index, follow" />
 
-  <!-- Open Graph -->
   <meta property="og:type"         content="website" />
   <meta property="og:url"          content={canonical} />
   <meta property="og:title"        content={ogTitle} />
@@ -51,16 +51,15 @@ const ogTitle  = title.includes('Afrinvoice') ? title : `${title} — Afrinvoice
   <meta property="og:image"        content={ogImg} />
   <meta property="og:image:width"  content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt"    content="Afrinvoice — Free Invoice Generator for Africa" />
+  <meta property="og:image:alt"    content={ogAlt} />
   <meta property="og:locale"       content="en_US" />
-  <meta property="og:site_name"    content="Afrinvoice" />
+  <meta property="og:site_name"    content={SITE.name} />
 
-  <!-- Twitter -->
   <meta name="twitter:card"        content="summary_large_image" />
   <meta name="twitter:title"       content={ogTitle} />
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image"       content={ogImg} />
-  <meta name="twitter:image:alt"   content="Afrinvoice — Free Invoice Generator for Africa" />
+  <meta name="twitter:image:alt"   content={ogAlt} />
 
   <!-- Fonts: Sora (display) · DM Sans (body) · JetBrains Mono (amounts) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -75,25 +74,27 @@ const ogTitle  = title.includes('Afrinvoice') ? title : `${title} — Afrinvoice
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" />
   </noscript>
 
-  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-  <!-- JSON-LD Schema -->
   {schema && (
     Array.isArray(schema)
       ? schema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)
       : <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   )}
 
-  <!-- Google Search Console verification -->
-  <meta name="google-site-verification" content="BmpMIWd7m9AgoWxqSC4UBoQZLtQvPa9CxQAFcrSYqVY" />
+  <meta name="google-site-verification" content={SITE.gscVerification} />
 
-  <!-- Google Analytics 4 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-36BE3M8J6V"></script>
-  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-36BE3M8J6V');</script>
-
-  <!-- AdSense placeholder (uncomment when approved) -->
-  <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXX" crossorigin="anonymous"></script> -->
+  <!-- Consent Mode v2: denied by default in the EEA/UK/CH (banner asks there), granted elsewhere -->
+  <script is:inline define:vars={{ gaId: SITE.gaId }}>
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', wait_for_update: 500,
+      region: ['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO','GB','CH'] });
+    gtag('consent', 'default', { analytics_storage: 'granted', ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
+    gtag('js', new Date());
+    gtag('config', gaId);
+  </script>
+  <script async src={`https://www.googletagmanager.com/gtag/js?id=${SITE.gaId}`}></script>
 </head>
 <body>
   <Nav />
@@ -101,5 +102,6 @@ const ogTitle  = title.includes('Afrinvoice') ? title : `${title} — Afrinvoice
     <slot />
   </main>
   <Footer />
+  <ConsentBanner />
 </body>
 </html>

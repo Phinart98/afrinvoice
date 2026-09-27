@@ -4,134 +4,90 @@ import AdUnit from '../components/AdUnit.astro';
 import FaqSection from '../components/FaqSection.astro';
 import AffiliateCallout from '../components/AffiliateCallout.astro';
 import InvoiceGenerator from '../components/InvoiceGenerator.vue';
+import { COUNTRIES, FEATURED_COUNTRIES, countryPath } from '../data/countries';
 import { webAppSchema, faqSchema } from '../utils/schema';
+import { SITE } from '../site';
+import type { FaqItem } from '../components/FaqSection.astro';
 
 const schema = webAppSchema(
-  'Afrinvoice — Free Invoice Generator for Africa',
-  'https://afrinvoice.app',
-  'Create professional invoices with GRA VAT, MTN MoMo, M-Pesa payment instructions. Free, no sign-up, instant PDF download.',
+  `${SITE.name} — Free Invoice Generator`,
+  SITE.url,
+  'Free invoice, quote and receipt generator with country tax presets (VAT, GST, sales tax, withholding), any currency, payment QR codes and 7 invoice languages. No sign-up, instant PDF.',
 );
 
-const tier1Countries = [
-  { flag: '🇬🇭', name: 'Ghana',        href: '/ghana-invoice-generator/',        hint: 'GRA VAT 20%' },
-  { flag: '🇳🇬', name: 'Nigeria',      href: '/nigeria-invoice-generator/',      hint: 'NRS VAT 7.5%' },
-  { flag: '🇰🇪', name: 'Kenya',        href: '/kenya-invoice-generator/',        hint: 'KRA VAT 16%' },
-  { flag: '🇿🇦', name: 'South Africa', href: '/south-africa-invoice-generator/', hint: 'SARS VAT 15%' },
-  { flag: '🇿🇼', name: 'Zimbabwe',     href: '/zimbabwe-invoice-generator/',     hint: 'EcoCash' },
-];
-
+const icon = (d: string) => `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const features = [
-  {
-    icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 3v5l3 3" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-    title: 'Country-smart tax rates',
-    body: 'GRA VAT 20% (Ghana), NRS 7.5% (Nigeria), KRA 16% (Kenya) — pre-filled and editable.',
-  },
-  {
-    icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="2" stroke="#F59E0B" stroke-width="1.5"/><path d="M3 8h14" stroke="#F59E0B" stroke-width="1.5"/><circle cx="7" cy="12" r="1.25" fill="#F59E0B"/></svg>`,
-    title: 'Mobile money instructions',
-    body: 'MTN MoMo, M-Pesa, EcoCash, OPay — correct providers per country, not a generic list.',
-  },
-  {
-    icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h12v1H4zM4 7h8M4 10h10M4 13h6" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/><rect x="2" y="2" width="16" height="16" rx="2" stroke="#F59E0B" stroke-width="1.5"/></svg>`,
-    title: '3 PDF templates',
-    body: 'Classic, Modern, and Minimal — download instantly with no watermark, no sign-up.',
-  },
-  {
-    icon: `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4v5l3.5 3.5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/><path d="M5 15.5A8 8 0 1015.5 5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/><path d="M5 11V15.5H9.5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-    title: 'Business details saved',
-    body: 'Your name, email, and payment info are auto-saved in your browser. Ready next time.',
-  },
+  { icon: icon('<circle cx="10" cy="10" r="8"/><path d="M2 10h16M10 2a12 12 0 010 16M10 2a12 12 0 000 16"/>'),
+    title: `Knows the rules in ${COUNTRIES.length} countries`,
+    body: 'UK VAT, Canadian GST/HST by province, India CGST + SGST, Australian GST, EU VAT with reverse charge, Spanish IRPF, Ghana levies: set up in one click, every rate editable.' },
+  { icon: icon('<path d="M4 6h12M4 10h12M4 14h7"/><path d="M14 13l2 2 3-3"/>'),
+    title: 'Everything a real invoice needs',
+    body: 'Several tax lines, tax-inclusive prices, withholding, discounts, shipping, part-payments and balance due. Quotes, receipts, proformas and credit notes too.' },
+  { icon: icon('<rect x="3" y="3" width="5" height="5"/><rect x="12" y="3" width="5" height="5"/><rect x="3" y="12" width="5" height="5"/><path d="M12 12h2v2h-2zM15 15h2v2h-2z"/>'),
+    title: 'Get paid faster',
+    body: 'IBAN with a SEPA QR code any European banking app can scan, a UPI QR for India, mobile money in Africa, or your PayPal, Stripe or Wise link as a QR code.' },
+  { icon: icon('<path d="M4 4h9l3 3v9H4z"/><path d="M7 10h6M7 13h4"/>'),
+    title: 'Speaks your client’s language',
+    body: 'Print the invoice in English, French, German, Spanish, Portuguese, Italian or Dutch, with local number and date formats on A4 or US Letter.' },
+  { icon: icon('<rect x="4" y="9" width="12" height="8" rx="1.5"/><path d="M7 9V6a3 3 0 016 0v3"/>'),
+    title: 'Private by design',
+    body: 'No account and no upload. Your business details, clients and invoice history stay in your browser. Export a backup whenever you like.' },
+  { icon: icon('<path d="M4 4h12v12H4z"/><path d="M4 8h12M8 8v8"/>'),
+    title: '3 clean templates, no watermark',
+    body: 'Minimal, Modern and Classic, with your logo and colours. Every currency symbol prints correctly: ₦, ₹, ₵, € and the rest.' },
 ];
 
-const faqs: import('../components/FaqSection.astro').FaqItem[] = [
-  {
-    q: 'Is Afrinvoice really free?',
-    a: 'Yes — completely free. No account, no watermark, no hidden fees. Your data stays in your browser and never touches our servers.',
-  },
-  {
-    q: 'Which African countries are supported?',
-    a: 'All <strong>17 African countries</strong> are available in the tool — select your country and the tax authority, VAT rate, currency, and correct payment providers auto-fill. <strong>Ghana, Nigeria, Kenya, South Africa, and Zimbabwe</strong> each have dedicated country pages with tailored guides. More country pages are being added regularly.',
-  },
-  {
-    q: 'Can I add MTN MoMo, M-Pesa or EcoCash payment details?',
-    a: 'Yes. The payment section adapts per country — MTN MoMo for Ghana, M-Pesa for Kenya, EcoCash for Zimbabwe. Nigeria defaults to bank transfer (the B2B standard), with OPay and PalmPay as mobile options.',
-  },
-  {
-    q: 'Does it support GRA VAT, NRS/FIRS, and KRA VAT?',
-    a: 'Yes. Select your country and the tool auto-fills the correct authority and rate — GRA VAT 20% (Ghana), NRS 7.5% (Nigeria), KRA 16% (Kenya), SARS 15% (South Africa), ZIMRA VAT 15.5% (Zimbabwe), and more. Every field is editable if your situation differs.',
-  },
-  {
-    q: 'Will my business details be saved for next time?',
-    a: 'Your business name, email, address, logo, and payment details are saved automatically in your browser\'s local storage. They reload on your next visit. Client details and invoice numbers are <em>per-invoice</em> and are not saved.',
-  },
-  {
-    q: 'Can I download my invoice as a PDF?',
-    a: 'Yes. Choose from 3 templates — Classic (formal), Modern (navy + amber), Minimal (ultra-clean) — and download your PDF instantly. No sign-up, no watermark.',
-  },
+const faqs: FaqItem[] = [
+  { q: `Is ${SITE.name} really free?`,
+    a: 'Yes. No account, no watermark, no limits and no trial. The PDF is created in your browser, so your invoices never touch our servers.' },
+  { q: 'Which countries are supported?',
+    a: `${COUNTRIES.length} countries have tax presets, required-field checklists and local payment methods built in, including the US, UK, Canada, Australia, India, Germany, France, Spain, Italy, the UAE, Nigeria, Ghana, Kenya and South Africa. Anywhere else, choose Other country and set your own tax.` },
+  { q: 'Can I charge more than one tax, or withhold tax?',
+    a: 'Yes. Add as many tax lines as you need (for example CGST + SGST, or GST + QST), mark a line as withheld to subtract it (IRPF, ritenuta d’acconto, WHT), and tick prices already include tax if your prices are tax-inclusive.' },
+  { q: 'Can I invoice a foreign client in their currency?',
+    a: 'Yes. Pick any currency and any of 7 invoice languages. Amounts, dates and labels are formatted the way your client expects.' },
+  { q: 'Is a PDF invoice legally valid?',
+    a: 'In most countries, yes, as long as it has the required details, which each country page lists. A few countries now require e-invoices through a government system for domestic sales (Italy and Côte d’Ivoire, for example), and the country pages say so plainly.' },
+  { q: 'Where is my data stored?',
+    a: 'Only in your browser. Clearing your browser data removes it, so use Export backup in the History panel to keep a copy or move to another device.' },
 ];
+
+const pageTitle = `Free Invoice Generator with VAT, GST & Sales Tax Built In — ${SITE.name}`;
+const pageDescription = `Free invoice generator that knows your country’s rules: VAT, GST, sales tax and withholding presets for ${COUNTRIES.length} countries, any currency, payment QR codes, quotes and receipts. No sign-up, instant PDF.`;
+const moreCount = COUNTRIES.length - FEATURED_COUNTRIES.length;
 ---
 
-<Base
-  title="Free Invoice Generator for African Freelancers — Afrinvoice"
-  description="Create invoices with GRA VAT, M-Pesa, MTN MoMo payment instructions. Free, no sign-up, instant PDF. Built for Ghana, Nigeria, Kenya, South Africa and more."
-  schema={[schema, faqSchema(faqs)]}
->
-
-  <!-- ── Hero ──────────────────────────────────────────────────────────── -->
+<Base title={pageTitle} description={pageDescription} schema={[schema, faqSchema(faqs)]}>
   <section class="hero" aria-labelledby="hero-heading">
-    <!-- Ambient glow behind headline -->
     <div class="hero-glow" aria-hidden="true"></div>
-
     <div class="container">
       <div class="hero-content">
-
-        <div class="hero-badge anim-fade-up anim-delay-1">
-          VAT-aware &middot; MoMo-ready &middot; Instant PDF
-        </div>
-
+        <div class="hero-badge anim-fade-up anim-delay-1">Free · No sign-up · Nothing uploaded</div>
         <h1 id="hero-heading" class="hero-heading anim-fade-up anim-delay-2">
-          Create your invoice.<br />
-          <span class="shimmer">Get paid faster.</span>
+          The free invoice generator<br />
+          <span class="shimmer">that knows your country’s rules.</span>
         </h1>
-
         <p class="hero-sub anim-fade-up anim-delay-3">
-          Select your country — VAT rate, currency, and payment instructions fill in automatically. For Africa's freelancers, consultants, and businesses.
-          <strong>Free. No sign-up. Instant PDF.</strong>
+          Pick your country and the right taxes, currency, paper size and payment details set themselves up.
+          <strong>Download a professional PDF in under a minute.</strong>
         </p>
-
-        <!-- Country chips -->
-        <div class="hero-chips anim-fade-up anim-delay-4" role="list" aria-label="Country-specific invoice generators">
-          {tier1Countries.map(c => (
-            <a href={c.href} class="country-chip" role="listitem" title={`Invoice generator for ${c.name} (${c.hint})`}>
-              <span aria-hidden="true">{c.flag}</span>
-              {c.name}
-            </a>
+        <div class="hero-chips anim-fade-up anim-delay-4" role="list" aria-label="Country invoice generators">
+          {FEATURED_COUNTRIES.map(c => (
+            <a href={countryPath(c)} class="country-chip" role="listitem"><span aria-hidden="true">{c.flag}</span> {c.name}</a>
           ))}
+          <a href="/invoice-requirements-by-country/" class="country-chip" role="listitem">+ {moreCount} more</a>
         </div>
-
-        <!-- Stats strip -->
-        <div class="hero-stats anim-fade-up anim-delay-5" aria-label="Afrinvoice key statistics">
-          <div class="hero-stat">
-            <span class="hero-stat-num mono">17</span>
-            <span class="hero-stat-label">African countries</span>
-          </div>
+        <div class="hero-stats anim-fade-up anim-delay-5">
+          <div class="hero-stat"><span class="hero-stat-num mono">{COUNTRIES.length}</span><span class="hero-stat-label">countries</span></div>
           <div class="hero-stat-sep" aria-hidden="true"></div>
-          <div class="hero-stat">
-            <span class="hero-stat-num mono">3</span>
-            <span class="hero-stat-label">PDF templates</span>
-          </div>
+          <div class="hero-stat"><span class="hero-stat-num mono">7</span><span class="hero-stat-label">invoice languages</span></div>
           <div class="hero-stat-sep" aria-hidden="true"></div>
-          <div class="hero-stat">
-            <span class="hero-stat-num mono">100%</span>
-            <span class="hero-stat-label">browser-only</span>
-          </div>
+          <div class="hero-stat"><span class="hero-stat-num mono">100%</span><span class="hero-stat-label">in your browser</span></div>
         </div>
-
       </div>
     </div>
   </section>
 
-  <!-- ── Invoice Generator ────────────────────────────────────────────── -->
   <section class="tool-section" aria-label="Invoice generator">
     <div class="container">
       <div class="tool-shell">
@@ -142,12 +98,9 @@ const faqs: import('../components/FaqSection.astro').FaqItem[] = [
 
   <AdUnit slot="tool-below" />
 
-  <!-- ── Features ──────────────────────────────────────────────────────── -->
   <section class="features section" aria-labelledby="features-heading">
     <div class="container">
-      <h2 id="features-heading" class="features-heading">
-        Built for how African business actually works
-      </h2>
+      <h2 id="features-heading" class="features-heading">Everything you need to get paid, nothing you don’t</h2>
       <div class="features-grid">
         {features.map(f => (
           <div class="feature-card">
@@ -160,18 +113,15 @@ const faqs: import('../components/FaqSection.astro').FaqItem[] = [
     </div>
   </section>
 
-  <!-- ── Affiliate callout ──────────────────────────────────────────────── -->
   <div class="container affiliate-wrap">
     <AffiliateCallout affiliate="freshbooks" />
   </div>
 
-  <!-- ── FAQ ───────────────────────────────────────────────────────────── -->
   <section class="section" aria-labelledby="faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Frequently Asked Questions" />
+      <FaqSection items={faqs} heading="Frequently asked questions" headingId="faq-heading" />
     </div>
   </section>
-
 </Base>
 
 <style>
@@ -191,7 +141,7 @@ const faqs: import('../components/FaqSection.astro').FaqItem[] = [
     transform: translateX(-50%);
     width: 800px;
     height: 500px;
-    background: radial-gradient(ellipse 70% 60% at 50% 15%, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 50%, transparent 75%);
+    background: radial-gradient(ellipse 70% 60% at 50% 15%, rgba(15, 118, 110,0.12) 0%, rgba(15, 118, 110,0.04) 50%, transparent 75%);
     pointer-events: none;
   }
 
@@ -211,12 +161,12 @@ const faqs: import('../components/FaqSection.astro').FaqItem[] = [
     align-items: center;
     gap: 0.375rem;
     padding: 0.3125rem 0.875rem;
-    background: rgba(245, 158, 11, 0.06);
-    border: 1px solid rgba(245, 158, 11, 0.18);
+    background: rgba(15, 118, 110, 0.06);
+    border: 1px solid rgba(15, 118, 110, 0.18);
     border-radius: 9999px;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: #D97706;
+    color: #0F766E;
     letter-spacing: 0.01em;
   }
 
@@ -348,7 +298,7 @@ const faqs: import('../components/FaqSection.astro').FaqItem[] = [
     align-items: center;
     justify-content: center;
     background: var(--accent-subtle);
-    border: 1px solid rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(15, 118, 110, 0.15);
     border-radius: 8px;
     margin-bottom: 0.25rem;
   }

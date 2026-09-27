@@ -1,0 +1,96 @@
+---
+import Base from '../../layouts/Base.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
+import { COUNTRIES, REGION_NAMES, countriesByRegion, countryPath, type CountryConfig } from '../../data/countries';
+import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
+
+const url = abs('/invoice-requirements-by-country/');
+const EINV = /e-invoic|eTIMS|E-VAT|EFRIS|FDMS|Fiscal|SdI|FNE|EBM|Smart Invoice|Authority to Print/i;
+
+const standardTax = (c: CountryConfig) => {
+  const p = c.taxPresets[0];
+  if (!p || !p.taxes.length) return 'None by default';
+  const add = p.taxes.filter(t => (t.kind ?? 'add') === 'add').reduce((s, t) => s + t.rate, 0);
+  return add ? `${c.taxName} ${add}%` : c.taxName;
+};
+const eInvoicing = (c: CountryConfig) => (c.rules.some(r => EINV.test(r)) ? 'Yes / phasing in' : 'No');
+
+const faqs: FaqItem[] = [
+  { q: 'What must every invoice include?',
+    a: 'Almost everywhere: your name and address, the customer’s name, a unique sequential number, the date, a description of what you sold with quantities and prices, any tax charged, and the total. VAT and GST countries add your registration number and the tax rate and amount.' },
+  { q: 'Which countries require e-invoicing?',
+    a: 'A growing list. Italy, Côte d’Ivoire and several East African systems (eTIMS, EFRIS, EBM) already require government-registered invoices for domestic sales; France, Germany, the UAE and others are phasing mandates in during 2026–2028. The table marks each one, and the country pages give the dates.' },
+  { q: 'How often is this data checked?',
+    a: `Each country shows the month it was last verified against official sources. Spot something out of date? Email ${SITE.email}.` },
+];
+---
+
+<Base
+  title="Invoice Requirements by Country — Tax, Tax ID & E-Invoicing Rules"
+  description={`What an invoice must include in ${COUNTRIES.length} countries: standard VAT/GST rate, tax ID, currency, paper size and e-invoicing status, with sources and a free generator for each.`}
+  schema={[
+    articleSchema('Invoice requirements by country', url, `Invoice rules in ${COUNTRIES.length} countries at a glance.`),
+    breadcrumbSchema([{ name: SITE.name, url: abs('/') }, { name: 'Invoice requirements by country', url }]),
+    faqSchema(faqs),
+  ]}
+>
+  <section class="country-hero" aria-labelledby="hub-heading">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">Countries</span></nav>
+      <div class="country-badge">{COUNTRIES.length} countries · sources cited · checked monthly</div>
+      <h1 id="hub-heading" class="country-heading">Invoice requirements by country</h1>
+      <p class="country-sub">The standard tax, the tax ID to print, the currency and whether e-invoicing applies, <strong>at a glance</strong>. Each country links to a free generator with its rules built in.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      {countriesByRegion().map(([region, list]) => (
+        <div class="region">
+          <h2>{REGION_NAMES[region]}</h2>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Country</th><th>Standard tax</th><th>Tax ID on invoice</th><th>Currency</th><th>Paper</th><th>E-invoicing</th><th>Checked</th></tr></thead>
+              <tbody>
+                {list.map(c => (
+                  <tr>
+                    <td><a href={countryPath(c)}><span aria-hidden="true">{c.flag}</span> {c.name}</a></td>
+                    <td>{standardTax(c)}</td>
+                    <td>{c.taxIdLabel}</td>
+                    <td>{c.currency}</td>
+                    <td>{c.paper}</td>
+                    <td>{eInvoicing(c)}</td>
+                    <td>{c.lastVerified}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+      <p class="disclaimer">A practical summary, not tax advice. Rates shown are the default setup in the generator; reduced rates, exemptions and withholding options are on each country page.</p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Frequently asked questions" headingId="faq-heading" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .region { margin-bottom: 2.5rem; }
+  .region h2 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
+  .data-table th, .data-table td { text-align: left; padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); background: var(--surface-2); }
+  .data-table td { color: var(--text-2); }
+  .data-table a { color: var(--text); font-weight: 600; text-decoration: none; }
+  .data-table a:hover { color: var(--accent); }
+  .disclaimer { font-size: 0.8125rem; color: var(--text-3); }
+</style>

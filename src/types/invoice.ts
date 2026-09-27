@@ -1,7 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Invoice state — shared type used by InvoiceGenerator.vue, InvoicePreview.vue,
-// and invoicePDF.ts. Keep this the single source of truth for invoice shape.
+// Invoice state — shared by InvoiceGenerator.vue, InvoicePreview.vue and
+// invoicePDF.ts. The single source of truth for invoice shape and totals.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import type { DocType, LabelLang } from '../i18n/labels';
+import type { PaymentRail, TaxKind } from '../data/countries';
+import { localToday, roundMoney } from '../utils/money';
 
 export interface InvoiceItem {
   description: string;
@@ -9,141 +13,195 @@ export interface InvoiceItem {
   unitPrice: number;
 }
 
-// Which optional fields appear on the invoice output (preview + PDF).
-// Not persisted to localStorage — resets to all-visible on each session.
+export interface TaxLine {
+  label: string;
+  rate: number;     // percent
+  kind: TaxKind;    // 'add' (VAT/GST) or 'withhold' (IRPF/WHT — subtracted)
+}
+
+// Which optional fields appear on the invoice output (preview + PDF). Not persisted.
 export interface InvoiceVisible {
-  dueDate:       boolean;  // due date row in header
-  bizPhone:      boolean;  // business phone in sender block
-  bizEmail:      boolean;  // business email in sender block
-  clientEmail:   boolean;  // client email in bill-to block
-  clientAddress: boolean;  // client address in bill-to block
-  tax:           boolean;  // tax row in totals (independent of taxRate value)
-  payment:       boolean;  // entire payment details section
+  dueDate:       boolean;
+  bizPhone:      boolean;
+  bizEmail:      boolean;
+  clientEmail:   boolean;
+  clientAddress: boolean;
+  tax:           boolean;
+  payment:       boolean;
+  qr:            boolean;   // payment QR code (SEPA / UPI / payment link)
 }
 
 export interface InvoiceState {
-  // ── Template & country ────────────────────────────────────────────────────
+  // ── Template, country, document ─────────────────────────────────────────
   template: 'classic' | 'modern' | 'minimal';
-  countryKey: string;          // key into COUNTRY_CONFIGS, e.g. 'ghana' | 'other'
+  countryKey: string;
+  docType: DocType;
+  titleOverride: string;       // '' = use the translated title for docType
+  labelsLang: LabelLang;
+  paper: 'A4' | 'Letter';
 
-  // ── Invoice meta ─────────────────────────────────────────────────────────
-  invoiceTitle: string;        // "INVOICE" | "TAX INVOICE" | "RECEIPT" | custom
-  invoiceNumber: string;       // e.g. "GH-0001"
+  // ── Meta ────────────────────────────────────────────────────────────────
+  invoiceNumber: string;
   invoiceDate: string;         // YYYY-MM-DD
-  dueDate: string;             // YYYY-MM-DD
+  dueDate: string;             // YYYY-MM-DD (also "valid until" for quotes)
+  reference: string;           // PO number / project reference
 
-  // ── Currency & tax ────────────────────────────────────────────────────────
-  currency: string;            // ISO code: GHS, NGN, KES, USD …
-  currencySymbol: string;      // GH₵, ₦, KSh, $ …
-  taxLabel: string;            // "GRA VAT" | "VAT" | "TVA" | "GST"
-  taxRate: number;             // percentage, e.g. 15 (0 = no tax row shown)
+  // ── Money ───────────────────────────────────────────────────────────────
+  currency: string;            // ISO 4217
+  taxes: TaxLine[];
+  pricesIncludeTax: boolean;
+  taxNote: string;             // exemption wording, e.g. "TVA non applicable, art. 293 B du CGI"
+  discountType: 'percent' | 'amount';
+  discountValue: number;
+  shipping: number;
+  amountPaid: number;
 
-  // ── Business / sender ────────────────────────────────────────────────────
+  // ── Business / sender ──────────────────────────────────────────────────
   businessName: string;
   businessEmail: string;
   businessPhone: string;
   businessAddress: string;
-  businessLogo: string;        // base64 data URL from FileReader, or ''
+  businessTaxId: string;
+  businessLogo: string;        // base64 data URL, or ''
 
-  // ── Client / recipient ───────────────────────────────────────────────────
+  // ── Client ─────────────────────────────────────────────────────────────
   clientName: string;
   clientEmail: string;
   clientAddress: string;
+  clientTaxId: string;
 
-  // ── Line items ────────────────────────────────────────────────────────────
-  itemLabel: string;           // Column header — "Description" | "Service" | "Hours" etc.
+  // ── Line items ─────────────────────────────────────────────────────────
+  itemLabel: string;           // '' = translated "Description"
   items: InvoiceItem[];
 
-  // ── Payment ───────────────────────────────────────────────────────────────
-  paymentType: 'mobile-money' | 'bank';
-  // Bank transfer fields
+  // ── Payment ────────────────────────────────────────────────────────────
+  paymentRail: PaymentRail;
   bankName: string;
-  accountNumber: string;
   accountName: string;
-  swiftCode: string;           // optional — for international wires
-  // Mobile money fields
-  momoProvider: string;        // provider name (dropdown value or free text for 'other' country)
+  accountNumber: string;
+  bankCode: string;            // sort code / BSB / routing / IFSC / branch code
+  swiftCode: string;
+  iban: string;
+  bic: string;
+  momoProvider: string;
   momoNumber: string;
   momoName: string;
+  upiId: string;
+  paymentLink: string;         // PayPal.me / Stripe / Wise link (any rail)
 
-  // ── Template colours (hex, user-customisable) ────────────────────────────
-  classicAccent: string;   // Classic: total amount colour, default amber #F59E0B
-  modernHeader: string;    // Modern: header band colour, default navy #0F172A
-  modernAccent: string;    // Modern: accent / highlight colour, default amber #F59E0B
+  // ── Template colours ───────────────────────────────────────────────────
+  classicAccent: string;
+  modernHeader: string;
+  modernAccent: string;
 
-  // ── Notes ─────────────────────────────────────────────────────────────────
   notes: string;
-
-  // ── Footer note — printed at the bottom of the invoice (optional) ─────────
   footerNote: string;
-
-  // ── Visibility — per-invoice, not persisted ───────────────────────────────
   visible: InvoiceVisible;
 }
 
-// ── Default / blank state — used to initialise InvoiceGenerator ──────────────
-export const DEFAULT_INVOICE_STATE: InvoiceState = {
-  template: 'minimal',
-  countryKey: 'ghana',
+export function defaultInvoiceState(): InvoiceState {
+  return {
+    template: 'minimal',
+    countryKey: 'united-states',
+    docType: 'invoice',
+    titleOverride: '',
+    labelsLang: 'en',
+    paper: 'Letter',
 
-  invoiceTitle: 'INVOICE',
-  invoiceNumber: '',
-  invoiceDate: today(),
-  dueDate: '',
+    invoiceNumber: '',
+    invoiceDate: localToday(),
+    dueDate: '',
+    reference: '',
 
-  currency: 'GHS',
-  currencySymbol: 'GH₵',
-  taxLabel: 'GRA VAT + Levies',
-  taxRate: 20,
+    currency: 'USD',
+    taxes: [],
+    pricesIncludeTax: false,
+    taxNote: '',
+    discountType: 'percent',
+    discountValue: 0,
+    shipping: 0,
+    amountPaid: 0,
 
-  businessName: '',
-  businessEmail: '',
-  businessPhone: '',
-  businessAddress: '',
-  businessLogo: '',
+    businessName: '', businessEmail: '', businessPhone: '', businessAddress: '', businessTaxId: '', businessLogo: '',
+    clientName: '', clientEmail: '', clientAddress: '', clientTaxId: '',
 
-  clientName: '',
-  clientEmail: '',
-  clientAddress: '',
+    itemLabel: '',
+    items: [{ description: '', quantity: 1, unitPrice: 0 }],
 
-  itemLabel: 'Description',
-  items: [{ description: '', quantity: 1, unitPrice: 0 }],
+    paymentRail: 'bank',
+    bankName: '', accountName: '', accountNumber: '', bankCode: '', swiftCode: '',
+    iban: '', bic: '',
+    momoProvider: '', momoNumber: '', momoName: '',
+    upiId: '', paymentLink: '',
 
-  paymentType: 'mobile-money',
-  bankName: '',
-  accountNumber: '',
-  accountName: '',
-  swiftCode: '',
-  momoProvider: '',
-  momoNumber: '',
-  momoName: '',
+    classicAccent: '#115E59',
+    modernHeader: '#0F172A',
+    modernAccent: '#0EA5E9',
 
-  classicAccent: '#F59E0B',
-  modernHeader:  '#0F172A',
-  modernAccent:  '#F59E0B',
-
-  notes: '',
-  footerNote: '',
-
-  visible: {
-    dueDate:       true,
-    bizPhone:      true,
-    bizEmail:      true,
-    clientEmail:   true,
-    clientAddress: true,
-    tax:           true,
-    payment:       true,
-  },
-};
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
+    notes: '',
+    footerNote: '',
+    visible: { dueDate: true, bizPhone: true, bizEmail: true, clientEmail: true, clientAddress: true, tax: true, payment: true, qr: true },
+  };
 }
 
-// ── Pure computation — no PDF dependency, safe to import in any context ───────
-export function computeTotals(items: InvoiceItem[], taxRate: number) {
-  const subtotal  = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
-  const taxAmount = subtotal * taxRate / 100;
-  const total     = subtotal + taxAmount;
-  return { subtotal, taxAmount, total };
+// ─────────────────────────────────────────────────────────────────────────────
+// Totals — pure, no PDF/DOM dependency.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface TaxAmount extends TaxLine { amount: number }
+
+export interface Totals {
+  subtotal: number;      // sum of line amounts (net, or gross when prices include tax)
+  discount: number;      // positive number subtracted
+  shipping: number;
+  net: number;           // taxable base after discount + shipping, excluding tax
+  taxes: TaxAmount[];    // one entry per non-zero tax line
+  addedTax: number;      // sum of 'add' taxes
+  withheld: number;      // sum of 'withhold' taxes
+  total: number;         // what the client owes before payments
+  amountPaid: number;
+  balanceDue: number;
+}
+
+type TotalsInput = Pick<InvoiceState, 'items' | 'taxes' | 'pricesIncludeTax' | 'discountType' | 'discountValue' | 'shipping' | 'amountPaid' | 'currency'>;
+
+/**
+ * Tax is computed per tax line on the invoice total (not per item line), then rounded
+ * to the currency's minor units — the method EU, UK and GST systems all accept.
+ * With tax-inclusive prices, the net is backed out and any rounding cent stays in the
+ * net, so net + tax always equals the gross the customer saw.
+ */
+export function computeTotals(s: TotalsInput, opts: { taxVisible?: boolean } = {}): Totals {
+  const cur = s.currency;
+  const r = (n: number) => roundMoney(n, cur);
+  const num = (n: number) => (Number.isFinite(n) ? n : 0);
+
+  const subtotal = r(s.items.reduce((sum, i) => sum + r(num(i.quantity) * num(i.unitPrice)), 0));
+  const rawDiscount = s.discountType === 'percent'
+    ? subtotal * Math.min(Math.max(num(s.discountValue), 0), 100) / 100
+    : Math.min(Math.max(num(s.discountValue), 0), subtotal);
+  const discount = r(rawDiscount);
+  const shipping = r(Math.max(num(s.shipping), 0));
+  const afterDiscount = r(subtotal - discount + shipping);
+
+  const lines = opts.taxVisible === false ? [] : s.taxes.filter(t => num(t.rate) !== 0);
+  const addRate = lines.filter(t => t.kind === 'add').reduce((sum, t) => sum + num(t.rate), 0);
+
+  let net: number;
+  let taxes: TaxAmount[];
+  if (s.pricesIncludeTax && addRate > 0) {
+    const approxNet = afterDiscount / (1 + addRate / 100);
+    const addAmounts = lines.map(t => (t.kind === 'add' ? r(approxNet * num(t.rate) / 100) : 0));
+    net = r(afterDiscount - addAmounts.reduce((sum, a) => sum + a, 0));
+    taxes = lines.map((t, i) => ({ ...t, amount: t.kind === 'add' ? addAmounts[i] : r(net * num(t.rate) / 100) }));
+  } else {
+    net = afterDiscount;
+    taxes = lines.map(t => ({ ...t, amount: r(net * num(t.rate) / 100) }));
+  }
+
+  const addedTax = r(taxes.filter(t => t.kind === 'add').reduce((sum, t) => sum + t.amount, 0));
+  const withheld = r(taxes.filter(t => t.kind === 'withhold').reduce((sum, t) => sum + t.amount, 0));
+  const total = r(net + addedTax - withheld);
+  const amountPaid = r(Math.max(num(s.amountPaid), 0));
+  return { subtotal, discount, shipping, net, taxes, addedTax, withheld, total, amountPaid, balanceDue: r(total - amountPaid) };
 }

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://afrinvoice.app/sitemap-index.xml
+Sitemap: https://invoicekit.app/sitemap-index.xml

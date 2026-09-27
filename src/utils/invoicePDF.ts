@@ -1,866 +1,346 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Invoice PDF generation — jsPDF (client-side, no server required)
+// Invoice PDF — jsPDF, fully client-side.
 //
-// Templates:
-//   classic  — white/formal, dark header row, user-customisable total colour
-//   modern   — navy header bar + amber accents, fully user-customisable colours
-//   minimal  — ultra-clean, hairlines only, maximum whitespace
+// Renders an InvoiceView (see invoiceView.ts), so it prints exactly what the
+// preview shows. Three looks share one layout engine:
+//   classic — white, dark table header, accent-coloured total
+//   modern  — full-bleed colour header band, accent total strip
+//   minimal — hairlines only
+// Text uses an embedded Noto Sans subset (fetched on first use) so every
+// currency symbol (₵ ₦ ₹ ₱ ₩ ₺ ₽ …) and accented name renders correctly.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import jsPDF from 'jspdf';
 import type { InvoiceState } from '../types/invoice';
-import { computeTotals } from '../types/invoice';
+import { buildInvoiceView, type InvoiceView } from './invoiceView';
+import { qrMatrix } from './paymentQr';
 
-// ── Page geometry (A4, mm) ────────────────────────────────────────────────────
-const PAGE_W  = 210;
-const PAGE_H  = 297;
-const ML      = 15;                    // margin left
-const MR      = 15;                    // margin right
-const CW      = PAGE_W - ML - MR;     // content width: 180mm
-const RIGHT_X = PAGE_W - MR;          // right-aligned anchor
+type RGB = readonly [number, number, number];
 
-// ── Table column widths ───────────────────────────────────────────────────────
-const COL_DESC   = 88;
-const COL_QTY    = 18;
-const COL_PRICE  = 37;
-const COL_AMOUNT = CW - COL_DESC - COL_QTY - COL_PRICE;   // = 37mm
+const C_DARK:  RGB = [15, 23, 42];
+const C_MID:   RGB = [71, 85, 105];
+const C_LIGHT: RGB = [148, 163, 184];
+const C_WHITE: RGB = [255, 255, 255];
+const C_ALT:   RGB = [248, 250, 252];
+const C_RULE:  RGB = [226, 232, 240];
 
-// ── Color palette (RGB tuples) ────────────────────────────────────────────────
-const C_DARK    = [15,  23,  42]  as const;   // #0F172A — near-black
-const C_MID     = [71,  85,  105] as const;   // #475569 — secondary text
-const C_LIGHT   = [148, 163, 184] as const;   // #94A3B8 — muted labels
-const C_AMBER   = [245, 158, 11]  as const;   // #F59E0B — brand accent
-const C_WHITE   = [255, 255, 255] as const;
-const C_ROW_ALT = [248, 250, 252] as const;   // #F8FAFC — subtle alt row
-const C_RULE    = [226, 232, 240] as const;   // #E2E8F0 — horizontal rules
+const PAPER = { A4: [210, 297], Letter: [215.9, 279.4] } as const;
+const M = 15;                  // page margin
+const LINE = 4.3;              // body line height (mm) at 8.5pt
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function rgb(doc: jsPDF, color: readonly [number, number, number], target: 'text' | 'fill' | 'draw') {
-  const [r, g, b] = color;
-  if (target === 'text')  doc.setTextColor(r, g, b);
-  if (target === 'fill')  doc.setFillColor(r, g, b);
-  if (target === 'draw')  doc.setDrawColor(r, g, b);
+// ── Fonts ────────────────────────────────────────────────────────────────────
+let fontCache: Promise<{ regular: string; bold: string } | null> | null = null;
+
+async function fetchBase64(url: string): Promise<string> {
+  const buf = await (await fetch(url)).arrayBuffer();
+  let binary = '';
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binary);
 }
 
-function rule(doc: jsPDF, y: number, weight = 0.25, color: readonly [number, number, number] = C_RULE) {
-  doc.setLineWidth(weight);
-  rgb(doc, color, 'draw');
-  doc.line(ML, y, RIGHT_X, y);
+function loadFonts() {
+  fontCache ??= Promise.all([fetchBase64('/fonts/NotoSans-Regular.ttf'), fetchBase64('/fonts/NotoSans-Bold.ttf')])
+    .then(([regular, bold]) => ({ regular, bold }))
+    .catch(() => { fontCache = null; return null; }); // retry next time; fall back to Helvetica now
+  return fontCache;
 }
 
-function fmtCurrency(amount: number, symbol: string): string {
-  return `${symbol} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+async function newDoc(paper: InvoiceView['paper']): Promise<{ doc: jsPDF; font: string }> {
+  const doc = new jsPDF({ unit: 'mm', format: paper === 'Letter' ? 'letter' : 'a4' });
+  const fonts = await loadFonts();
+  if (!fonts) return { doc, font: 'helvetica' };
+  doc.addFileToVFS('NotoSans-Regular.ttf', fonts.regular);
+  doc.addFileToVFS('NotoSans-Bold.ttf', fonts.bold);
+  doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
+  doc.addFont('NotoSans-Bold.ttf', 'NotoSans', 'bold');
+  return { doc, font: 'NotoSans' };
 }
 
-// Convert a CSS hex colour string to an RGB tuple for jsPDF.
-// Guards against partial/malformed strings (NaN would silently corrupt all PDF colours).
-// Returns the jsPDF image format for a data URL. Throws for unsupported formats
-// (caught by the surrounding try/catch in each render function).
-function logoFormat(dataUrl: string): 'PNG' | 'JPEG' {
-  if (dataUrl.startsWith('data:image/png'))  return 'PNG';
-  if (dataUrl.startsWith('data:image/jpeg')) return 'JPEG';
-  throw new Error('Unsupported logo format');
-}
-
-function hexToRgb(hex: string): readonly [number, number, number] {
+// ── Small helpers ────────────────────────────────────────────────────────────
+function hexToRgb(hex: string, fallback: RGB): RGB {
   const h = hex.replace('#', '');
-  if (!/^[0-9a-fA-F]{6}$/.test(h)) return [245, 158, 11]; // amber fallback
-  return [
-    parseInt(h.slice(0, 2), 16),
-    parseInt(h.slice(2, 4), 16),
-    parseInt(h.slice(4, 6), 16),
-  ] as const;
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return fallback;
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
-// Add a new page if y is too close to the bottom, returning the new y position.
-function checkNewPage(doc: jsPDF, y: number, margin = 18): number {
-  if (y > PAGE_H - margin) { doc.addPage(); return 15; }
-  return y;
+function logoFormat(dataUrl: string): 'PNG' | 'JPEG' | null {
+  if (dataUrl.startsWith('data:image/png')) return 'PNG';
+  if (dataUrl.startsWith('data:image/jpeg')) return 'JPEG';
+  return null;
 }
 
-// jsPDF's built-in Helvetica uses Windows-1252 encoding. Currency symbols
-// outside that charset (U+20B5 ₵, U+20A6 ₦, U+20B9 ₹, U+20B1 ₱) silently
-// map to Latin-1 look-alikes (₵→µ etc.). Use ISO codes for those currencies.
-const PDF_SAFE_SYMBOL: Record<string, string> = {
-  GHS: 'GHS',   // GH₵ → ₵ (U+20B5) maps to µ in Latin-1
-  NGN: 'NGN',   // ₦ (U+20A6) not in Windows-1252
-  INR: 'INR',   // ₹ (U+20B9) not in Windows-1252
-  PHP: 'PHP',   // ₱ (U+20B1) not in Windows-1252
-};
-
-function pdfSym(s: InvoiceState): string {
-  return PDF_SAFE_SYMBOL[s.currency] ?? s.currencySymbol;
+interface Style {
+  headerBand: RGB | null;     // modern: coloured band behind the header
+  headerText: RGB;
+  headerMuted: RGB;
+  tableHead: 'fill' | 'rule';
+  tableFill: RGB;
+  accent: RGB;
+  grand: 'text' | 'strip' | 'plain';
 }
 
-function fmtDate(iso: string): string {
-  if (!iso) return '';
-  try {
-    // Append T00:00:00 to prevent UTC-midnight shifting the day in local TZ
-    return new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
-    });
-  } catch {
-    return iso;
+function styleFor(s: InvoiceState): Style {
+  if (s.template === 'modern') {
+    const band = hexToRgb(s.modernHeader, C_DARK);
+    return { headerBand: band, headerText: C_WHITE, headerMuted: [190, 205, 225], tableHead: 'fill', tableFill: band,
+      accent: hexToRgb(s.modernAccent, [14, 165, 233]), grand: 'strip' };
   }
+  if (s.template === 'classic') {
+    return { headerBand: null, headerText: C_DARK, headerMuted: C_MID, tableHead: 'fill', tableFill: C_DARK,
+      accent: hexToRgb(s.classicAccent, [180, 83, 9]), grand: 'text' };
+  }
+  return { headerBand: null, headerText: C_DARK, headerMuted: C_MID, tableHead: 'rule', tableFill: C_DARK,
+    accent: C_DARK, grand: 'plain' };
 }
 
-// ── Shared derived constants (all three templates use these) ─────────────────
-const TOTALS_LABEL_X = ML + COL_DESC + COL_QTY;  // 121mm — totals/payment label column
-const PAYMENT_LABEL_W = 36;                        // payment field label column width
-const TABLE_HEADER_H  = 8;                         // table header row height (mm)
-const DEFAULT_ROW_H   = 8;                         // item row height — Minimal overrides to 8.5
+// ── Renderer ─────────────────────────────────────────────────────────────────
+function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void {
+  const [W, H] = PAPER[v.paper];
+  const R = W - M;
+  const CW = W - 2 * M;
+  const st = styleFor(s);
+  const color = (c: RGB, target: 'text' | 'fill' | 'draw') =>
+    target === 'text' ? doc.setTextColor(...c) : target === 'fill' ? doc.setFillColor(...c) : doc.setDrawColor(...c);
+  const set = (size: number, weight: 'normal' | 'bold' = 'normal', c: RGB = C_DARK) => {
+    doc.setFont(font, weight); doc.setFontSize(size); color(c, 'text');
+  };
+  const rule = (y: number, x1 = M, x2 = R, w = 0.25, c: RGB = C_RULE) => { doc.setLineWidth(w); color(c, 'draw'); doc.line(x1, y, x2, y); };
+  const wrap = (text: string, width: number): string[] => doc.splitTextToSize(text, width) as string[];
 
-// Returns true when there is at least one payment field to display.
-function hasPaymentDetails(s: InvoiceState): boolean {
-  return !!(s.visible.payment && (
-    (s.paymentType === 'bank'         && (s.bankName || s.accountNumber || s.accountName || s.swiftCode)) ||
-    (s.paymentType === 'mobile-money' && (s.momoProvider || s.momoNumber || s.momoName))
-  ));
-}
+  let y = 0;
+  const bottom = H - 16;
+  const ensure = (needed: number) => { if (y + needed > bottom) { doc.addPage(); y = 18; } };
 
-// Builds the ordered [label, value] pairs for the payment details section.
-function paymentFields(s: InvoiceState): [string, string][] {
-  return s.paymentType === 'bank'
-    ? [['Bank', s.bankName], ['Account Name', s.accountName],
-       ['Account Number', s.accountNumber], ['SWIFT / BIC', s.swiftCode]]
-    : [['Provider', s.momoProvider], ['Account Name', s.momoName],
-       ['Number', s.momoNumber]];
-}
+  // ── Header ────────────────────────────────────────────────────────────────
+  const bandH = 44;
+  if (st.headerBand) { color(st.headerBand, 'fill'); doc.rect(0, 0, W, bandH, 'F'); }
+  y = st.headerBand ? 13 : 18;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CLASSIC TEMPLATE
-// White/formal. Dark table header. Amber total. Clean horizontal rules.
-// ─────────────────────────────────────────────────────────────────────────────
-function renderClassic(doc: jsPDF, s: InvoiceState): void {
-  // Respect visibility flags — hidden tax means total = subtotal
-  const effectiveTaxRate = s.visible.tax ? s.taxRate : 0;
-  const { subtotal, taxAmount, total } = computeTotals(s.items, effectiveTaxRate);
-  const sym = pdfSym(s);
-  let y = 18;
-
-  // ── Header: logo + business info (left) ─────────────────────────────────
-  let textStartX = ML;
-
-  if (s.businessLogo) {
+  let textX = M;
+  const fmt = v.sender.logo ? logoFormat(v.sender.logo) : null;
+  if (fmt) {
     try {
-      // Detect format from data URL prefix
-      const fmt = logoFormat(s.businessLogo);
-      doc.addImage(s.businessLogo, fmt, ML, y, 22, 22);
-      textStartX = ML + 26;
-    } catch {
-      // Logo failed to decode — fall through to text-only layout
-    }
+      const props = doc.getImageProperties(v.sender.logo);
+      const size = 20;
+      const ratio = props.width / props.height;
+      const w = ratio >= 1 ? size : size * ratio;
+      const h = ratio >= 1 ? size / ratio : size;
+      doc.addImage(v.sender.logo, fmt, M, y - 4, w, h);
+      textX = M + w + 4;
+    } catch { /* unreadable logo — text-only header */ }
   }
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  rgb(doc, C_DARK, 'text');
-  doc.text(s.businessName || 'Your Business Name', textStartX, y + 6);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  rgb(doc, C_MID, 'text');
-
-  let bizY = y + 12;
-  if (s.businessEmail && s.visible.bizEmail)   { doc.text(s.businessEmail,   textStartX, bizY); bizY += 4.5; }
-  if (s.businessPhone && s.visible.bizPhone)   { doc.text(s.businessPhone,   textStartX, bizY); bizY += 4.5; }
-  if (s.businessAddress) {
-    const wrapped = doc.splitTextToSize(s.businessAddress, 72);
-    doc.text(wrapped, textStartX, bizY);
-    bizY += wrapped.length * 4.5;
+  const leftW = CW * 0.55 - (textX - M);
+  set(12.5, 'bold', st.headerText);
+  const nameLines = wrap(v.sender.name || 'Your Business', leftW);
+  doc.text(nameLines, textX, y + 1);
+  let leftY = y + 1 + nameLines.length * 5.5;
+  set(8, 'normal', st.headerMuted);
+  for (const line of v.sender.lines) {
+    const l = wrap(line, leftW);
+    doc.text(l, textX, leftY);
+    leftY += l.length * 4;
   }
 
-  // ── Header: INVOICE label + meta (right) ────────────────────────────────
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  rgb(doc, C_DARK, 'text');
-  doc.text(s.invoiceTitle || 'INVOICE', RIGHT_X, y + 6, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  rgb(doc, C_MID, 'text');
-  let metaY = y + 13;
-  doc.text(`No. ${s.invoiceNumber || '—'}`,         RIGHT_X, metaY,      { align: 'right' }); metaY += 5.5;
-  doc.text(`Date: ${fmtDate(s.invoiceDate)}`,         RIGHT_X, metaY,      { align: 'right' }); metaY += 5.5;
-  if (s.dueDate && s.visible.dueDate) {
-    doc.text(`Due:  ${fmtDate(s.dueDate)}`,           RIGHT_X, metaY,      { align: 'right' });
+  // Title + number + meta (right)
+  let rightY = y + 1;
+  if (s.template === 'minimal') {
+    set(8, 'normal', C_LIGHT); doc.text(v.title, R, rightY, { align: 'right' }); rightY += 7;
+    set(16, 'bold', C_DARK);   doc.text(v.number || '—', R, rightY, { align: 'right' }); rightY += 6;
+  } else {
+    set(19, 'bold', st.headerBand ? st.accent : C_DARK); doc.text(v.title, R, rightY + 2, { align: 'right' }); rightY += 9;
+    set(8.5, 'normal', st.headerMuted); doc.text(`${v.L.number} ${v.number || '—'}`, R, rightY, { align: 'right' }); rightY += 4.5;
   }
+  set(8, 'normal', st.headerMuted);
+  for (const [label, value] of v.meta) { doc.text(`${label}: ${value}`, R, rightY, { align: 'right' }); rightY += 4.3; }
 
-  // ── Separator ────────────────────────────────────────────────────────────
-  y = Math.max(bizY, y + 33) + 5;
-  rule(doc, y);
+  y = Math.max(leftY, rightY, st.headerBand ? bandH : 0) + 6;
+  if (!st.headerBand) { rule(y - 2, M, R, s.template === 'minimal' ? 0.5 : 0.25, s.template === 'minimal' ? C_DARK : C_RULE); y += 5; }
+
+  // ── Bill to ───────────────────────────────────────────────────────────────
+  set(6.8, 'bold', st.headerBand ? st.accent : C_LIGHT);
+  doc.text(v.L.billTo.toUpperCase(), M, y); y += 5;
+  set(9.5, 'bold', C_DARK);
+  const clientName = wrap(v.client.name || '—', CW * 0.6);
+  doc.text(clientName, M, y); y += clientName.length * 4.8;
+  set(8.5, 'normal', C_MID);
+  for (const line of v.client.lines) { const l = wrap(line, CW * 0.6); doc.text(l, M, y); y += l.length * LINE; }
   y += 7;
 
-  // ── Bill To ──────────────────────────────────────────────────────────────
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  rgb(doc, C_LIGHT, 'text');
-  doc.text('BILL TO', ML, y);
-  y += 5;
+  // ── Items table ───────────────────────────────────────────────────────────
+  const COL_QTY = 16, COL_UNIT = 36, COL_AMT = 38;
+  const COL_DESC = CW - COL_QTY - COL_UNIT - COL_AMT;
+  const xQty = M + COL_DESC + COL_QTY / 2;
+  const xUnit = M + COL_DESC + COL_QTY + COL_UNIT - 2;
+  const xAmt = R - 2;
+  const padL = st.tableHead === 'fill' && st.headerBand ? 6 : 2.5;
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  rgb(doc, C_DARK, 'text');
-  doc.text(s.clientName || 'Client Name', ML, y);
-  y += 5;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  rgb(doc, C_MID, 'text');
-  if (s.clientEmail   && s.visible.clientEmail)   { doc.text(s.clientEmail,   ML, y); y += 4.5; }
-  if (s.clientAddress && s.visible.clientAddress) {
-    const wrapped = doc.splitTextToSize(s.clientAddress, 80);
-    doc.text(wrapped, ML, y);
-    y += wrapped.length * 4.5;
-  }
-
-  y += 9;
-
-  // ── Line items table ─────────────────────────────────────────────────────
-  const ROW_H = DEFAULT_ROW_H;
-
-  // Header row — dark background
-  rgb(doc, C_DARK, 'fill');
-  doc.rect(ML, y, CW, TABLE_HEADER_H, 'F');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  rgb(doc, C_WHITE, 'text');
-
-  const hTextY = y + TABLE_HEADER_H / 2 + 2.5;
-  doc.text(s.itemLabel || 'Description',            ML + 3,                                            hTextY);
-  doc.text('Qty',                                   ML + COL_DESC + COL_QTY / 2,                      hTextY, { align: 'center' });
-  doc.text('Unit Price',                            ML + COL_DESC + COL_QTY + COL_PRICE - 3,          hTextY, { align: 'right' });
-  doc.text('Amount',                                RIGHT_X - 3,                                       hTextY, { align: 'right' });
-
-  y += TABLE_HEADER_H;
-
-  // Item rows
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-
-  s.items.forEach((item, i) => {
-    if (i % 2 === 1) {
-      rgb(doc, C_ROW_ALT, 'fill');
-      doc.rect(ML, y, CW, ROW_H, 'F');
+  const drawHead = () => {
+    const h = 8;
+    if (st.tableHead === 'fill') {
+      color(st.tableFill, 'fill'); doc.rect(M, y, CW, h, 'F');
+      if (st.headerBand) { color(st.accent, 'fill'); doc.rect(M, y, 2.5, h, 'F'); }
+      set(7.5, 'bold', C_WHITE);
+    } else {
+      rule(y, M, R, 0.4, C_DARK);
+      set(7.2, 'bold', C_MID);
     }
+    const ty = y + 5.3;
+    doc.text(v.columns[0], M + padL, ty);
+    doc.text(v.columns[1], xQty, ty, { align: 'center' });
+    doc.text(v.columns[2], xUnit, ty, { align: 'right' });
+    doc.text(v.columns[3], xAmt, ty, { align: 'right' });
+    y += h;
+    if (st.tableHead === 'rule') rule(y, M, R, 0.4, C_DARK);
+  };
 
-    const amount   = item.quantity * item.unitPrice;
-    const rowTextY = y + ROW_H / 2 + 2.5;
-
-    // Description (truncate to first line; multi-line rows are Phase 3)
-    rgb(doc, C_DARK, 'text');
-    const descLines = doc.splitTextToSize(item.description || '—', COL_DESC - 6);
-    doc.text(descLines[0], ML + 3, rowTextY);
-
-    // Qty
-    rgb(doc, C_MID, 'text');
-    doc.text(String(item.quantity), ML + COL_DESC + COL_QTY / 2, rowTextY, { align: 'center' });
-
-    // Unit price
-    doc.text(
-      fmtCurrency(item.unitPrice, sym),
-      ML + COL_DESC + COL_QTY + COL_PRICE - 3,
-      rowTextY,
-      { align: 'right' },
-    );
-
-    // Amount
-    rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(amount, sym), RIGHT_X - 3, rowTextY, { align: 'right' });
-
-    y += ROW_H;
-    y = checkNewPage(doc, y, 40); // leave room for totals block at minimum
+  ensure(20);
+  drawHead();
+  v.items.forEach((it, i) => {
+    set(8.5, 'normal', C_DARK);
+    const desc = wrap(it.description, COL_DESC - padL - 3);
+    const rowH = Math.max(8, desc.length * LINE + 3.7);
+    if (y + rowH > bottom) { doc.addPage(); y = 18; drawHead(); set(8.5, 'normal', C_DARK); }
+    if (st.tableHead === 'fill' && i % 2 === 1) { color(C_ALT, 'fill'); doc.rect(M, y, CW, rowH, 'F'); }
+    const ty = y + 5.3;
+    doc.text(desc, M + padL, ty);
+    color(C_MID, 'text');
+    doc.text(it.qty, xQty, ty, { align: 'center' });
+    doc.text(it.unit, xUnit, ty, { align: 'right' });
+    color(C_DARK, 'text');
+    doc.text(it.amount, xAmt, ty, { align: 'right' });
+    y += rowH;
+    if (st.tableHead === 'rule' && i < v.items.length - 1) rule(y, M, R, 0.15);
   });
-
-  // Table bottom rule
-  rule(doc, y);
+  rule(y, M, R, st.tableHead === 'rule' ? 0.4 : 0.25, st.tableHead === 'rule' ? C_DARK : C_RULE);
   y += 6;
 
-  // Ensure totals block fits on the current page (needs ~30mm)
-  y = checkNewPage(doc, y, 30);
-
-  // ── Totals block ─────────────────────────────────────────────────────────
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-
-  rgb(doc, C_MID, 'text');
-  doc.text('Subtotal', TOTALS_LABEL_X, y);
-  rgb(doc, C_DARK, 'text');
-  doc.text(fmtCurrency(subtotal, sym), RIGHT_X - 3, y, { align: 'right' });
-  y += 5.5;
-
-  if (s.taxRate > 0 && s.visible.tax) {
-    rgb(doc, C_MID, 'text');
-    doc.text(`${s.taxLabel} (${s.taxRate}%)`, TOTALS_LABEL_X, y);
-    rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(taxAmount, sym), RIGHT_X - 3, y, { align: 'right' });
-    y += 5.5;
-  }
-
-  // Total rule + bold row
-  doc.setLineWidth(0.4);
-  rgb(doc, C_DARK, 'draw');
-  doc.line(TOTALS_LABEL_X, y, RIGHT_X, y);
-  y += 5.5;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  rgb(doc, C_DARK, 'text');
-  doc.text('TOTAL', TOTALS_LABEL_X, y);
-  rgb(doc, hexToRgb(s.classicAccent || '#F59E0B'), 'text');
-  doc.text(fmtCurrency(total, sym), RIGHT_X - 3, y, { align: 'right' });
-  y += 11;
-
-  // ── Payment details ──────────────────────────────────────────────────────
-  y = checkNewPage(doc, y, 40);
-  if (hasPaymentDetails(s)) {
-    rule(doc, y);
-    y += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    rgb(doc, C_LIGHT, 'text');
-    doc.text('PAYMENT DETAILS', ML, y);
-    y += 5.5;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-
-    for (const [label, value] of paymentFields(s)) {
-      if (!value.trim()) continue;
-      rgb(doc, C_MID, 'text');
-      doc.text(`${label}:`, ML, y);
-      rgb(doc, C_DARK, 'text');
-      doc.text(value, ML + PAYMENT_LABEL_W, y);
-      y += 5;
+  // ── Totals ────────────────────────────────────────────────────────────────
+  const TX = M + CW * 0.52;       // label column of the totals block
+  ensure(v.totals.length * 6 + 12);
+  for (const row of v.totals) {
+    if (row.kind === 'grand' || row.kind === 'balance') {
+      if (st.grand === 'strip' && row.kind === 'grand') {
+        color(st.accent, 'fill'); doc.rect(TX - 3, y - 1.5, R - TX + 3, 9, 'F');
+        set(10, 'bold', C_WHITE);
+        doc.text(row.label.toUpperCase(), TX, y + 4.5);
+        doc.text(row.value, R - 2, y + 4.5, { align: 'right' });
+        y += 11;
+        continue;
+      }
+      rule(y - 1, TX, R, 0.4, C_DARK);
+      y += 4.5;
+      set(10.5, 'bold', C_DARK);
+      doc.text(row.label.toUpperCase(), TX, y);
+      if (st.grand === 'text' && row.kind === 'grand') color(st.accent, 'text');
+      doc.text(row.value, R - 2, y, { align: 'right' });
+      y += 7;
+      continue;
     }
-
-    y += 3;
+    set(8.5, 'normal', row.kind === 'muted' ? C_LIGHT : C_MID);
+    const label = wrap(row.label, R - TX - 38);
+    doc.text(label, TX, y);
+    color(row.kind === 'muted' ? C_LIGHT : C_DARK, 'text');
+    doc.text(row.value, R - 2, y, { align: 'right' });
+    y += Math.max(1, label.length) * LINE + 1.2;
   }
-
-  // ── Notes ────────────────────────────────────────────────────────────────
-  if (s.notes.trim()) {
-    y = checkNewPage(doc, y, 30);
-    rule(doc, y);
-    y += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    rgb(doc, C_LIGHT, 'text');
-    doc.text('NOTES', ML, y);
-    y += 5.5;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    rgb(doc, C_MID, 'text');
-    const noteLines = doc.splitTextToSize(s.notes, CW);
-    doc.text(noteLines, ML, y);
-    y += noteLines.length * 4.5;
+  if (v.taxNote) {
+    set(8, 'normal', C_MID);
+    const l = wrap(v.taxNote, CW);
+    ensure(l.length * LINE + 2);
+    doc.text(l, M, y + 1); y += l.length * LINE + 2;
   }
+  y += 4;
 
-  // ── Footer (user-defined, no hardcoded branding) ─────────────────────────
-  if (s.footerNote?.trim()) {
-    const footerLines = doc.splitTextToSize(s.footerNote.trim(), CW);
-    if (y + footerLines.length * 4.5 > PAGE_H - 14) doc.addPage();
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(8);
-    rgb(doc, C_LIGHT, 'text');
-    doc.text(footerLines, PAGE_W / 2, PAGE_H - 12, { align: 'center' });
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MODERN TEMPLATE
-// Full-bleed dark navy header band. Amber invoice title. Amber total strip.
-// Amber left-bar accent on table header. Alternating row shading.
-// ─────────────────────────────────────────────────────────────────────────────
-function renderModern(doc: jsPDF, s: InvoiceState): void {
-  const effectiveTaxRate = s.visible.tax ? s.taxRate : 0;
-  const { subtotal, taxAmount, total } = computeTotals(s.items, effectiveTaxRate);
-  const sym = pdfSym(s);
-
-  // User-customisable colours (fall back to brand defaults)
-  const CU_HEADER = hexToRgb(s.modernHeader || '#0F172A');
-  const CU_ACCENT = hexToRgb(s.modernAccent || '#F59E0B');
-
-  const HEADER_BAND_H = 42;
-
-  // ── Full-bleed header band ───────────────────────────────────────────────
-  rgb(doc, CU_HEADER, 'fill');
-  doc.rect(0, 0, PAGE_W, HEADER_BAND_H, 'F');
-
-  // ── Business info (left, inside band) ───────────────────────────────────
-  let bizX = ML;
-  if (s.businessLogo) {
-    try {
-      const fmt = logoFormat(s.businessLogo);
-      doc.addImage(s.businessLogo, fmt, ML, 9, 18, 18);
-      bizX = ML + 22;
-    } catch { /* ignore */ }
-  }
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  rgb(doc, C_WHITE, 'text');
-  doc.text(s.businessName || 'Your Business Name', bizX, 16);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
-  doc.setTextColor(160, 180, 205);  // muted blue-white in band
-
-  let bizY = 21.5;
-  if (s.businessEmail && s.visible.bizEmail)   { doc.text(s.businessEmail,   bizX, bizY); bizY += 4; }
-  if (s.businessPhone && s.visible.bizPhone)   { doc.text(s.businessPhone,   bizX, bizY); bizY += 4; }
-  if (s.businessAddress) {
-    const wrapped = doc.splitTextToSize(s.businessAddress, 70);
-    doc.text(wrapped, bizX, bizY);
-  }
-
-  // ── Invoice title + meta (right, inside band) ────────────────────────────
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  rgb(doc, CU_ACCENT, 'text');
-  doc.text(s.invoiceTitle || 'INVOICE', RIGHT_X, 17, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(160, 180, 205);
-  let metaY = 23;
-  doc.text(`No. ${s.invoiceNumber || '—'}`,    RIGHT_X, metaY, { align: 'right' }); metaY += 4.5;
-  doc.text(`Date: ${fmtDate(s.invoiceDate)}`,  RIGHT_X, metaY, { align: 'right' }); metaY += 4.5;
-  if (s.dueDate && s.visible.dueDate) {
-    doc.text(`Due:  ${fmtDate(s.dueDate)}`,    RIGHT_X, metaY, { align: 'right' });
-  }
-
-  let y = HEADER_BAND_H + 10;
-
-  // ── Bill To ──────────────────────────────────────────────────────────────
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  rgb(doc, CU_ACCENT, 'text');
-  doc.text('BILL TO', ML, y);
-  y += 5;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  rgb(doc, C_DARK, 'text');
-  doc.text(s.clientName || 'Client Name', ML, y);
-  y += 5;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  rgb(doc, C_MID, 'text');
-  if (s.clientEmail   && s.visible.clientEmail)   { doc.text(s.clientEmail,   ML, y); y += 4.5; }
-  if (s.clientAddress && s.visible.clientAddress) {
-    const wrapped = doc.splitTextToSize(s.clientAddress, 80);
-    doc.text(wrapped, ML, y);
-    y += wrapped.length * 4.5;
-  }
-
-  y += 8;
-
-  // ── Line items table ─────────────────────────────────────────────────────
-  const ROW_H = DEFAULT_ROW_H;
-
-  // Header row + accent left-bar
-  rgb(doc, CU_HEADER, 'fill');
-  doc.rect(ML, y, CW, TABLE_HEADER_H, 'F');
-  rgb(doc, CU_ACCENT, 'fill');
-  doc.rect(ML, y, 3, TABLE_HEADER_H, 'F');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  rgb(doc, C_WHITE, 'text');
-
-  const hTextY = y + TABLE_HEADER_H / 2 + 2.5;
-  doc.text(s.itemLabel || 'Description',          ML + 7,                                            hTextY);
-  doc.text('Qty',                                 ML + COL_DESC + COL_QTY / 2,                      hTextY, { align: 'center' });
-  doc.text('Unit Price',                          ML + COL_DESC + COL_QTY + COL_PRICE - 3,          hTextY, { align: 'right' });
-  doc.text('Amount',                              RIGHT_X - 3,                                       hTextY, { align: 'right' });
-
-  y += TABLE_HEADER_H;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-
-  s.items.forEach((item, i) => {
-    if (i % 2 === 1) {
-      rgb(doc, C_ROW_ALT, 'fill');
-      doc.rect(ML, y, CW, ROW_H, 'F');
+  // ── Payment (+ QR) ────────────────────────────────────────────────────────
+  if (v.payment.length || v.qr) {
+    const qrSize = v.qr ? 27 : 0;
+    const blockH = Math.max(v.payment.length * 5 + 10, qrSize + 12);
+    ensure(blockH);
+    rule(y, M, R); y += 6;
+    const top = y;
+    set(6.8, 'bold', st.headerBand ? st.accent : C_LIGHT);
+    doc.text(v.L.paymentDetails.toUpperCase(), M, y); y += 5.5;
+    const labelW = 34;
+    for (const [label, value] of v.payment) {
+      set(8.5, 'normal', C_MID); doc.text(label, M, y);
+      set(8.5, 'normal', C_DARK);
+      const val = wrap(value, CW - labelW - qrSize - 8);
+      doc.text(val, M + labelW, y);
+      y += val.length * LINE + 0.7;
     }
-
-    const amount   = item.quantity * item.unitPrice;
-    const rowTextY = y + ROW_H / 2 + 2.5;
-
-    rgb(doc, C_DARK, 'text');
-    const descLines = doc.splitTextToSize(item.description || '—', COL_DESC - 9);
-    doc.text(descLines[0], ML + 7, rowTextY);
-
-    rgb(doc, C_MID, 'text');
-    doc.text(String(item.quantity), ML + COL_DESC + COL_QTY / 2, rowTextY, { align: 'center' });
-    doc.text(
-      fmtCurrency(item.unitPrice, sym),
-      ML + COL_DESC + COL_QTY + COL_PRICE - 3,
-      rowTextY,
-      { align: 'right' },
-    );
-    rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(amount, sym), RIGHT_X - 3, rowTextY, { align: 'right' });
-
-    y += ROW_H;
-    y = checkNewPage(doc, y, 40);
-  });
-
-  rule(doc, y);
-  y += 6;
-
-  // ── Totals ───────────────────────────────────────────────────────────────
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-
-  rgb(doc, C_MID, 'text');
-  doc.text('Subtotal', TOTALS_LABEL_X, y);
-  rgb(doc, C_DARK, 'text');
-  doc.text(fmtCurrency(subtotal, sym), RIGHT_X - 3, y, { align: 'right' });
-  y += 5.5;
-
-  if (s.taxRate > 0 && s.visible.tax) {
-    rgb(doc, C_MID, 'text');
-    doc.text(`${s.taxLabel} (${s.taxRate}%)`, TOTALS_LABEL_X, y);
-    rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(taxAmount, sym), RIGHT_X - 3, y, { align: 'right' });
-    y += 5.5;
-  }
-
-  // Grand total — accent filled strip
-  const TOTAL_H = 9;
-  rgb(doc, CU_ACCENT, 'fill');
-  doc.rect(TOTALS_LABEL_X - 3, y - 1.5, RIGHT_X - TOTALS_LABEL_X + 6, TOTAL_H, 'F');
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  rgb(doc, C_WHITE, 'text');
-  const totalTextY = y + TOTAL_H / 2 + 1.5;
-  doc.text('TOTAL', TOTALS_LABEL_X, totalTextY);
-  doc.text(fmtCurrency(total, sym), RIGHT_X - 3, totalTextY, { align: 'right' });
-  y += TOTAL_H + 9;
-
-  // ── Payment details ──────────────────────────────────────────────────────
-  y = checkNewPage(doc, y, 40);
-  if (hasPaymentDetails(s)) {
-    rule(doc, y);
-    y += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    rgb(doc, CU_ACCENT, 'text');
-    doc.text('PAYMENT DETAILS', ML, y);
-    y += 5.5;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-
-    for (const [label, value] of paymentFields(s)) {
-      if (!value.trim()) continue;
-      rgb(doc, C_MID, 'text');
-      doc.text(`${label}:`, ML, y);
-      rgb(doc, C_DARK, 'text');
-      doc.text(value, ML + PAYMENT_LABEL_W, y);
-      y += 5;
+    if (v.qr) {
+      const m = qrMatrix(v.qr.payload);
+      const cell = qrSize / m.length;
+      const qx = R - qrSize, qy = top - 2;
+      color([0, 0, 0], 'fill');
+      m.forEach((row, r) => row.forEach((dark, c) => { if (dark) doc.rect(qx + c * cell, qy + r * cell, cell + 0.01, cell + 0.01, 'F'); }));
+      set(6.8, 'normal', C_MID);
+      doc.text(v.L.scanToPay, qx + qrSize / 2, qy + qrSize + 3.5, { align: 'center' });
+      y = Math.max(y, qy + qrSize + 6);
     }
     y += 3;
   }
 
-  // ── Notes ────────────────────────────────────────────────────────────────
-  if (s.notes.trim()) {
-    y = checkNewPage(doc, y, 30);
-    rule(doc, y);
-    y += 6;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    rgb(doc, CU_ACCENT, 'text');
-    doc.text('NOTES', ML, y);
-    y += 5.5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    rgb(doc, C_MID, 'text');
-    const noteLines = doc.splitTextToSize(s.notes, CW);
-    doc.text(noteLines, ML, y);
-    y += noteLines.length * 4.5;
+  // ── Notes ─────────────────────────────────────────────────────────────────
+  if (v.notes) {
+    const l = wrap(v.notes, CW);
+    ensure(Math.min(l.length * LINE + 12, 60));
+    rule(y, M, R); y += 6;
+    set(6.8, 'bold', st.headerBand ? st.accent : C_LIGHT);
+    doc.text(v.L.notes.toUpperCase(), M, y); y += 5.5;
+    set(8.5, 'normal', C_MID);
+    for (const line of l) { ensure(LINE); doc.text(line, M, y); y += LINE; }
   }
 
-  // ── Footer ───────────────────────────────────────────────────────────────
-  if (s.footerNote?.trim()) {
-    const footerLines = doc.splitTextToSize(s.footerNote.trim(), CW);
-    if (y + footerLines.length * 4.5 > PAGE_H - 14) doc.addPage();
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(8);
-    rgb(doc, C_LIGHT, 'text');
-    doc.text(footerLines, PAGE_W / 2, PAGE_H - 12, { align: 'center' });
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MINIMAL TEMPLATE
-// Pure white. Hairlines only. No color fills. Maximum whitespace.
-// Invoice number as typographic hero — large, bold, right-aligned.
-// ─────────────────────────────────────────────────────────────────────────────
-function renderMinimal(doc: jsPDF, s: InvoiceState): void {
-  const effectiveTaxRate = s.visible.tax ? s.taxRate : 0;
-  const { subtotal, taxAmount, total } = computeTotals(s.items, effectiveTaxRate);
-  const sym = pdfSym(s);
-  let y = 22;
-
-  // ── Header ───────────────────────────────────────────────────────────────
-  let textStartX = ML;
-  if (s.businessLogo) {
-    try {
-      const fmt = logoFormat(s.businessLogo);
-      doc.addImage(s.businessLogo, fmt, ML, y - 6, 20, 20);
-      textStartX = ML + 24;
-    } catch { /* ignore */ }
-  }
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  rgb(doc, C_DARK, 'text');
-  doc.text(s.businessName || 'Your Business Name', textStartX, y);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  rgb(doc, C_MID, 'text');
-
-  let bizY = y + 5.5;
-  if (s.businessEmail && s.visible.bizEmail)   { doc.text(s.businessEmail,   textStartX, bizY); bizY += 4.5; }
-  if (s.businessPhone && s.visible.bizPhone)   { doc.text(s.businessPhone,   textStartX, bizY); bizY += 4.5; }
-  if (s.businessAddress) {
-    const wrapped = doc.splitTextToSize(s.businessAddress, 70);
-    doc.text(wrapped, textStartX, bizY);
-    bizY += wrapped.length * 4.5;
-  }
-
-  // Invoice title (small, muted) + number (large, bold) stacked right
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  rgb(doc, C_LIGHT, 'text');
-  doc.text(s.invoiceTitle || 'INVOICE', RIGHT_X, y, { align: 'right' });
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  rgb(doc, C_DARK, 'text');
-  doc.text(s.invoiceNumber || '—', RIGHT_X, y + 8, { align: 'right' });
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  rgb(doc, C_MID, 'text');
-  let metaY = y + 15;
-  doc.text(fmtDate(s.invoiceDate), RIGHT_X, metaY, { align: 'right' }); metaY += 4.5;
-  if (s.dueDate && s.visible.dueDate) {
-    rgb(doc, C_LIGHT, 'text');
-    doc.text(`Due ${fmtDate(s.dueDate)}`, RIGHT_X, metaY, { align: 'right' });
-  }
-
-  y = Math.max(bizY, y + 28) + 7;
-
-  // Single heavier rule marks the header boundary
-  rule(doc, y, 0.5, C_DARK);
-  y += 9;
-
-  // ── Bill To ──────────────────────────────────────────────────────────────
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  rgb(doc, C_LIGHT, 'text');
-  doc.text('BILL TO', ML, y);
-  y += 5;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  rgb(doc, C_DARK, 'text');
-  doc.text(s.clientName || 'Client Name', ML, y);
-  y += 5;
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  rgb(doc, C_MID, 'text');
-  if (s.clientEmail   && s.visible.clientEmail)   { doc.text(s.clientEmail,   ML, y); y += 4.5; }
-  if (s.clientAddress && s.visible.clientAddress) {
-    const wrapped = doc.splitTextToSize(s.clientAddress, 80);
-    doc.text(wrapped, ML, y);
-    y += wrapped.length * 4.5;
-  }
-
-  y += 10;
-
-  // ── Line items table (no fills — hairlines only) ─────────────────────────
-  const ROW_H = 8.5;  // Minimal uses slightly taller rows than Classic/Modern
-
-  rule(doc, y, 0.4, C_DARK);
-  y += 1;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  rgb(doc, C_MID, 'text');
-
-  const hTextY = y + TABLE_HEADER_H / 2 + 2.5;
-  doc.text(s.itemLabel || 'Description',          ML + 1,                                            hTextY);
-  doc.text('Qty',                                 ML + COL_DESC + COL_QTY / 2,                      hTextY, { align: 'center' });
-  doc.text('Unit Price',                          ML + COL_DESC + COL_QTY + COL_PRICE - 1,          hTextY, { align: 'right' });
-  doc.text('Amount',                              RIGHT_X - 1,                                       hTextY, { align: 'right' });
-
-  y += TABLE_HEADER_H;
-  rule(doc, y, 0.4, C_DARK);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-
-  s.items.forEach((item, i) => {
-    const amount   = item.quantity * item.unitPrice;
-    const rowTextY = y + ROW_H / 2 + 2.5;
-
-    rgb(doc, C_DARK, 'text');
-    const descLines = doc.splitTextToSize(item.description || '—', COL_DESC - 6);
-    doc.text(descLines[0], ML + 1, rowTextY);
-
-    rgb(doc, C_MID, 'text');
-    doc.text(String(item.quantity), ML + COL_DESC + COL_QTY / 2, rowTextY, { align: 'center' });
-    doc.text(
-      fmtCurrency(item.unitPrice, sym),
-      ML + COL_DESC + COL_QTY + COL_PRICE - 1,
-      rowTextY,
-      { align: 'right' },
-    );
-    rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(amount, sym), RIGHT_X - 1, rowTextY, { align: 'right' });
-
-    y += ROW_H;
-    y = checkNewPage(doc, y, 40);
-    // Hairline between rows (skip after last)
-    if (i < s.items.length - 1) rule(doc, y, 0.15);
-  });
-
-  rule(doc, y, 0.4, C_DARK);
-  y += 7;
-
-  // ── Totals ───────────────────────────────────────────────────────────────
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-
-  rgb(doc, C_MID, 'text');
-  doc.text('Subtotal', TOTALS_LABEL_X, y);
-  rgb(doc, C_DARK, 'text');
-  doc.text(fmtCurrency(subtotal, sym), RIGHT_X - 1, y, { align: 'right' });
-  y += 5.5;
-
-  if (s.taxRate > 0 && s.visible.tax) {
-    rgb(doc, C_MID, 'text');
-    doc.text(`${s.taxLabel} (${s.taxRate}%)`, TOTALS_LABEL_X, y);
-    rgb(doc, C_DARK, 'text');
-    doc.text(fmtCurrency(taxAmount, sym), RIGHT_X - 1, y, { align: 'right' });
-    y += 5.5;
-  }
-
-  // Total — thin rule then bold (no fill)
-  rule(doc, y, 0.4, C_DARK);
-  y += 6;
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10.5);
-  rgb(doc, C_DARK, 'text');
-  doc.text('TOTAL', TOTALS_LABEL_X, y);
-  doc.text(fmtCurrency(total, sym), RIGHT_X - 1, y, { align: 'right' });
-  y += 11;
-
-  // ── Payment details ──────────────────────────────────────────────────────
-  y = checkNewPage(doc, y, 40);
-  if (hasPaymentDetails(s)) {
-    rule(doc, y);
-    y += 6;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    rgb(doc, C_LIGHT, 'text');
-    doc.text('PAYMENT DETAILS', ML, y);
-    y += 5.5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    for (const [label, value] of paymentFields(s)) {
-      if (!value.trim()) continue;
-      rgb(doc, C_MID, 'text');
-      doc.text(`${label}:`, ML, y);
-      rgb(doc, C_DARK, 'text');
-      doc.text(value, ML + PAYMENT_LABEL_W, y);
-      y += 5;
+  // ── Footer + page numbers ─────────────────────────────────────────────────
+  const pages = doc.getNumberOfPages();
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    if (v.footer && p === pages) {
+      set(8, 'normal', C_LIGHT);
+      doc.text(wrap(v.footer, CW), W / 2, H - 11, { align: 'center' });
     }
-    y += 3;
-  }
-
-  // ── Notes ────────────────────────────────────────────────────────────────
-  if (s.notes.trim()) {
-    y = checkNewPage(doc, y, 30);
-    rule(doc, y);
-    y += 6;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    rgb(doc, C_LIGHT, 'text');
-    doc.text('NOTES', ML, y);
-    y += 5.5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    rgb(doc, C_MID, 'text');
-    const noteLines = doc.splitTextToSize(s.notes, CW);
-    doc.text(noteLines, ML, y);
-    y += noteLines.length * 4.5;
-  }
-
-  // ── Footer ───────────────────────────────────────────────────────────────
-  if (s.footerNote?.trim()) {
-    const footerLines = doc.splitTextToSize(s.footerNote.trim(), CW);
-    if (y + footerLines.length * 4.5 > PAGE_H - 14) doc.addPage();
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(8);
-    rgb(doc, C_LIGHT, 'text');
-    doc.text(footerLines, PAGE_W / 2, PAGE_H - 12, { align: 'center' });
+    if (pages > 1) {
+      set(7, 'normal', C_LIGHT);
+      doc.text(`${v.number || ''}  ${p}/${pages}`.trim(), R, H - 6, { align: 'right' });
+    }
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PUBLIC API
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Renders the invoice into a jsPDF document and returns it (no save/print). */
-function buildDoc(state: InvoiceState): jsPDF {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  switch (state.template) {
-    case 'modern':  renderModern(doc, state);  break;
-    case 'minimal': renderMinimal(doc, state); break;
-    case 'classic':
-    default:        renderClassic(doc, state);
-  }
+// ── Public API ───────────────────────────────────────────────────────────────
+async function buildDoc(state: InvoiceState): Promise<jsPDF> {
+  const view = buildInvoiceView(state);
+  const { doc, font } = await newDoc(view.paper);
+  doc.setProperties({ title: `${view.title} ${view.number}`.trim(), creator: 'InvoiceKit' });
+  render(doc, font, view, state);
   return doc;
 }
 
-function pdfFilename(state: InvoiceState): string {
-  const num    = state.invoiceNumber || 'draft';
-  const client = (state.clientName || '').trim()
-    .replace(/[^a-zA-Z0-9 ]/g, '')
-    .replace(/\s+/g, '-')
-    .slice(0, 24);
+export function pdfFilename(state: InvoiceState): string {
+  const num = (state.invoiceNumber || 'draft').replace(/[^\w.-]+/g, '-');
+  const client = state.clientName.trim().normalize('NFKD').replace(/[^\w ]/g, '').replace(/\s+/g, '-').slice(0, 24);
   return client ? `${num}_${client}.pdf` : `${num}.pdf`;
 }
 
 /** Download the invoice as a PDF file. */
-export function generateInvoicePDF(state: InvoiceState): void {
-  buildDoc(state).save(pdfFilename(state));
+export async function generateInvoicePDF(state: InvoiceState): Promise<void> {
+  (await buildDoc(state)).save(pdfFilename(state));
 }
 
-/** Open the invoice PDF in a new tab and trigger the browser's print dialog.
- *  This prints the actual PDF (correct colours, A4 layout) rather than the page DOM. */
-export function printInvoicePDF(state: InvoiceState): void {
-  const doc = buildDoc(state);
+/** Open the PDF in a new tab with the print dialog (prints the real PDF, not the page). */
+export async function printInvoicePDF(state: InvoiceState): Promise<void> {
+  // Open the tab synchronously (inside the click) so popup blockers allow it, then fill it.
+  const win = window.open('', '_blank');
+  const doc = await buildDoc(state);
   doc.autoPrint();
-  const blob = doc.output('blob');
-  const url  = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  // Revoke after the new tab has had time to read the blob.
-  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  const url = URL.createObjectURL(doc.output('blob'));
+  if (win) win.location.href = url; else window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+/** For tests and previews: the raw PDF bytes. */
+export async function invoicePdfBlob(state: InvoiceState): Promise<Blob> {
+  return (await buildDoc(state)).output('blob');
 }

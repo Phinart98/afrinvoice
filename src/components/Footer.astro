@@ -1,27 +1,36 @@
 ---
+import { FEATURED_COUNTRIES, countryPath } from '../data/countries';
+import { SITE } from '../site';
+
 const invoiceTools = [
-  { href: '/ghana-invoice-generator/',        label: '🇬🇭 Ghana' },
-  { href: '/nigeria-invoice-generator/',      label: '🇳🇬 Nigeria' },
-  { href: '/kenya-invoice-generator/',        label: '🇰🇪 Kenya' },
-  { href: '/south-africa-invoice-generator/', label: '🇿🇦 South Africa' },
-  { href: '/zimbabwe-invoice-generator/',     label: '🇿🇼 Zimbabwe' },
-  { href: '/freelancer-invoice/',             label: 'Freelancer Invoice' },
-  { href: '/mobile-money-invoice/',           label: 'Mobile Money Invoice' },
-  { href: '/receipt-generator/',              label: 'Receipt Generator' },
+  { href: '/',                      label: 'Invoice generator' },
+  { href: '/quote-generator/',      label: 'Quote generator' },
+  { href: '/receipt-generator/',    label: 'Receipt generator' },
+  { href: '/proforma-invoice/',     label: 'Proforma invoice' },
+  { href: '/credit-note/',          label: 'Credit note' },
+  { href: '/freelancer-invoice/',   label: 'Freelancer invoice' },
+  { href: '/mobile-money-invoice/', label: 'Mobile money invoice' },
+  { href: '/invoice-templates/',    label: 'Invoice templates' },
+];
+
+const countries = [
+  ...FEATURED_COUNTRIES.map(c => ({ href: countryPath(c), label: `${c.flag} ${c.name}` })),
+  { href: '/invoice-requirements-by-country/', label: 'All countries →' },
 ];
 
 const resources = [
-  { href: '/invoice-templates/',      label: 'Invoice Templates' },
-  { href: '/how-to-invoice-ghana/',   label: 'How to Invoice in Ghana' },
-  { href: '/how-to-invoice-nigeria/', label: 'How to Invoice in Nigeria' },
-  { href: '/how-to-invoice-kenya/',         label: 'How to Invoice in Kenya' },
-  { href: '/how-to-invoice-south-africa/', label: 'How to Invoice in South Africa' },
-  { href: '/invoice-number-format/',       label: 'Invoice Number Format' },
+  { href: '/invoice-requirements-by-country/', label: 'Invoice rules by country' },
+  { href: '/invoice-number-format/',           label: 'Invoice number format' },
+  { href: '/how-to-invoice-nigeria/',          label: 'How to invoice in Nigeria' },
+  { href: '/how-to-invoice-ghana/',            label: 'How to invoice in Ghana' },
+  { href: '/how-to-invoice-kenya/',            label: 'How to invoice in Kenya' },
+  { href: '/how-to-invoice-south-africa/',     label: 'How to invoice in South Africa' },
 ];
 
 const site = [
   { href: '/about/',   label: 'About' },
   { href: '/contact/', label: 'Contact' },
+  { href: '/privacy/', label: 'Privacy' },
 ];
 ---
 
@@ -30,21 +39,21 @@ const site = [
 
     <!-- Brand -->
     <div class="footer-brand">
-      <a href="/" class="footer-logo" aria-label="Afrinvoice home">
+      <a href="/" class="footer-logo" aria-label={`${SITE.name} home`}>
         <svg width="22" height="22" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-          <rect x="2" y="1" width="17" height="22" rx="2.5" fill="#1E293B" stroke="#F59E0B" stroke-width="1.5"/>
-          <rect x="2" y="1" width="17" height="7" rx="2.5" fill="#F59E0B"/>
-          <rect x="2" y="5.5" width="17" height="2.5" fill="#F59E0B"/>
+          <rect x="2" y="1" width="17" height="22" rx="2.5" fill="#1E293B" stroke="#0F766E" stroke-width="1.5"/>
+          <rect x="2" y="1" width="17" height="7" rx="2.5" fill="#0F766E"/>
+          <rect x="2" y="5.5" width="17" height="2.5" fill="#0F766E"/>
           <line x1="5.5" y1="12.5" x2="16.5" y2="12.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
           <line x1="5.5" y1="15.5" x2="13"   y2="15.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
-          <line x1="5.5" y1="19.5" x2="16.5" y2="19.5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="5.5" y1="19.5" x2="16.5" y2="19.5" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <span class="footer-logo-text">Afr<strong>invoice</strong></span>
+        <span class="footer-logo-text">Invoice<strong>Kit</strong></span>
       </a>
       <p class="footer-tagline">
-        Free invoice generator built for African businesses and professionals.
+        {SITE.tagline}. Free, no sign-up, and your data never leaves your browser.
       </p>
-      <p class="footer-copy">&copy; {new Date().getFullYear()} Afrinvoice</p>
+      <p class="footer-copy">&copy; {new Date().getFullYear()} {SITE.name} · <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
     </div>
 
     <!-- Nav groups -->
@@ -54,6 +63,13 @@ const site = [
         <span class="footer-nav-heading">Invoice Tools</span>
         <nav aria-label="Invoice tools navigation">
           {invoiceTools.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
+        </nav>
+      </div>
+
+      <div class="footer-nav-group">
+        <span class="footer-nav-heading">Countries</span>
+        <nav aria-label="Countries navigation">
+          {countries.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
         </nav>
       </div>
 
@@ -203,7 +219,7 @@ const site = [
   @media (min-width: 1100px) {
     .footer-brand { width: 220px; }
     .footer-nav-groups {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 2rem 3rem;
     }
   }

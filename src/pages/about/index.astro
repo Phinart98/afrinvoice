@@ -1,96 +1,74 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { breadcrumbSchema } from '../../utils/schema';
+import { COUNTRIES } from '../../data/countries';
+import { SITE, abs } from '../../site';
 
-const pageUrl    = 'https://afrinvoice.app/about/';
 const breadcrumb = breadcrumbSchema([
-  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
-  { name: 'About', url: pageUrl },
+  { name: SITE.name, url: abs('/') },
+  { name: 'About', url: abs('/about/') },
 ]);
 ---
 
 <Base
-  title="About Afrinvoice — Free Invoice Generator for Africa"
-  description="Afrinvoice is a free invoice generator built specifically for African freelancers and small businesses. No sign-up, no watermark, no fluff."
+  title={`About ${SITE.name}`}
+  description={`${SITE.name} is a free invoice generator that knows the tax and invoicing rules of ${COUNTRIES.length} countries. No sign-up, no watermark, and your data never leaves your browser.`}
   schema={breadcrumb}
 >
   <article class="about-wrap" aria-labelledby="about-heading">
     <div class="container-narrow">
-
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Afrinvoice</a>
-        <span aria-hidden="true">›</span>
-        <span aria-current="page">About</span>
+        <a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">About</span>
       </nav>
 
       <header class="about-header">
-        <h1 id="about-heading" class="about-heading">About Afrinvoice</h1>
-        <p class="about-lead">
-          A free invoice generator built for Africa — not adapted from a tool built for somewhere else.
-        </p>
+        <h1 id="about-heading" class="about-heading">About {SITE.name}</h1>
+        <p class="about-lead">{SITE.tagline}. Free, private, and honest about what a PDF invoice can and can’t do.</p>
       </header>
 
       <section class="about-section">
-        <h2>Why this exists</h2>
+        <h2>Why it exists</h2>
         <p>
-          Most free invoice generators are built for US or UK businesses. They default to USD,
-          list payment options like "Venmo" or "Zelle," and have no idea what GRA VAT, KRA eTIMS,
-          or MTN MoMo are.
+          Most free invoice generators are the same form with a “Tax %” box. That’s fine until you need
+          CGST + SGST in India, HST that depends on the Canadian province, IRPF withheld in Spain, the
+          §19 note in Germany or VAT plus two levies in Ghana. Then you’re left guessing.
         </p>
         <p>
-          African freelancers and small business owners deserve a tool that speaks their language —
-          Ghana Cedi, Naira, Kenya Shilling, M-Pesa, bank NUBAN numbers, and the right tax authority
-          labels on every invoice. That's Afrinvoice.
+          {SITE.name} started as an invoice tool for African businesses, where getting mobile money and
+          local taxes right mattered most. The same approach now covers {COUNTRIES.length} countries: pick yours
+          and the invoice sets itself up correctly.
         </p>
       </section>
 
       <section class="about-section">
-        <h2>What it does</h2>
+        <h2>What makes it different</h2>
         <ul>
-          <li>Generates professional PDF invoices — free, no watermark, no account required</li>
-          <li>Pre-fills the correct currency, tax rate, and tax authority for your country</li>
-          <li>Supports mobile money payment fields — MTN MoMo, M-Pesa, EcoCash, OPay, and more</li>
-          <li>Remembers your business details in your browser — no server, no cloud storage</li>
-          <li>Works on any device — mobile, tablet, or desktop</li>
-          <li>Covers 17 African countries at launch, with more being added</li>
+          <li>Country tax presets, including multiple tax lines, tax-inclusive pricing and withholding</li>
+          <li>Each country page lists the legally required invoice details, with sources and the date they were last checked</li>
+          <li>Any currency, 7 invoice languages, A4 or US Letter</li>
+          <li>Payment QR codes: SEPA for euro IBANs, UPI for India, or any payment link</li>
+          <li>Invoices, quotes, receipts, proformas and credit notes</li>
+          <li>No account, no watermark, no upload</li>
         </ul>
       </section>
 
       <section class="about-section">
         <h2>How it works</h2>
         <p>
-          Everything runs in your browser. Your invoice data never leaves your device — there is no
-          server, no database, and no login. Business details (name, email, payment info) are saved
-          to your browser's local storage so you don't have to retype them. Client details and
-          invoice content are cleared after each session.
-        </p>
-        <p>
-          PDFs are generated client-side using <a href="https://github.com/parallax/jsPDF" target="_blank" rel="noopener noreferrer">jsPDF</a>.
-          The tool is built with Astro and Vue 3, deployed on Cloudflare Pages.
+          Everything runs in your browser. There is no server-side database and no login: your business
+          details, saved clients and invoice history are kept in your browser’s local storage, and PDFs are
+          generated on your device. Use <strong>Export backup</strong> to move them to another device.
         </p>
       </section>
 
       <section class="about-section">
-        <h2>Coverage</h2>
+        <h2>Keeping the data right</h2>
         <p>
-          Afrinvoice currently supports Ghana, Nigeria, Kenya, South Africa, Zimbabwe, Uganda,
-          Tanzania, Rwanda, and more. Country-specific data — VAT rates, tax authority names,
-          mobile money providers — is researched from official government and regulatory sources
-          and updated when rates change.
-        </p>
-        <p>
-          If something looks wrong for your country, use the <strong>"Something wrong? Tell us →"</strong>
-          link near the tax and payment fields in the tool. Users in-country catch changes before we do.
+          Rates and rules come from tax authorities and reputable tax summaries, and each country shows
+          when it was last checked. Rules change, and people doing business in a country often notice
+          first. If something is wrong, email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> and we’ll fix it.
         </p>
       </section>
-
-      <section class="about-section">
-        <h2>Contact</h2>
-        <p>
-          Questions, corrections, or feedback — reach out via the <a href="/contact/">contact page</a>.
-        </p>
-      </section>
-
     </div>
   </article>
 </Base>

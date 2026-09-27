@@ -6,14 +6,14 @@ import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
 import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
 
-const pageUrl   = 'https://afrinvoice.app/mobile-money-invoice/';
+const pageUrl   = 'https://invoicekit.app/mobile-money-invoice/';
 const schema    = webAppSchema(
   'Invoice with Mobile Money Payment Instructions — Africa',
   pageUrl,
   'Create invoices with MTN MoMo, M-Pesa, EcoCash, OPay payment instructions. Select your country — correct providers auto-fill. Free PDF, no sign-up.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
   { name: 'Mobile Money Invoice Generator', url: pageUrl },
 ]);
 
@@ -55,7 +55,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   <section class="tool-hero" aria-labelledby="momo-heading">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Afrinvoice</a>
+        <a href="/">InvoiceKit</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">Mobile Money Invoice Generator</span>
       </nav>
@@ -118,12 +118,12 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .tool-badge {
     display: inline-block;
     padding: 0.3125rem 0.875rem;
-    background: rgba(245, 158, 11, 0.06);
-    border: 1px solid rgba(245, 158, 11, 0.18);
+    background: rgba(15, 118, 110, 0.06);
+    border: 1px solid rgba(15, 118, 110, 0.18);
     border-radius: 9999px;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: #D97706;
+    color: #0F766E;
     margin-bottom: 1.25rem;
   }
 

@@ -1,65 +1,66 @@
 ---
+import { FEATURED_COUNTRIES, countryPath } from '../data/countries';
+import { SITE } from '../site';
+
 const countryLinks = [
-  { href: '/ghana-invoice-generator/',        label: 'Ghana Invoice Generator' },
-  { href: '/nigeria-invoice-generator/',      label: 'Nigeria Invoice Generator' },
-  { href: '/kenya-invoice-generator/',        label: 'Kenya Invoice Generator' },
-  { href: '/south-africa-invoice-generator/', label: 'South Africa Invoice Generator' },
-  { href: '/zimbabwe-invoice-generator/',     label: 'Zimbabwe Invoice Generator' },
+  ...FEATURED_COUNTRIES.map(c => ({ href: countryPath(c), label: `${c.flag} ${c.name}` })),
+  { href: '/invoice-requirements-by-country/', label: 'All countries →' },
+];
+
+const toolLinks = [
+  { href: '/quote-generator/',     label: 'Quote / estimate' },
+  { href: '/receipt-generator/',   label: 'Receipt' },
+  { href: '/proforma-invoice/',    label: 'Proforma invoice' },
+  { href: '/credit-note/',         label: 'Credit note' },
+  { href: '/freelancer-invoice/',  label: 'Freelancer invoice' },
+  { href: '/invoice-templates/',   label: 'Invoice templates' },
 ];
 
 const guideLinks = [
-  { href: '/how-to-invoice-ghana/',         label: 'Invoice Clients in Ghana' },
-  { href: '/how-to-invoice-nigeria/',       label: 'Invoice Clients in Nigeria' },
-  { href: '/how-to-invoice-kenya/',         label: 'Invoice Clients in Kenya' },
-  { href: '/how-to-invoice-south-africa/',  label: 'Invoice Clients in South Africa' },
-  { href: '/invoice-number-format/',        label: 'Invoice Number Format Guide' },
+  { href: '/invoice-requirements-by-country/', label: 'Invoice rules by country' },
+  { href: '/invoice-number-format/',           label: 'Invoice number format' },
+  { href: '/how-to-invoice-nigeria/',          label: 'How to invoice in Nigeria' },
+  { href: '/how-to-invoice-ghana/',            label: 'How to invoice in Ghana' },
+  { href: '/how-to-invoice-kenya/',            label: 'How to invoice in Kenya' },
+  { href: '/how-to-invoice-south-africa/',     label: 'How to invoice in South Africa' },
 ];
 
 const mobileLinks = [
   { divider: 'Countries' },
-  { href: '/ghana-invoice-generator/',        label: 'Ghana' },
-  { href: '/nigeria-invoice-generator/',      label: 'Nigeria' },
-  { href: '/kenya-invoice-generator/',        label: 'Kenya' },
-  { href: '/south-africa-invoice-generator/', label: 'South Africa' },
-  { href: '/zimbabwe-invoice-generator/',     label: 'Zimbabwe' },
+  ...countryLinks,
   { divider: 'Tools' },
-  { href: '/invoice-templates/',              label: 'Invoice Templates' },
-  { href: '/freelancer-invoice/',             label: 'Freelancer Invoice' },
-  { href: '/mobile-money-invoice/',           label: 'Mobile Money Invoice' },
-  { href: '/receipt-generator/',              label: 'Receipt Generator' },
+  ...toolLinks,
   { divider: 'Guides' },
-  { href: '/how-to-invoice-ghana/',           label: 'How to Invoice in Ghana' },
-  { href: '/how-to-invoice-nigeria/',         label: 'How to Invoice in Nigeria' },
-  { href: '/how-to-invoice-kenya/',           label: 'How to Invoice in Kenya' },
-  { href: '/how-to-invoice-south-africa/',   label: 'How to Invoice in South Africa' },
-  { href: '/invoice-number-format/',          label: 'Invoice Number Format' },
+  ...guideLinks,
   { divider: 'More' },
-  { href: '/about/',                          label: 'About' },
-  { href: '/contact/',                        label: 'Contact' },
+  { href: '/about/',   label: 'About' },
+  { href: '/contact/', label: 'Contact' },
+  { href: '/privacy/', label: 'Privacy' },
 ];
 
 const pathname = Astro.url.pathname;
 const isCountriesActive = countryLinks.some(l => pathname.startsWith(l.href));
 const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
+const isToolsActive = toolLinks.some(l => pathname.startsWith(l.href));
 ---
 
 <header class="nav-header" role="banner">
   <div class="nav-inner">
 
     <!-- Logo -->
-    <a href="/" class="nav-logo" aria-label="Afrinvoice home">
+    <a href="/" class="nav-logo" aria-label={`${SITE.name} home`}>
       <svg class="nav-logo-icon" width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-        <rect x="2" y="1" width="17" height="22" rx="2.5" fill="#111827" stroke="#F59E0B" stroke-width="1.5"/>
-        <rect x="2" y="1" width="17" height="7" rx="2.5" fill="#F59E0B"/>
-        <rect x="2" y="5.5" width="17" height="2.5" fill="#F59E0B"/>
+        <rect x="2" y="1" width="17" height="22" rx="2.5" fill="#111827" stroke="#0F766E" stroke-width="1.5"/>
+        <rect x="2" y="1" width="17" height="7" rx="2.5" fill="#0F766E"/>
+        <rect x="2" y="5.5" width="17" height="2.5" fill="#0F766E"/>
         <line x1="5.5" y1="12.5" x2="16.5" y2="12.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
         <line x1="5.5" y1="15.5" x2="13"   y2="15.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
-        <line x1="5.5" y1="19.5" x2="16.5" y2="19.5" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="5.5" y1="19.5" x2="16.5" y2="19.5" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round"/>
         <!-- Checkmark badge -->
-        <circle cx="20" cy="20" r="5" fill="#0A0F1E" stroke="#F59E0B" stroke-width="1.25"/>
-        <path d="M17.5 20l1.8 1.8 3.2-3.2" stroke="#F59E0B" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="20" cy="20" r="5" fill="#0A0F1E" stroke="#0F766E" stroke-width="1.25"/>
+        <path d="M17.5 20l1.8 1.8 3.2-3.2" stroke="#0F766E" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span class="nav-logo-text">Afr<span class="nav-logo-bold">invoice</span></span>
+      <span class="nav-logo-text">Invoice<span class="nav-logo-bold">Kit</span></span>
     </a>
 
     <!-- Desktop nav -->
@@ -93,12 +94,30 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
         </div>
       </div>
 
-      <a
-        href="/invoice-templates/"
-        class:list={['nav-link', { active: pathname.startsWith('/invoice-templates/') }]}
-      >
-        Templates
-      </a>
+      <!-- Tools dropdown -->
+      <div class="nav-dropdown" id="nav-tools-dropdown">
+        <button
+          class:list={['nav-link', 'nav-dropdown-trigger', { active: isToolsActive }]}
+          aria-expanded="false"
+          aria-controls="nav-tools-panel"
+          id="nav-tools-btn"
+        >
+          Tools
+          <svg class="nav-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="nav-dropdown-panel" id="nav-tools-panel" aria-hidden="true">
+          {toolLinks.map(link => (
+            <a href={link.href} class:list={['nav-dropdown-item', { active: pathname === link.href }]}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
 
       <!-- Guides dropdown -->
       <div class="nav-dropdown" id="nav-guides-dropdown">
@@ -203,6 +222,7 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
 
   initDropdown('nav-countries-dropdown', 'nav-countries-btn', 'nav-countries-panel');
   initDropdown('nav-guides-dropdown',    'nav-guides-btn',    'nav-guides-panel');
+  initDropdown('nav-tools-dropdown',     'nav-tools-btn',     'nav-tools-panel');
 </script>
 
 <style>
@@ -279,7 +299,7 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
     white-space: nowrap;
   }
   .nav-link:hover  { color: #1C1612; background: rgba(0,0,0,0.04); }
-  .nav-link.active { color: #D97706; }
+  .nav-link.active { color: #0F766E; }
 
   /* ── Guides dropdown ─────────────────────────────── */
   .nav-dropdown { position: relative; }
@@ -321,7 +341,7 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
     transition: all 150ms;
   }
   .nav-dropdown-item:hover { color: #1C1612; background: rgba(0,0,0,0.04); }
-  .nav-dropdown-item.active { color: #D97706; }
+  .nav-dropdown-item.active { color: #0F766E; }
   .nav-dropdown-item svg { flex-shrink: 0; opacity: 0.4; }
   .nav-dropdown-item:hover svg { opacity: 0.7; }
 
@@ -359,7 +379,7 @@ const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
     transition: all 150ms;
   }
   .nav-mobile-link:hover  { color: #1C1612; background: rgba(0,0,0,0.04); }
-  .nav-mobile-link.active { color: #D97706; }
+  .nav-mobile-link.active { color: #0F766E; }
 
   .nav-mobile-divider {
     display: block;

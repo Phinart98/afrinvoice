@@ -4,14 +4,14 @@ import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
 
-const pageUrl   = 'https://afrinvoice.app/invoice-templates/';
+const pageUrl   = 'https://invoicekit.app/invoice-templates/';
 const schema    = webAppSchema(
-  'Free Invoice Templates for Africa — 3 PDF Designs',
+  'Free Invoice Templates — 3 PDF Designs',
   pageUrl,
-  'Download free Africa-ready invoice templates. Classic, Modern, and Minimal PDF designs. VAT-aware, mobile money payment fields. No sign-up required.',
+  'Free invoice templates you fill in online: Minimal, Modern and Classic PDF designs with your logo, country tax presets and payment QR codes. No sign-up.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
   { name: 'Invoice Templates', url: pageUrl },
 ]);
 
@@ -45,8 +45,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     a: 'Yes — all three templates are completely free. No account, no watermark, no hidden fees. Generate your invoice, pick a template, and download the PDF instantly.',
   },
   {
-    q: 'Do the templates work for all 17 African countries?',
-    a: 'Yes. The template controls the visual design only — the country-specific data (currency, VAT label, mobile money providers) is separate. Select your country first, then choose whichever template suits you.',
+    q: 'Do the templates work for my country?',
+    a: 'Yes. The template only controls the design; the country data (currency, tax lines, tax ID label, payment methods, paper size) is separate. Pick your country first, then whichever template you like.',
   },
   {
     q: 'Can I customise the template colours?',
@@ -54,18 +54,18 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   },
   {
     q: 'Can I add my business logo to the PDF?',
-    a: 'Yes. Upload your logo (PNG or JPG) in the Your Business section. It appears in the top-left of every template PDF at a consistent size.',
+    a: 'Yes. Upload your logo (any image format) in the Your Business section. It appears in the top-left of every template PDF at a consistent size.',
   },
   {
-    q: 'Which template is best for Ghanaian, Nigerian, or Kenyan businesses?',
-    a: 'All three work across every African market. <strong>Minimal</strong> is the default — clean and universally trusted. <strong>Classic</strong> suits formal B2B and corporate clients. <strong>Modern</strong> works well for agencies and tech freelancers who want a branded feel.',
+    q: 'Which template should I use?',
+    a: 'All three work everywhere. <strong>Minimal</strong> is the default — clean and universally trusted. <strong>Classic</strong> suits formal B2B and corporate clients. <strong>Modern</strong> works well for agencies and tech freelancers who want a branded feel.',
   },
 ];
 ---
 
 <Base
-  title="Free Invoice Templates for Africa — PDF — Afrinvoice"
-  description="Download free Africa-ready invoice templates. Classic, Modern, and Minimal PDF designs with GRA VAT, KRA VAT, mobile money payment fields. No sign-up required."
+  title="Free Invoice Templates — Fill Online, Download PDF"
+  description="Free invoice templates you fill in online: Minimal, Modern and Classic PDF designs with your logo, country tax presets, any currency and payment QR codes. No sign-up, no watermark."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
@@ -73,18 +73,18 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   <section class="tpl-hero" aria-labelledby="tpl-heading">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Afrinvoice</a>
+        <a href="/">InvoiceKit</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">Invoice Templates</span>
       </nav>
 
       <h1 id="tpl-heading" class="tpl-heading">
         Free Invoice Templates<br />
-        <span class="shimmer">for Africa</span>
+        <span class="shimmer">you fill in online</span>
       </h1>
 
       <p class="tpl-sub">
-        3 professional PDF invoice designs — VAT-aware, mobile money ready,
+        3 professional PDF invoice designs with the right taxes for your country,
         branded with your logo. Choose your template, fill your details, download instantly.
       </p>
     </div>
@@ -314,7 +314,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .mock-inv-amber {
     font-size: 11px;
     font-weight: 800;
-    color: #F59E0B;
+    color: #0F766E;
     letter-spacing: -0.01em;
     font-family: sans-serif;
   }
@@ -362,7 +362,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .mock-row-alt { background: #F8FAFC; }
 
   .mock-total     { display: flex; justify-content: flex-end; padding-top: 4px; border-top: 1px solid #E2E8F0; margin-top: 2px; }
-  .mock-total-amt { width: 40px; height: 8px; background: #F59E0B; border-radius: 2px; }
+  .mock-total-amt { width: 40px; height: 8px; background: #0F766E; border-radius: 2px; }
 
   /* Minimal total: hairline + bold text, no fill */
   .mock-total--minimal { flex-direction: column; align-items: flex-end; gap: 3px; border-top: 1.5px solid #475569; }
@@ -396,8 +396,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     font-weight: 600;
     padding: 0.1875rem 0.5rem;
     border-radius: 9999px;
-    background: rgba(245, 158, 11, 0.1);
-    color: #D97706;
+    background: rgba(15, 118, 110, 0.1);
+    color: #0F766E;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -450,7 +450,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     display: inline-flex;
     align-items: center;
     padding: 0.5rem 1rem;
-    background: #F59E0B;
+    background: #0F766E;
     color: #ffffff;
     font-size: 0.8125rem;
     font-weight: 700;
@@ -460,7 +460,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     transition: background var(--ease);
     margin-top: auto;
   }
-  .tpl-use-btn:hover { background: #D97706; }
+  .tpl-use-btn:hover { background: #0F766E; }
 
 
   .affiliate-wrap { padding-top: 1rem; padding-bottom: 1rem; }

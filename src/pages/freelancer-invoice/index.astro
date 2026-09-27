@@ -1,191 +1,36 @@
 ---
-import Base from '../../layouts/Base.astro';
-import AdUnit from '../../components/AdUnit.astro';
-import FaqSection from '../../components/FaqSection.astro';
-import AffiliateCallout from '../../components/AffiliateCallout.astro';
-import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
-import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import DocToolPage from '../../components/DocToolPage.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
 
-const pageUrl   = 'https://afrinvoice.app/freelancer-invoice/';
-const schema    = webAppSchema(
-  'Freelancer Invoice Generator — Free for African Freelancers',
-  pageUrl,
-  'Create professional freelancer invoices for Africa. VAT-aware, mobile money payment fields, instant PDF. Free, no sign-up.',
-);
-const breadcrumb = breadcrumbSchema([
-  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
-  { name: 'Freelancer Invoice Generator', url: pageUrl },
-]);
-
-const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
-  {
-    q: 'What should a freelancer invoice include in Africa?',
-    a: 'A professional freelancer invoice must include: your name and contact details, the client\'s name and address, a unique invoice number, invoice date and due date, an itemised list of services with quantities and rates, the applicable VAT or tax, your total amount due, and payment instructions (mobile money number or bank details).',
-  },
-  {
-    q: 'Should I add VAT to my freelancer invoices in Ghana, Nigeria, or Kenya?',
-    a: 'Only if you are VAT-registered. In Ghana, VAT registration is required once you exceed GH₵ 750,000 in annual turnover (raised Jan 2026). In Nigeria, the threshold is ₦ 25 million. In Kenya, it\'s KSh 5 million. Below these thresholds, most freelancers invoice without VAT — set the tax rate to 0% in this tool.',
-  },
-  {
-    q: 'How do I invoice international clients as an African freelancer?',
-    a: 'Select your country for the currency and tax defaults, then change the currency to USD (or GBP/EUR as needed). Set tax to 0% for export services — most African tax authorities zero-rate services delivered to non-resident clients. Add your Wise or Payoneer account details in the bank transfer section for international payment.',
-  },
-  {
-    q: 'Can I add MTN MoMo or M-Pesa as payment on my freelancer invoice?',
-    a: 'Yes. Select your country (Ghana, Kenya, etc.) and the tool pre-fills the correct mobile money providers. Your MoMo number and account name appear on the invoice PDF.',
-  },
-  {
-    q: 'How do I number my freelancer invoices?',
-    a: 'Use a consistent format: a country prefix + sequential number, e.g. <strong>GH-0001</strong>, <strong>GH-0002</strong>. Afrinvoice auto-generates these and increments on each download so you always have a unique, traceable number.',
-  },
-  {
-    q: 'Will my business details be saved between invoices?',
-    a: 'Yes — your name, email, phone, address, logo, and payment details are saved automatically in your browser. Each time you return, they\'re pre-filled. Only client details and the invoice number change per invoice.',
-  },
+const faqs: FaqItem[] = [
+  { q: 'How do freelancers invoice foreign clients?',
+    a: 'Invoice in the client’s currency (USD, EUR, GBP…) and, if they prefer, in their language. Add your payment method, such as an IBAN, a Wise or PayPal link, or local bank details, and state that the service is exported if your country zero-rates it.' },
+  { q: 'Do I need to charge VAT or GST as a freelancer?',
+    a: 'Only if you are registered, or above your country’s registration threshold. Exports of services to foreign businesses are often zero-rated or reverse-charged. Each country page explains the threshold and the note to add.' },
+  { q: 'What about withholding tax?',
+    a: 'In Spain (IRPF), Italy (ritenuta d’acconto), Nigeria and Kenya (WHT), business clients deduct tax from what they pay you. Pick the preset for your country and the invoice shows the net amount you will receive.' },
+  { q: 'Can I bill by the hour?',
+    a: 'Yes. Rename the item column to Hours or Task, enter hours as the quantity and your rate as the price. Quantities can be decimals such as 7.5.' },
 ];
 ---
 
-<Base
-  title="Freelancer Invoice Generator for Africa — Afrinvoice"
-  description="Create professional freelancer invoices for Ghana, Nigeria, Kenya, South Africa. VAT-aware, MoMo payment fields, instant PDF. Free, no sign-up."
-  schema={[schema, breadcrumb, faqSchema(faqs)]}
+<DocToolPage
+  path="/freelancer-invoice/"
+  title="Free Freelancer Invoice Generator — Bill Clients Worldwide"
+  description="Invoice clients anywhere as a freelancer: hourly rates, any currency, withholding tax (IRPF, WHT), VAT reverse charge notes and payment links. Free PDF, no sign-up."
+  badge="Hourly or fixed · Any currency · Get paid online"
+  heading="Freelancer Invoice Generator"
+  sub="Bill local and foreign clients properly: <strong>hourly rates, any currency, withholding tax and reverse-charge notes</strong>, plus a payment link your client can scan."
+  faqs={faqs}
 >
-
-  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
-  <section class="tool-hero" aria-labelledby="fl-heading">
-    <div class="container">
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Afrinvoice</a>
-        <span aria-hidden="true">›</span>
-        <span aria-current="page">Freelancer Invoice Generator</span>
-      </nav>
-
-      <div class="tool-badge">Africa's freelancer invoice tool</div>
-
-      <h1 id="fl-heading" class="tool-heading">
-        Freelancer Invoice Generator<br />
-        <span class="shimmer">for Africa</span>
-      </h1>
-
-      <p class="tool-sub">
-        Invoice your clients like a pro. Select your country — <strong>VAT rate, currency,
-        and mobile money fields</strong> fill in automatically. Download a clean PDF and
-        get paid faster. <strong>Free. No account. No watermark.</strong>
-      </p>
-
-      <ul class="use-cases" aria-label="Who this is for">
-        <li>Freelance designers, developers, writers</li>
-        <li>Consultants and independent contractors</li>
-        <li>Upwork &amp; Toptal freelancers invoicing in USD</li>
-        <li>Small agencies billing local clients</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- ── Invoice Generator ──────────────────────────────────────────── -->
-  <section class="tool-section" aria-label="Freelancer invoice generator">
-    <div class="container">
-      <div class="tool-shell">
-        <InvoiceGenerator client:only="vue" />
-      </div>
-    </div>
-  </section>
-
-  <AdUnit slot="tool-below" />
-
-  <!-- ── Affiliate callout ──────────────────────────────────────────── -->
-  <div class="container affiliate-wrap">
-    <AffiliateCallout affiliate="freshbooks" />
-  </div>
-
-  <!-- ── FAQ ───────────────────────────────────────────────────────── -->
-  <section class="section" aria-labelledby="fl-faq-heading">
-    <div class="container">
-      <FaqSection items={faqs} heading="Freelancer Invoice — FAQs" headingId="fl-faq-heading" />
-    </div>
-  </section>
-
-</Base>
-
-<style>
-  .tool-hero {
-    padding: 4rem 0 3rem;
-    text-align: center;
-  }
-
-  .breadcrumb {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.8125rem;
-    color: var(--text-4);
-    margin-bottom: 1.5rem;
-  }
-  .breadcrumb a { color: var(--text-3); text-decoration: none; }
-  .breadcrumb a:hover { color: var(--accent); }
-
-  .tool-badge {
-    display: inline-block;
-    padding: 0.3125rem 0.875rem;
-    background: rgba(245, 158, 11, 0.06);
-    border: 1px solid rgba(245, 158, 11, 0.18);
-    border-radius: 9999px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: #D97706;
-    margin-bottom: 1.25rem;
-  }
-
-  .tool-heading {
-    font-size: clamp(1.875rem, 5vw, 3rem);
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    color: var(--text);
-    margin-bottom: 1.25rem;
-    max-width: 40rem;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .tool-sub {
-    font-size: clamp(1rem, 2vw, 1.0625rem);
-    color: var(--text-3);
-    line-height: 1.75;
-    max-width: 36rem;
-    margin: 0 auto 1.5rem;
-  }
-  .tool-sub strong { color: var(--text-2); font-weight: 500; }
-
-  .use-cases {
-    list-style: none;
-    padding: 0;
-    margin: 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem 1.25rem;
-    max-width: 38rem;
-    font-size: 0.8125rem;
-    color: var(--text-4);
-  }
-  .use-cases li::before {
-    content: '→ ';
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .tool-section { padding: 0 0 2rem; }
-
-  .tool-shell {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    background: var(--surface);
-    min-height: 640px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .affiliate-wrap { padding-top: 0.5rem; padding-bottom: 1rem; }
-</style>
+  <h2>A freelancer invoice checklist</h2>
+  <ul>
+    <li>Your name or trading name, address and tax ID if registered</li>
+    <li>The client’s legal name and address</li>
+    <li>A unique invoice number and the date you finished the work</li>
+    <li>Each task or block of hours with the rate</li>
+    <li>Tax lines, or the exemption/reverse-charge note that explains why there is no tax</li>
+    <li>Payment terms (Net 14 or Net 30) and exactly how to pay you</li>
+  </ul>
+  <p>Invoicing the same clients every month? Download once, then use <strong>History → Duplicate</strong> next month.</p>
+</DocToolPage>

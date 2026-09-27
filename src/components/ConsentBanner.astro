@@ -1,0 +1,69 @@
+---
+// Consent Mode v2: analytics/ads cookies are denied by default in the EEA, UK and Switzerland
+// (the consent defaults live in Base.astro <head>). This banner only appears for visitors whose
+// browser timezone is European and who haven't chosen yet; everyone else is never asked.
+---
+
+<div id="consent-banner" class="consent" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden>
+  <p>We use Google Analytics cookies to see which pages are useful. Your invoices never leave your browser. <a href="/privacy/">Privacy</a></p>
+  <div class="consent-actions">
+    <button type="button" data-consent="denied" class="btn btn-ghost">Decline</button>
+    <button type="button" data-consent="granted" class="btn btn-primary">Accept</button>
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    var KEY = 'consent-v1';
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) {}
+    function apply(v) {
+      if (typeof gtag !== 'function') return;
+      gtag('consent', 'update', {
+        analytics_storage: v, ad_storage: v, ad_user_data: v, ad_personalization: v,
+      });
+    }
+    if (stored) { apply(stored); return; }
+    var tz = '';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
+    var inEurope = /^Europe\//.test(tz) || /^Atlantic\/(Reykjavik|Canary|Madeira|Azores|Faroe)$/.test(tz);
+    if (!inEurope) return;
+    var banner = document.getElementById('consent-banner');
+    if (!banner) return;
+    banner.hidden = false;
+    banner.addEventListener('click', function (e) {
+      var choice = e.target && e.target.getAttribute && e.target.getAttribute('data-consent');
+      if (!choice) return;
+      try { localStorage.setItem(KEY, choice); } catch (err) {}
+      apply(choice);
+      banner.hidden = true;
+    });
+  })();
+</script>
+
+<style>
+  .consent {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 50;
+    max-width: 36rem;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0.875rem 1rem;
+    background: #fff;
+    border: 1px solid #e2ddd8;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(28,25,23,0.12);
+    font-size: 0.875rem;
+    color: #2d2926;
+  }
+  .consent[hidden] { display: none; }
+  .consent p { margin: 0; flex: 1 1 16rem; line-height: 1.5; }
+  .consent a { color: var(--accent); }
+  .consent-actions { display: flex; gap: 0.5rem; }
+</style>

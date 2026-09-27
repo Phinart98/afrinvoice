@@ -1,0 +1,37 @@
+---
+import DocToolPage from '../../components/DocToolPage.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
+
+const faqs: FaqItem[] = [
+  { q: 'What is the difference between a quote and an estimate?',
+    a: 'A quote is a fixed price the client can accept; an estimate is an approximate price that may change. This tool works for both: set the type to Quote and add a note such as Estimate, final price may vary if the scope changes.' },
+  { q: 'How long should a quote be valid?',
+    a: 'Usually 14 to 30 days. Set the Valid until date so prices and availability are not open-ended; it prints next to the quote date.' },
+  { q: 'How do I turn an accepted quote into an invoice?',
+    a: 'Open the quote from History and click Turn this quote into an invoice. The client and items carry over, the document gets a fresh invoice number and today’s date.' },
+  { q: 'Should a quote include tax?',
+    a: 'Yes, if you are registered for VAT, GST or sales tax: clients need to know the full price. Pick your country and the tax lines are added for you.' },
+];
+---
+
+<DocToolPage
+  path="/quote-generator/"
+  title="Free Quote & Estimate Generator — PDF in Seconds"
+  description="Create professional quotes and estimates with tax, validity date and your logo. Turn an accepted quote into an invoice in one click. Free, no sign-up."
+  badge="Quotes · Estimates · Valid-until date"
+  heading="Free Quote Generator"
+  sub="Send a clear, professional quote with the right taxes for your country. When the client says yes, <strong>turn it into an invoice in one click</strong>."
+  docPreset="quote"
+  faqs={faqs}
+>
+  <h2>What to put on a quote</h2>
+  <ul>
+    <li>Your business details and the client’s name</li>
+    <li>A quote number (this tool numbers them Q-0001, Q-0002…)</li>
+    <li>The date and how long the price is valid</li>
+    <li>Each item or service with quantity and price</li>
+    <li>Tax, discounts and the total</li>
+    <li>What is not included, payment terms and deposit (in Notes)</li>
+  </ul>
+  <p>Quotes use their own numbering, so they never use up an invoice number.</p>
+</DocToolPage>

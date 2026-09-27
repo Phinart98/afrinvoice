@@ -1,0 +1,33 @@
+---
+import DocToolPage from '../../components/DocToolPage.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
+
+const faqs: FaqItem[] = [
+  { q: 'What is a proforma invoice?',
+    a: 'A preliminary bill sent before goods are delivered or work starts. It shows what the final invoice will say so the buyer can arrange payment, a letter of credit or import permits.' },
+  { q: 'Is a proforma invoice a tax invoice?',
+    a: 'No. It is not a demand for payment and is not recorded as a sale for VAT or GST. Issue a normal invoice once the supply happens.' },
+  { q: 'When do exporters need a proforma invoice?',
+    a: 'Customs brokers, banks and importers often ask for one to clear goods, apply for foreign exchange or open a letter of credit. Include quantities, unit prices, currency and delivery terms.' },
+];
+---
+
+<DocToolPage
+  path="/proforma-invoice/"
+  title="Free Proforma Invoice Generator — PDF Template"
+  description="Create a proforma invoice for advance payment, import permits or letters of credit. Any currency, your logo, instant PDF. Free and no sign-up."
+  badge="Advance payment · Imports · Letters of credit"
+  heading="Proforma Invoice Generator"
+  sub="Send buyers, banks and customs a clear <strong>proforma invoice</strong> before you ship or start work, in any currency."
+  docPreset="proforma"
+  faqs={faqs}
+>
+  <h2>What to include on a proforma</h2>
+  <ul>
+    <li>The words Proforma Invoice (set automatically)</li>
+    <li>Seller and buyer details, including tax IDs</li>
+    <li>Description, quantity and unit price of each item</li>
+    <li>Currency, delivery terms (e.g. Incoterms FOB, CIF) and expected shipping date</li>
+    <li>Payment terms and bank details</li>
+  </ul>
+</DocToolPage>

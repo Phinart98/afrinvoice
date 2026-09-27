@@ -3,15 +3,23 @@ import Base from '../../layouts/Base.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { COUNTRIES, countryPath } from '../../data/countries';
 
-const pageUrl   = 'https://afrinvoice.app/invoice-number-format/';
+const prefixRows = [
+  { label: 'Quotes', prefix: 'Q-' },
+  { label: 'Proforma invoices', prefix: 'PF-' },
+  { label: 'Receipts', prefix: 'R-' },
+  { label: 'Credit notes', prefix: 'CN-' },
+];
+
+const pageUrl   = 'https://invoicekit.app/invoice-number-format/';
 const schema    = articleSchema(
   'Invoice Number Format Guide — Best Practices',
   pageUrl,
-  'How to format invoice numbers professionally. Sequential formats, country prefixes, date-based systems. Examples for Ghana, Nigeria, Kenya, and more.',
+  'How to format invoice numbers: sequential, year-based and prefixed formats, what tax authorities require, and the default format for every country we support.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
   { name: 'Invoice Number Format Guide', url: pageUrl },
 ]);
 
@@ -21,23 +29,23 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     a: 'No. Invoice numbers must be unique. Reusing invoice numbers creates accounting confusion, can trigger audit flags, and is unprofessional. Always increment sequentially and never skip or reuse numbers.',
   },
   {
-    q: 'Is there a legally required invoice number format in Africa?',
-    a: 'No specific format is legally mandated in most African countries. GRA (Ghana), KRA (Kenya), and NRS (Nigeria) require invoices to have unique sequential numbers, but the exact format is at your discretion. The format matters less than consistency and uniqueness.',
+    q: 'Is there a legally required invoice number format?',
+    a: 'Almost no country prescribes the exact format. What VAT and GST systems require (EU, UK, Canada, Australia, Ghana, Kenya, Nigeria and more) is a unique, sequential number. India adds a limit of 16 characters per financial year. Consistency and uniqueness matter more than style.',
   },
   {
     q: 'Should I include the year in my invoice number?',
-    a: 'For businesses issuing many invoices, a year prefix (INV-2026-0001) helps with filing and retrieval. For freelancers with fewer invoices, a simple sequential format (GH-0001) is cleaner and sufficient.',
+    a: 'For businesses issuing many invoices, a year prefix (INV-2026-0001) helps with filing and retrieval. For freelancers with fewer invoices, a simple sequential format (INV-0001) is cleaner and sufficient.',
   },
   {
-    q: 'What format does Afrinvoice use for invoice numbers?',
-    a: 'Afrinvoice uses a country prefix + zero-padded sequential number: GH-0001 for Ghana, NG-0001 for Nigeria, KE-0001 for Kenya, etc. This is auto-generated and increments on each PDF download. You can override it at any time.',
+    q: 'What format does InvoiceKit use for invoice numbers?',
+    a: 'A prefix plus a zero-padded sequential number, with a separate counter per prefix: INV-0001 by default, Q-0001 for quotes, CN-0001 for credit notes. The counter only advances when you download or print, and you can type your own number at any time.',
   },
 ];
 ---
 
 <Base
-  title="Invoice Number Format — Africa Guide"
-  description="How to format invoice numbers professionally. Sequential formats, country prefixes, date-based systems. Best practices for Ghana, Nigeria, Kenya, South Africa."
+  title="Invoice Number Format — Examples & Rules by Country"
+  description="How to number invoices: sequential, year-based and prefixed formats, what tax authorities require, and example formats for every country. Free auto-numbering invoice generator."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
@@ -45,7 +53,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     <div class="container-narrow">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Afrinvoice</a>
+        <a href="/">InvoiceKit</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">Invoice Number Format Guide</span>
       </nav>
@@ -55,8 +63,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
         <h1 id="guide-heading" class="guide-heading">Invoice Number Format — Best Practices</h1>
         <p class="guide-lead">
           Every invoice needs a unique number. Here's how to format it professionally,
-          stay consistent, and avoid common mistakes — with examples for Ghana, Nigeria, Kenya,
-          and South Africa.
+          stay consistent, and avoid common mistakes, with the default format for every country we support.
         </p>
       </header>
 
@@ -66,7 +73,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
           Invoice numbers serve three purposes:
         </p>
         <ul>
-          <li><strong>Traceability</strong> — you and your client can reference "Invoice GH-0047" in emails without confusion</li>
+          <li><strong>Traceability</strong> — you and your client can reference "Invoice INV-0047" in emails without confusion</li>
           <li><strong>Accounting</strong> — sequential numbers make it easy to verify no invoice was skipped or duplicated</li>
           <li><strong>Tax compliance</strong> — tax authorities (GRA, KRA, NRS) require invoices to have unique, sequential numbers</li>
         </ul>
@@ -85,7 +92,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
         <div class="guide-example">
           <code>GH-0001</code><code>NG-0001</code><code>KE-0001</code><code>ZA-0001</code>
         </div>
-        <p>Afrinvoice auto-generates these. Useful if you invoice clients in multiple countries — each invoice is immediately identifiable by market.</p>
+        <p>InvoiceKit auto-generates these. Useful if you invoice clients in multiple countries — each invoice is immediately identifiable by market.</p>
 
         <h3>3. Year + sequential</h3>
         <div class="guide-example">
@@ -118,19 +125,17 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </section>
 
       <section class="guide-section">
-        <h2>Afrinvoice default formats by country</h2>
+        <h2>Default formats by country and document</h2>
         <div class="format-table">
           <div class="fmt-row fmt-header">
             <span>Country</span><span>Format</span><span>Example</span>
           </div>
-          <div class="fmt-row"><span>🇬🇭 Ghana</span><span>GH-XXXX</span><span class="fmt-mono">GH-0001</span></div>
-          <div class="fmt-row"><span>🇳🇬 Nigeria</span><span>NG-XXXX</span><span class="fmt-mono">NG-0001</span></div>
-          <div class="fmt-row"><span>🇰🇪 Kenya</span><span>KE-XXXX</span><span class="fmt-mono">KE-0001</span></div>
-          <div class="fmt-row"><span>🇿🇦 South Africa</span><span>ZA-XXXX</span><span class="fmt-mono">ZA-0001</span></div>
-          <div class="fmt-row"><span>🇿🇼 Zimbabwe</span><span>ZW-XXXX</span><span class="fmt-mono">ZW-0001</span></div>
-          <div class="fmt-row"><span>🇺🇬 Uganda</span><span>UG-XXXX</span><span class="fmt-mono">UG-0001</span></div>
-          <div class="fmt-row"><span>🇹🇿 Tanzania</span><span>TZ-XXXX</span><span class="fmt-mono">TZ-0001</span></div>
-          <div class="fmt-row"><span>🇷🇼 Rwanda</span><span>RW-XXXX</span><span class="fmt-mono">RW-0001</span></div>
+          {COUNTRIES.map(c => (
+            <div class="fmt-row"><span><a href={countryPath(c)}>{c.flag} {c.name}</a></span><span>{c.invoicePrefix}XXXX</span><span class="fmt-mono">{c.invoicePrefix}0001</span></div>
+          ))}
+          {prefixRows.map(r => (
+            <div class="fmt-row"><span>{r.label} (any country)</span><span>{r.prefix}XXXX</span><span class="fmt-mono">{r.prefix}0001</span></div>
+          ))}
         </div>
         <p>You can override the invoice number in the tool at any time — just type your preferred format in the field.</p>
       </section>
@@ -157,7 +162,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
 <style>
   .guide-wrap { padding: 3rem 0; }
-  .guide-badge { display: inline-block; padding: 0.3125rem 0.875rem; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #D97706; margin-bottom: 1rem; }
+  .guide-badge { display: inline-block; padding: 0.3125rem 0.875rem; background: rgba(15, 118, 110,0.06); border: 1px solid rgba(15, 118, 110,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #0F766E; margin-bottom: 1rem; }
   .guide-heading { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.2; letter-spacing: -0.025em; color: var(--text); margin-bottom: 1rem; }
   .guide-lead { font-size: 1.0625rem; color: var(--text-3); line-height: 1.75; }
   .guide-section { margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--border); }
@@ -173,7 +178,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .fmt-header { background: var(--surface-2); font-weight: 700; font-size: 0.75rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
   .fmt-mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; color: var(--accent); }
   .guide-cta-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border); text-align: center; }
-  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #F59E0B; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
-  .guide-cta:hover { background: #D97706; }
+  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #0F766E; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
+  .guide-cta:hover { background: #0F766E; }
   .guide-cta-sub { margin-top: 0.625rem; font-size: 0.8125rem; color: var(--text-4); }
 </style>

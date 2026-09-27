@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../site';
+---
+
+<Base
+  title="Privacy"
+  description={`What ${SITE.name} collects (anonymous page statistics) and what it never collects (your invoices, clients or business details).`}
+>
+  <section class="country-hero">
+    <div class="container">
+      <h1 class="country-heading">Privacy</h1>
+      <p class="country-sub">Short version: your invoices are made in your browser and never reach us. We only count page visits.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container prose">
+      <h2>What never leaves your device</h2>
+      <p>Everything you type into the generator (your business details, logo, clients, items, bank details and invoice history) is processed and stored only in your browser’s local storage. We have no account system and no server that receives it. PDFs are created on your device.</p>
+      <p>Clearing your browser data deletes it. Use <strong>Export backup</strong> in the History panel if you want a copy.</p>
+
+      <h2>What we measure</h2>
+      <p>We use Google Analytics 4 to count page views and a single event when an invoice is downloaded or printed. That event records the country, document type, template and currency, never names, amounts or any text you entered. In the EEA, the UK and Switzerland, analytics cookies are only set if you accept them in the consent banner. Google’s handling of this data is described in the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>.</p>
+
+      <h2>Advertising and affiliate links</h2>
+      <p>{SITE.name} is free and may show ads or recommend accounting tools through affiliate links. If ads are added, this page will name the ad network, and the same consent rules will apply.</p>
+
+      <h2>Contact</h2>
+      <p>Questions or requests: <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+      <p><small>Last updated: 27 September 2026</small></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .prose { max-width: 44rem; }
+  .prose h2 { font-size: 1.25rem; margin: 2rem 0 0.625rem; }
+  .prose h2:first-child { margin-top: 0; }
+  .prose p { color: var(--text-2); line-height: 1.75; margin-bottom: 0.75rem; }
+  .prose a { color: var(--accent); }
+</style>

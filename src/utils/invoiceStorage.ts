@@ -1,41 +1,183 @@
-// Persisted business details — never store client/invoice data here
+// ─────────────────────────────────────────────────────────────────────────────
+// Browser-only persistence. Nothing leaves the device.
+//   profile  — your business + payment details (auto-saved)
+//   clients  — saved "bill to" contacts
+//   history  — last 30 issued documents (reopen / duplicate)
+//   counters — next invoice number per prefix ("INV-", "GH-" …)
+// ─────────────────────────────────────────────────────────────────────────────
 
-export interface StoredBusiness {
-  businessName: string;
-  businessEmail: string;
-  businessPhone: string;
-  businessAddress: string;
-  businessLogo: string; // base64 PNG/JPG from FileReader
-  // Bank payment
-  bankName: string;
-  accountNumber: string;
-  accountName: string;
-  swiftCode: string;
-  // Mobile money payment
-  momoProvider: string;
-  momoNumber: string;
-  momoName: string;
-  // Auto-increment counter for invoice numbers
-  invoiceCounter: number;
+import { SITE } from '../site';
+import type { InvoiceState } from '../types/invoice';
+
+const KEY = {
+  profile:  `${SITE.storagePrefix}_profile`,
+  clients:  `${SITE.storagePrefix}_clients`,
+  history:  `${SITE.storagePrefix}_history`,
+  counters: `${SITE.storagePrefix}_counters`,
+};
+const LEGACY_KEY = 'afrinvoice_business'; // Afrinvoice v1 (same origin only)
+const HISTORY_LIMIT = 30;
+
+export const PROFILE_FIELDS = [
+  'businessName', 'businessEmail', 'businessPhone', 'businessAddress', 'businessTaxId', 'businessLogo',
+  'countryKey', 'currency', 'labelsLang', 'paper', 'template', 'taxes', 'taxNote', 'pricesIncludeTax',
+  'paymentRail', 'bankName', 'accountName', 'accountNumber', 'bankCode', 'swiftCode', 'iban', 'bic',
+  'momoProvider', 'momoNumber', 'momoName', 'upiId', 'paymentLink',
+  'classicAccent', 'modernHeader', 'modernAccent', 'footerNote',
+] as const satisfies readonly (keyof InvoiceState)[];
+
+export type Profile = Partial<Pick<InvoiceState, typeof PROFILE_FIELDS[number]>>;
+
+export interface SavedClient { name: string; email: string; address: string; taxId: string }
+
+export interface HistoryEntry {
+  id: string;             // invoice number + timestamp
+  savedAt: string;        // ISO timestamp
+  number: string;
+  docType: InvoiceState['docType'];
+  clientName: string;
+  total: number;
+  currency: string;
+  state: InvoiceState;    // full snapshot (logo stripped to save space)
 }
 
-const STORAGE_KEY = 'afrinvoice_business';
-
-export function loadBusiness(): Partial<StoredBusiness> {
+function read<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as Partial<StoredBusiness>;
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
-    return {};
+    return fallback;
   }
 }
 
-export function saveBusiness(data: Partial<StoredBusiness>): void {
+function write(key: string, value: unknown): boolean {
   try {
-    const existing = loadBusiness();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...existing, ...data }));
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
   } catch {
-    // Silently ignore — private browsing or quota exceeded
+    return false; // private mode or quota exceeded (large logos)
+  }
+}
+
+// ── Profile ──────────────────────────────────────────────────────────────────
+export function loadProfile(): Profile {
+  const profile = read<Profile | null>(KEY.profile, null);
+  if (profile) return profile;
+  return migrateLegacy();
+}
+
+export function saveProfile(state: InvoiceState): boolean {
+  const profile: Record<string, unknown> = {};
+  for (const f of PROFILE_FIELDS) profile[f] = state[f];
+  return write(KEY.profile, profile);
+}
+
+/** One-time import of Afrinvoice v1 business details (only reachable on the same origin). */
+function migrateLegacy(): Profile {
+  const old = read<Record<string, string> | null>(LEGACY_KEY, null);
+  if (!old) return {};
+  const profile: Profile = {
+    businessName: old.businessName ?? '', businessEmail: old.businessEmail ?? '',
+    businessPhone: old.businessPhone ?? '', businessAddress: old.businessAddress ?? '',
+    businessLogo: old.businessLogo ?? '',
+    bankName: old.bankName ?? '', accountName: old.accountName ?? '', accountNumber: old.accountNumber ?? '',
+    swiftCode: old.swiftCode ?? '', momoProvider: old.momoProvider ?? '', momoNumber: old.momoNumber ?? '', momoName: old.momoName ?? '',
+  };
+  write(KEY.profile, profile);
+  return profile;
+}
+
+// ── Counters ─────────────────────────────────────────────────────────────────
+export function peekNextNumber(prefix: string): string {
+  const counters = read<Record<string, number>>(KEY.counters, {});
+  return formatNumber(prefix, (counters[prefix] ?? 0) + 1);
+}
+
+export function takeNextNumber(prefix: string): string {
+  const counters = read<Record<string, number>>(KEY.counters, {});
+  const next = (counters[prefix] ?? 0) + 1;
+  write(KEY.counters, { ...counters, [prefix]: next });
+  return formatNumber(prefix, next);
+}
+
+export function formatNumber(prefix: string, n: number): string {
+  return `${prefix}${String(n).padStart(4, '0')}`;
+}
+
+// ── Clients ──────────────────────────────────────────────────────────────────
+export function loadClients(): SavedClient[] {
+  return read<SavedClient[]>(KEY.clients, []);
+}
+
+export function saveClient(c: SavedClient): SavedClient[] {
+  if (!c.name.trim()) return loadClients();
+  const others = loadClients().filter(x => x.name.trim().toLowerCase() !== c.name.trim().toLowerCase());
+  const list = [c, ...others].slice(0, 100);
+  write(KEY.clients, list);
+  return list;
+}
+
+export function deleteClient(name: string): SavedClient[] {
+  const list = loadClients().filter(x => x.name !== name);
+  write(KEY.clients, list);
+  return list;
+}
+
+// ── History ──────────────────────────────────────────────────────────────────
+export function loadHistory(): HistoryEntry[] {
+  return read<HistoryEntry[]>(KEY.history, []);
+}
+
+export function addToHistory(state: InvoiceState, total: number): HistoryEntry[] {
+  const snapshot: InvoiceState = JSON.parse(JSON.stringify({ ...state, businessLogo: '' }));
+  const entry: HistoryEntry = {
+    id: `${state.invoiceNumber}-${Date.now()}`,
+    savedAt: new Date().toISOString(),
+    number: state.invoiceNumber,
+    docType: state.docType,
+    clientName: state.clientName,
+    total,
+    currency: state.currency,
+    state: snapshot,
+  };
+  // Re-issuing the same number replaces the older entry
+  const list = [entry, ...loadHistory().filter(h => h.number !== state.invoiceNumber)].slice(0, HISTORY_LIMIT);
+  write(KEY.history, list);
+  return list;
+}
+
+export function deleteHistory(id: string): HistoryEntry[] {
+  const list = loadHistory().filter(h => h.id !== id);
+  write(KEY.history, list);
+  return list;
+}
+
+// ── Backup (the only way to move data to another browser or domain) ─────────
+export function exportAll(): string {
+  return JSON.stringify({
+    app: SITE.name, version: 2, exportedAt: new Date().toISOString(),
+    profile: loadProfile(), clients: loadClients(), history: loadHistory(),
+    counters: read<Record<string, number>>(KEY.counters, {}),
+  }, null, 2);
+}
+
+export function importAll(json: string): { ok: true } | { ok: false; error: string } {
+  try {
+    const data = JSON.parse(json);
+    if (!data || typeof data !== 'object' || !('profile' in data))
+      return { ok: false, error: 'This file is not an invoice backup.' };
+    if (data.profile) write(KEY.profile, data.profile);
+    if (Array.isArray(data.clients)) write(KEY.clients, data.clients);
+    if (Array.isArray(data.history)) write(KEY.history, data.history);
+    if (data.counters && typeof data.counters === 'object') {
+      // Never move a counter backwards — that would reissue invoice numbers
+      const current = read<Record<string, number>>(KEY.counters, {});
+      const merged = { ...current };
+      for (const [k, v] of Object.entries(data.counters as Record<string, number>)) merged[k] = Math.max(current[k] ?? 0, Number(v) || 0);
+      write(KEY.counters, merged);
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'Could not read that file — is it a JSON backup?' };
   }
 }

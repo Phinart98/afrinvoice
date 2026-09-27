@@ -4,14 +4,14 @@ import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
 
-const pageUrl   = 'https://afrinvoice.app/how-to-invoice-south-africa/';
+const pageUrl   = 'https://invoicekit.app/how-to-invoice-south-africa/';
 const schema    = articleSchema(
   'How to Invoice Clients in South Africa — SARS VAT Guide',
   pageUrl,
   'Complete guide to invoicing clients in South Africa. SARS VAT 15%, bank EFT payment, VAT registration threshold R1 million, invoice number formats, and a free invoice generator.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
+  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
   { name: 'How to Invoice Clients in South Africa', url: pageUrl },
 ]);
 
@@ -45,7 +45,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     <div class="container-narrow">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Afrinvoice</a>
+        <a href="/">InvoiceKit</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">How to Invoice Clients in South Africa</span>
       </nav>
@@ -136,7 +136,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
           <code>ZA-0001</code> → <code>ZA-0002</code> → <code>ZA-0003</code>
         </div>
         <p>
-          Afrinvoice auto-generates sequential ZA-XXXX numbers and increments on each download.
+          InvoiceKit auto-generates sequential ZA-XXXX numbers and increments on each download.
           You can override the format at any time.
         </p>
       </section>
@@ -165,7 +165,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
 <style>
   .guide-wrap { padding: 3rem 0; }
-  .guide-badge { display: inline-block; padding: 0.3125rem 0.875rem; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #D97706; margin-bottom: 1rem; }
+  .guide-badge { display: inline-block; padding: 0.3125rem 0.875rem; background: rgba(15, 118, 110,0.06); border: 1px solid rgba(15, 118, 110,0.18); border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; color: #0F766E; margin-bottom: 1rem; }
   .guide-heading { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.2; letter-spacing: -0.025em; color: var(--text); margin-bottom: 1rem; }
   .guide-lead { font-size: 1.0625rem; color: var(--text-3); line-height: 1.75; }
   .guide-section { margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px solid var(--border); }
@@ -176,8 +176,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .guide-callout { margin-top: 1rem; padding: 0.875rem 1rem; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
   .guide-example { margin: 0.5rem 0 0.75rem; padding: 0.75rem 1rem; background: var(--surface-2); border-radius: var(--radius); font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--text); display: flex; gap: 1rem; flex-wrap: wrap; }
   .guide-cta-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border); text-align: center; }
-  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #F59E0B; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
-  .guide-cta:hover { background: #D97706; }
+  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #0F766E; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
+  .guide-cta:hover { background: #0F766E; }
   .guide-cta-sub { margin-top: 0.625rem; font-size: 0.8125rem; color: var(--text-4); }
   .affiliate-wrap { padding-top: 2rem; padding-bottom: 1rem; }
 </style>

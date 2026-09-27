@@ -1,0 +1,187 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdUnit from '../../components/AdUnit.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
+import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
+import { COUNTRIES, REGION_NAMES, countryPath, type CountryConfig } from '../../data/countries';
+import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
+
+// One page per country, generated from src/data/countries. Every section below is
+// built from the data of that country (rules, required fields, tax presets, sources),
+// so no two pages share body copy.
+
+export function getStaticPaths() {
+  return COUNTRIES.map(c => ({ params: { country: c.key }, props: { c } }));
+}
+
+const { c } = Astro.props as { c: CountryConfig };
+const url = abs(countryPath(c));
+const GUIDES = new Set(['ghana', 'nigeria', 'kenya', 'south-africa']);
+const guide = GUIDES.has(c.key) ? `/how-to-invoice-${c.key}/` : null;
+
+const fmtPct = (n: number) => `${n}%`;
+const presetLine = (taxes: CountryConfig['taxPresets'][number]['taxes']) =>
+  taxes.length
+    ? taxes.map((t, i) => `${i === 0 ? '' : t.kind === 'withhold' ? ' − ' : ' + '}${t.label} ${fmtPct(t.rate)}`).join('')
+    : 'No tax';
+const mainRate = c.taxPresets[0]?.taxes.filter(t => (t.kind ?? 'add') === 'add').reduce((s, t) => s + t.rate, 0) ?? 0;
+const currencyName = new Intl.DisplayNames(['en'], { type: 'currency' }).of(c.currency) ?? c.currency;
+const railNames: Record<string, string> = {
+  bank: `bank transfer${c.bankCodeLabel ? ` (with ${c.bankCodeLabel})` : ''}`,
+  iban: 'IBAN / SEPA transfer with a scannable QR code',
+  'mobile-money': c.mobileProviders?.length ? c.mobileProviders.map(p => p.name).join(', ') : 'mobile money',
+  upi: 'UPI with a scannable QR code',
+};
+const eInvoiceRule = c.rules.find(r => /e-invoic|eTIMS|E-VAT|EFRIS|FDMS|Fiscal|SdI|FNE|EBM|Smart Invoice|Authority to Print/i.test(r));
+const correctionHref = `mailto:${SITE.email}?subject=${encodeURIComponent('Correction: ' + c.name)}`;
+const sameRegion = COUNTRIES.filter(x => x.region === c.region && x.key !== c.key).slice(0, 8);
+
+const faqs: FaqItem[] = [
+  {
+    q: `Is this ${c.name} invoice generator really free?`,
+    a: `Yes. There is no sign-up, no watermark and no limit. Invoices are created in your browser, and your details are saved on your own device, not on our servers.`,
+  },
+  {
+    q: `What ${c.taxName} should I put on an invoice in ${c.name}?`,
+    a: `The tool offers these setups: ${c.taxPresets.map(p => `<strong>${p.label}</strong>`).join('; ')}. Pick the one that fits and adjust any rate. You can also add extra lines, including withholding that is subtracted from the total. Rates last checked ${c.lastVerified}.`,
+  },
+  {
+    q: `What must an invoice include in ${c.name}?`,
+    a: `${c.mandatoryFields.join('; ')}.`,
+  },
+  {
+    q: `Can I invoice in USD, EUR or GBP from ${c.name}?`,
+    a: `Yes. The default is ${currencyName} (${c.currency}), but you can pick any currency in the Document section. Amounts and dates are formatted the way your client expects.${c.rules.some(r => /sterling|in AED/.test(r)) ? ' Remember that the tax amount must also be shown in the local currency when you invoice in another one.' : ''}`,
+  },
+  {
+    q: `How can clients pay me?`,
+    a: `Add ${c.rails.map(r => railNames[r]).join(', or ')}, plus an optional online payment link (PayPal, Stripe, Wise) that prints as a QR code.`,
+  },
+  ...(eInvoiceRule ? [{ q: `Is a PDF invoice valid in ${c.name}?`, a: eInvoiceRule }] : []),
+];
+
+const title = `${c.name} Invoice Generator — Free, with ${c.taxName} Built In`;
+const description = `Free ${c.name} invoice generator: ${c.taxPresets[0] ? presetLine(c.taxPresets[0].taxes) : c.taxName} pre-filled, ${c.currency} amounts, ${c.taxIdLabel} fields and a legal-requirements checklist. Download a PDF in seconds — no sign-up.`;
+---
+
+<Base
+  title={title}
+  description={description}
+  schema={[
+    webAppSchema(`${c.name} Invoice Generator`, url, description, c.name),
+    breadcrumbSchema([
+      { name: SITE.name, url: abs('/') },
+      { name: 'Invoice rules by country', url: abs('/invoice-requirements-by-country/') },
+      { name: c.name, url },
+    ]),
+    faqSchema(faqs),
+  ]}
+>
+  <section class="country-hero" aria-labelledby="c-heading">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">{SITE.name}</a><span aria-hidden="true">›</span>
+        <a href="/invoice-requirements-by-country/">Countries</a><span aria-hidden="true">›</span>
+        <span aria-current="page">{c.name}</span>
+      </nav>
+      <div class="country-badge"><span aria-hidden="true">{c.flag}</span> {c.name} · {c.currency} · {c.taxName}{mainRate ? ` ${mainRate}%` : ''}</div>
+      <h1 id="c-heading" class="country-heading">{c.name} Invoice Generator</h1>
+      <p class="country-sub">
+        Pick {c.name} and the invoice sets itself up: <strong>{c.taxPresets[0] ? presetLine(c.taxPresets[0].taxes) : c.taxName}</strong>,
+        <strong>{c.currency}</strong> amounts, your <strong>{c.taxIdLabel}</strong> and {c.rails.map(r => railNames[r].split(' (')[0]).join(' or ')} details.
+        Download a PDF in seconds, with no account and no watermark.
+      </p>
+    </div>
+  </section>
+
+  <section class="tool-section" aria-label={`${c.name} invoice generator`}>
+    <div class="container">
+      <div class="tool-shell">
+        <InvoiceGenerator client:only="vue" countryPreset={c.key} />
+      </div>
+    </div>
+  </section>
+
+  <AdUnit slot="tool-below" />
+
+  <section class="section rules" aria-labelledby="req-heading">
+    <div class="container prose-wrap">
+      <h2 id="req-heading">What an invoice in {c.name} must include</h2>
+      <ul class="checklist">
+        {c.mandatoryFields.map(f => <li>{f}</li>)}
+      </ul>
+
+      {c.rules.length > 0 && (
+        <>
+          <h2>Rules worth knowing</h2>
+          <ul class="rule-list">{c.rules.map(r => <li>{r}</li>)}</ul>
+        </>
+      )}
+
+      <h2>{c.taxName} setups built in</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Setup</th><th>Printed on the invoice</th></tr></thead>
+          <tbody>
+            {c.taxPresets.map(p => (
+              <tr><td>{p.label}</td><td>{presetLine(p.taxes)}{p.note && <><br /><em>{p.note}</em></>}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p class="sources">
+        Tax authority: {c.taxAuthorityFull}. Last checked {c.lastVerified}. Sources:
+        {c.sources.map((s, i) => <>{i > 0 && ' · '}<a href={s.url} rel="noopener" target="_blank">{s.label}</a></>)}.
+        Spotted something out of date? <a href={correctionHref}>Email us</a> and we’ll fix it.
+      </p>
+      <p class="disclaimer">This page is a practical summary, not tax advice. Check with {c.taxAuthority || 'your tax authority'} or an accountant if you’re unsure.</p>
+
+      {guide && <p><a class="guide-link" href={guide}>Read the full guide: how to invoice in {c.name} →</a></p>}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading={`${c.name} invoices — FAQ`} headingId="faq-heading" />
+    </div>
+  </section>
+
+  <section class="section related" aria-label="More countries">
+    <div class="container">
+      <p class="related-label">More invoice generators in {REGION_NAMES[c.region]}</p>
+      <div class="related-links">
+        {sameRegion.map(x => <a href={countryPath(x)}>{x.flag} {x.name}</a>)}
+        <a href="/invoice-requirements-by-country/">All countries →</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .prose-wrap { max-width: 46rem; }
+  .prose-wrap h2 { font-size: 1.375rem; margin: 2.25rem 0 0.875rem; letter-spacing: -0.02em; }
+  .prose-wrap h2:first-child { margin-top: 0; }
+  .checklist, .rule-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+  .checklist li, .rule-list li { position: relative; padding-left: 1.625rem; color: var(--text-2); line-height: 1.6; }
+  .checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+  .rule-list li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
+  .table-scroll { overflow-x: auto; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .data-table th, .data-table td { text-align: left; padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .data-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); }
+  .data-table td { color: var(--text-2); }
+  .sources { margin-top: 1.5rem; font-size: 0.8125rem; color: var(--text-3); line-height: 1.7; }
+  .sources a, .guide-link { color: var(--accent); }
+  .disclaimer { font-size: 0.75rem; color: var(--text-4); margin-top: 0.5rem; }
+  .guide-link { display: inline-block; margin-top: 1.25rem; font-weight: 600; }
+  .related-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-3); margin-bottom: 0.75rem; }
+  .related-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .related-links a {
+    padding: 0.375rem 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-full);
+    background: var(--surface); font-size: 0.8125rem; color: var(--text-2); text-decoration: none;
+  }
+  .related-links a:hover { border-color: var(--accent); color: var(--accent); }
+</style>

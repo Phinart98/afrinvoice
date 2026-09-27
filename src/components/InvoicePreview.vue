@@ -1,190 +1,126 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { InvoiceState } from '../types/invoice';
-import { computeTotals } from '../types/invoice';
+import { buildInvoiceView } from '../utils/invoiceView';
+import { qrSvg } from '../utils/paymentQr';
 
 const props = defineProps<{ state: InvoiceState }>();
 
-// When tax is hidden, treat effective rate as 0 so the total equals the subtotal.
-// The stored taxRate is preserved — toggling visible.tax back on restores it.
-const effectiveTaxRate = computed(() =>
-  props.state.visible.tax ? props.state.taxRate : 0
-);
-const totals = computed(() => computeTotals(props.state.items, effectiveTaxRate.value));
+// Same view model the PDF renders — the preview can't drift from the download.
+const v = computed(() => buildInvoiceView(props.state));
+const qr = computed(() => (v.value.qr ? qrSvg(v.value.qr.payload, 92) : ''));
 
-function fmtCurrency(amount: number): string {
-  const sym = props.state.currencySymbol;
-  return `${sym} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function fmtDate(iso: string): string {
-  if (!iso) return '—';
-  try {
-    return new Date(`${iso}T00:00:00`).toLocaleDateString('en-GB', {
-      day: '2-digit', month: 'short', year: 'numeric',
-    });
-  } catch {
-    return iso;
-  }
-}
-
-// Payment fields — filter out empty values, same logic as PDF renderer
-const paymentFields = computed((): [string, string][] => {
+// CSS custom properties driven by the colour pickers
+const themeStyle = computed(() => {
   const s = props.state;
-  const rows: [string, string][] =
-    s.paymentType === 'bank'
-      ? [
-          ['Bank',           s.bankName],
-          ['Account Name',   s.accountName],
-          ['Account Number', s.accountNumber],
-          ['SWIFT / BIC',    s.swiftCode],
-        ]
-      : [
-          ['Provider',     s.momoProvider],
-          ['Account Name', s.momoName],
-          ['Number',       s.momoNumber],
-        ];
-  return rows.filter(([, v]) => v.trim() !== '');
-});
-
-const hasPayment    = computed(() => props.state.visible.payment && paymentFields.value.length > 0);
-const hasNotes      = computed(() => props.state.notes.trim() !== '');
-const hasFooterNote = computed(() => props.state.footerNote.trim() !== '');
-
-// CSS custom properties driven by user colour pickers
-const modernStyle = computed(() => {
-  const t = props.state.template;
-  if (t === 'classic') {
-    return { '--c-accent': props.state.classicAccent || '#F59E0B' };
-  }
-  if (t === 'modern') {
-    return {
-      '--m-header': props.state.modernHeader || '#0F172A',
-      '--m-accent': props.state.modernAccent || '#F59E0B',
-    };
-  }
+  if (s.template === 'classic') return { '--c-accent': s.classicAccent || '#115E59' };
+  if (s.template === 'modern') return { '--m-header': s.modernHeader || '#0F172A', '--m-accent': s.modernAccent || '#0EA5E9' };
   return {};
 });
 </script>
 
 <template>
   <div class="preview-wrap">
-    <div :class="['inv', 'tpl-' + state.template]" :style="modernStyle">
-
+    <div
+      :class="['inv', 'tpl-' + state.template, 'paper-' + v.paper]"
+      :style="themeStyle"
+      :lang="v.locale"
+      aria-label="Invoice preview"
+    >
       <!-- ── Header ──────────────────────────────────────────────────── -->
       <header class="inv-header">
         <div class="inv-sender">
-          <img
-            v-if="state.businessLogo"
-            :src="state.businessLogo"
-            class="inv-logo"
-            alt="Business logo"
-          />
+          <img v-if="v.sender.logo" :src="v.sender.logo" class="inv-logo" alt="" />
           <div>
-            <p class="inv-biz-name">{{ state.businessName || 'Your Business Name' }}</p>
-            <p v-if="state.businessEmail   && state.visible.bizEmail"   class="inv-dim">{{ state.businessEmail }}</p>
-            <p v-if="state.businessPhone   && state.visible.bizPhone"   class="inv-dim">{{ state.businessPhone }}</p>
-            <p v-if="state.businessAddress" class="inv-dim inv-pre">{{ state.businessAddress }}</p>
+            <p class="inv-biz-name">{{ v.sender.name || 'Your Business Name' }}</p>
+            <p v-for="(line, i) in v.sender.lines" :key="i" class="inv-dim">{{ line }}</p>
           </div>
         </div>
 
-        <!-- Classic & Modern: title + meta stacked right -->
         <div v-if="state.template !== 'minimal'" class="inv-label-block">
-          <p class="inv-title">{{ state.invoiceTitle || 'INVOICE' }}</p>
-          <p class="inv-dim">No.&nbsp;<span class="inv-mono">{{ state.invoiceNumber || '—' }}</span></p>
-          <p class="inv-dim">Date:&nbsp;{{ fmtDate(state.invoiceDate) }}</p>
-          <p v-if="state.dueDate && state.visible.dueDate" class="inv-dim">Due:&nbsp;&nbsp;{{ fmtDate(state.dueDate) }}</p>
+          <p class="inv-title">{{ v.title }}</p>
+          <p class="inv-dim">{{ v.L.number }}&nbsp;<span class="inv-mono">{{ v.number || '—' }}</span></p>
+          <p v-for="[label, value] in v.meta" :key="label" class="inv-dim">{{ label }}: {{ value }}</p>
         </div>
-
-        <!-- Minimal: invoice number as typographic hero -->
         <div v-else class="inv-label-block inv-minimal-hero">
-          <p class="inv-minimal-label">{{ state.invoiceTitle || 'INVOICE' }}</p>
-          <p class="inv-minimal-number">{{ state.invoiceNumber || '—' }}</p>
-          <p class="inv-dim" style="text-align:right">{{ fmtDate(state.invoiceDate) }}</p>
-          <p v-if="state.dueDate && state.visible.dueDate" class="inv-dim" style="text-align:right; color:#94A3B8">Due {{ fmtDate(state.dueDate) }}</p>
+          <p class="inv-minimal-label">{{ v.title }}</p>
+          <p class="inv-minimal-number">{{ v.number || '—' }}</p>
+          <p v-for="[label, value] in v.meta" :key="label" class="inv-dim">{{ label }}: {{ value }}</p>
         </div>
       </header>
 
-      <hr class="inv-rule" />
+      <hr v-if="state.template !== 'modern'" class="inv-rule" />
 
-      <!-- ── Bill To ─────────────────────────────────────────────────── -->
+      <!-- ── Bill to ─────────────────────────────────────────────────── -->
       <section class="inv-bill-to">
-        <p class="inv-section-label">BILL TO</p>
-        <p class="inv-client-name">{{ state.clientName || 'Client Name' }}</p>
-        <p v-if="state.clientEmail   && state.visible.clientEmail"   class="inv-dim">{{ state.clientEmail }}</p>
-        <p v-if="state.clientAddress && state.visible.clientAddress" class="inv-dim inv-pre">{{ state.clientAddress }}</p>
+        <p class="inv-section-label">{{ v.L.billTo }}</p>
+        <p class="inv-client-name">{{ v.client.name || 'Client Name' }}</p>
+        <p v-for="(line, i) in v.client.lines" :key="i" class="inv-dim">{{ line }}</p>
       </section>
 
-      <!-- ── Line Items ──────────────────────────────────────────────── -->
+      <!-- ── Items ───────────────────────────────────────────────────── -->
       <table class="inv-table">
         <thead>
           <tr>
-            <th class="inv-th inv-th-desc">{{ state.itemLabel || 'Description' }}</th>
-            <th class="inv-th inv-th-right">Qty</th>
-            <th class="inv-th inv-th-right">Unit Price</th>
-            <th class="inv-th inv-th-right">Amount</th>
+            <th class="inv-th inv-th-desc">{{ v.columns[0] }}</th>
+            <th class="inv-th inv-th-right">{{ v.columns[1] }}</th>
+            <th class="inv-th inv-th-right">{{ v.columns[2] }}</th>
+            <th class="inv-th inv-th-right">{{ v.columns[3] }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="(item, i) in state.items"
-            :key="i"
-            :class="['inv-tr', { 'inv-tr-alt': i % 2 === 1 }]"
-          >
-            <td class="inv-td inv-td-desc">{{ item.description || '—' }}</td>
-            <td class="inv-td inv-td-right inv-mono">{{ item.quantity }}</td>
-            <td class="inv-td inv-td-right inv-mono">{{ fmtCurrency(item.unitPrice) }}</td>
-            <td class="inv-td inv-td-right inv-mono">{{ fmtCurrency(item.quantity * item.unitPrice) }}</td>
+          <tr v-for="(item, i) in v.items" :key="i" :class="['inv-tr', { 'inv-tr-alt': i % 2 === 1 }]">
+            <td class="inv-td inv-td-desc inv-pre">{{ item.description }}</td>
+            <td class="inv-td inv-td-right inv-mono">{{ item.qty }}</td>
+            <td class="inv-td inv-td-right inv-mono">{{ item.unit }}</td>
+            <td class="inv-td inv-td-right inv-mono">{{ item.amount }}</td>
           </tr>
         </tbody>
       </table>
 
       <!-- ── Totals ──────────────────────────────────────────────────── -->
       <div class="inv-totals">
-        <div class="inv-total-row">
-          <span class="inv-dim">Subtotal</span>
-          <span class="inv-mono">{{ fmtCurrency(totals.subtotal) }}</span>
-        </div>
-        <div v-if="state.taxRate > 0 && state.visible.tax" class="inv-total-row">
-          <span class="inv-dim">{{ state.taxLabel }} ({{ state.taxRate }}%)</span>
-          <span class="inv-mono">{{ fmtCurrency(totals.taxAmount) }}</span>
-        </div>
-        <div class="inv-total-row inv-grand">
-          <span class="inv-grand-label">TOTAL</span>
-          <span class="inv-grand-val inv-mono">{{ fmtCurrency(totals.total) }}</span>
+        <div
+          v-for="(row, i) in v.totals"
+          :key="i"
+          :class="['inv-total-row', { 'inv-grand': row.kind === 'grand', 'inv-balance': row.kind === 'balance', 'inv-muted-row': row.kind === 'muted' }]"
+        >
+          <span :class="row.kind === 'grand' || row.kind === 'balance' ? 'inv-grand-label' : 'inv-dim'">{{ row.label }}</span>
+          <span :class="row.kind === 'grand' ? 'inv-grand-val inv-mono' : row.kind === 'balance' ? 'inv-balance-val inv-mono' : 'inv-mono'">{{ row.value }}</span>
         </div>
       </div>
+      <p v-if="v.taxNote" class="inv-taxnote">{{ v.taxNote }}</p>
 
-      <!-- ── Payment Details ─────────────────────────────────────────── -->
-      <template v-if="hasPayment">
+      <!-- ── Payment ─────────────────────────────────────────────────── -->
+      <template v-if="v.payment.length || v.qr">
         <hr class="inv-rule" />
         <section class="inv-payment">
-          <p class="inv-section-label">PAYMENT DETAILS</p>
-          <div
-            v-for="([label, value]) in paymentFields"
-            :key="label"
-            class="inv-payment-row"
-          >
-            <span class="inv-dim inv-payment-key">{{ label }}</span>
-            <span class="inv-payment-val">{{ value }}</span>
+          <div class="inv-payment-fields">
+            <p class="inv-section-label">{{ v.L.paymentDetails }}</p>
+            <div v-for="[label, value] in v.payment" :key="label" class="inv-payment-row">
+              <span class="inv-dim inv-payment-key">{{ label }}</span>
+              <span class="inv-payment-val">{{ value }}</span>
+            </div>
           </div>
+          <figure v-if="qr" class="inv-qr">
+            <span v-html="qr" />
+            <figcaption>{{ v.L.scanToPay }}</figcaption>
+          </figure>
         </section>
       </template>
 
-      <!-- ── Notes ──────────────────────────────────────────────────── -->
-      <template v-if="hasNotes">
+      <!-- ── Notes ───────────────────────────────────────────────────── -->
+      <template v-if="v.notes">
         <hr class="inv-rule" />
         <section class="inv-notes-section">
-          <p class="inv-section-label">NOTES</p>
-          <p class="inv-dim inv-pre">{{ state.notes }}</p>
+          <p class="inv-section-label">{{ v.L.notes }}</p>
+          <p class="inv-dim inv-pre">{{ v.notes }}</p>
         </section>
       </template>
 
-      <!-- ── Footer (only shown when footerNote is set) ───────────── -->
-      <footer v-if="hasFooterNote" class="inv-footer">
-        <p class="inv-footer-note inv-pre">{{ state.footerNote }}</p>
+      <footer v-if="v.footer" class="inv-footer">
+        <p class="inv-footer-note inv-pre">{{ v.footer }}</p>
       </footer>
-
     </div>
   </div>
 </template>
@@ -359,11 +295,11 @@ const modernStyle = computed(() => {
 .inv-grand-val {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #F59E0B;                        /* Classic default */
+  color: #0F766E;                        /* Classic default */
 }
 
 /* Classic: user-customisable total colour */
-.tpl-classic .inv-grand-val { color: var(--c-accent, #F59E0B); }
+.tpl-classic .inv-grand-val { color: var(--c-accent, #0F766E); }
 
 /* ── Payment ─────────────────────────────────────────────────────────── */
 .inv-payment { margin-bottom: 0.25rem; }
@@ -423,7 +359,7 @@ const modernStyle = computed(() => {
 .tpl-modern .inv-biz-name { color: #ffffff; }
 .tpl-modern .inv-sender .inv-dim { color: rgba(255,255,255,0.55); }
 
-.tpl-modern .inv-title { color: var(--m-accent, #F59E0B); }
+.tpl-modern .inv-title { color: var(--m-accent, #0F766E); }
 
 .tpl-modern .inv-label-block .inv-dim  { color: rgba(255,255,255,0.55); }
 .tpl-modern .inv-label-block .inv-mono { color: #ffffff; }
@@ -431,17 +367,17 @@ const modernStyle = computed(() => {
 .tpl-modern .inv-logo { border-color: rgba(255,255,255,0.15); }
 
 /* Accent section labels */
-.tpl-modern .inv-section-label { color: var(--m-accent, #F59E0B); }
+.tpl-modern .inv-section-label { color: var(--m-accent, #0F766E); }
 
 /* Accent left-bar on table header */
 .tpl-modern .inv-th:first-child {
-  border-left: 3px solid var(--m-accent, #F59E0B);
+  border-left: 3px solid var(--m-accent, #0F766E);
   padding-left: calc(0.625rem - 3px);
 }
 
 /* Accent total strip */
 .tpl-modern .inv-grand {
-  background: var(--m-accent, #F59E0B);
+  background: var(--m-accent, #0F766E);
   margin: 0.25rem -0.5rem -0.25rem;
   padding: 0.5rem 0.5rem;
   border-radius: 4px;
@@ -489,6 +425,42 @@ const modernStyle = computed(() => {
   color: #94A3B8;
   margin: 0 0 0.125rem;
 }
+
+/* ── Rows added in v2: "incl." tax, balance due, tax note, QR ─────────── */
+.inv-muted-row,
+.inv-muted-row .inv-dim { color: #94A3B8; }
+
+.inv-balance {
+  margin-top: 0.125rem;
+  padding-top: 0.3125rem;
+  border-top: 1px dashed #CBD5E1;
+}
+.inv-balance-val { font-size: 0.875rem; font-weight: 700; color: #0F172A; }
+
+.inv-taxnote {
+  font-size: 0.6875rem;
+  color: #475569;
+  margin: -0.375rem 0 0.75rem;
+  text-align: right;
+}
+
+.inv-payment {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.inv-payment-fields { min-width: 0; flex: 1; }
+
+.inv-qr {
+  margin: 0;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.625rem;
+  color: #64748B;
+}
+.inv-qr :deep(svg) { display: block; }
+.inv-qr figcaption { margin-top: 0.125rem; }
 
 .inv-minimal-number {
   font-family: 'JetBrains Mono', monospace;

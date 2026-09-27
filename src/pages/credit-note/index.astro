@@ -1,0 +1,32 @@
+---
+import DocToolPage from '../../components/DocToolPage.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
+
+const faqs: FaqItem[] = [
+  { q: 'When do I need a credit note?',
+    a: 'When you need to reduce or cancel an invoice you have already issued: a refund, a returned item, an overcharge or a discount agreed afterwards. You should not edit or delete the original invoice.' },
+  { q: 'What must a credit note show?',
+    a: 'Its own number and date, the number of the invoice it corrects (put it in Reference), what is being credited, and the tax being reversed.' },
+  { q: 'Do I enter negative amounts?',
+    a: 'Enter the amounts you are crediting as normal positive figures. The document is titled Credit Note, which tells the client these amounts are owed back to them.' },
+];
+---
+
+<DocToolPage
+  path="/credit-note/"
+  title="Free Credit Note Generator — Correct or Refund an Invoice"
+  description="Create a credit note that references the original invoice and reverses the right tax. Free, no sign-up, instant PDF."
+  badge="Refunds · Returns · Invoice corrections"
+  heading="Credit Note Generator"
+  sub="Correct or cancel an invoice the right way: a <strong>credit note</strong> with its own number, a reference to the original invoice and the tax reversed."
+  docPreset="credit-note"
+  faqs={faqs}
+>
+  <h2>How to issue a credit note</h2>
+  <ol>
+    <li>Put the original invoice number in <strong>Reference / PO</strong>.</li>
+    <li>List what you are crediting: the full invoice, or just the returned items.</li>
+    <li>Keep the same tax setup as the original so the tax is reversed at the same rate.</li>
+    <li>Download and send it, and keep it with the original invoice in your records.</li>
+  </ol>
+</DocToolPage>

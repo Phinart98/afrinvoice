@@ -1,185 +1,35 @@
 ---
-import Base from '../../layouts/Base.astro';
-import AdUnit from '../../components/AdUnit.astro';
-import FaqSection from '../../components/FaqSection.astro';
-import AffiliateCallout from '../../components/AffiliateCallout.astro';
-import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
-import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import DocToolPage from '../../components/DocToolPage.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
 
-const pageUrl   = 'https://afrinvoice.app/receipt-generator/';
-const schema    = webAppSchema(
-  'Free Receipt Generator for Africa — Instant PDF',
-  pageUrl,
-  'Generate professional payment receipts for Africa. Select your country — currency, VAT, and payment fields auto-fill. Free PDF download, no sign-up.',
-);
-const breadcrumb = breadcrumbSchema([
-  { name: 'Afrinvoice', url: 'https://afrinvoice.app/' },
-  { name: 'Receipt Generator', url: pageUrl },
-]);
-
-const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
-  {
-    q: 'What is the difference between a receipt and an invoice?',
-    a: 'An <strong>invoice</strong> is a request for payment — sent before payment is made. A <strong>receipt</strong> is proof of payment — issued after payment is received. In practice, many African small businesses use the same document format for both, noting "Payment Received" in the notes. This tool works for both purposes.',
-  },
-  {
-    q: 'Can I generate a receipt with my MTN MoMo or M-Pesa details?',
-    a: 'Yes. Select your country, switch to Mobile Money in the Payment Details section, and enter your provider and number. The receipt PDF includes your mobile money details just as an invoice would.',
-  },
-  {
-    q: 'How do I make a receipt look different from an invoice?',
-    a: 'In the Notes field, add text like <em>"Payment received in full — Thank you!"</em> or <em>"Paid via MTN MoMo on [date]"</em>. This clearly marks the document as a receipt. You can also change the invoice number format to "REC-0001" to distinguish receipts from invoices.',
-  },
-  {
-    q: 'Is this receipt generator free?',
-    a: 'Yes — completely free. No account, no watermark, no hidden fees. Your business details are saved in your browser for next time.',
-  },
-  {
-    q: 'Can I use this for GRA VAT receipts in Ghana?',
-    a: 'This generates a standard professional receipt document. For formal GRA VAT receipts required by VAT-registered businesses in Ghana, you still need to issue receipts through the GRA\'s approved fiscal device or e-VAT system. Use this tool for non-VAT-registered freelancers and small businesses.',
-  },
-  {
-    q: 'Which African countries are supported for receipt generation?',
-    a: 'All 17 African countries available in the invoice tool — including Ghana (GH₵, GRA VAT), Nigeria (₦, NRS VAT), Kenya (KSh, KRA VAT), South Africa (R, SARS VAT), Zimbabwe (ZWG, ZIMRA VAT), Uganda, Tanzania, Rwanda, and more.',
-  },
+const faqs: FaqItem[] = [
+  { q: 'What is the difference between an invoice and a receipt?',
+    a: 'An invoice asks to be paid; a receipt confirms you have been paid. Send the receipt after the money arrives, showing the date and how it was paid.' },
+  { q: 'How do I show that a receipt is fully paid?',
+    a: 'Enter the amount received in Amount paid. The receipt prints the amount paid and a balance due of zero, or the remaining balance for a part-payment.' },
+  { q: 'Can I record how the customer paid?',
+    a: 'Yes. Add it in Notes, for example Paid by bank transfer on 3 March, ref 88213, or by mobile money, card or cash.' },
+  { q: 'Is this a tax receipt?',
+    a: 'It shows the tax included in the payment when you pick a tax setup. Some countries require receipts from registered fiscal devices or e-invoicing systems; your country page says if that applies.' },
 ];
 ---
 
-<Base
-  title="Free Receipt Generator for Africa — Instant PDF — Afrinvoice"
-  description="Generate professional payment receipts for Ghana, Nigeria, Kenya, South Africa. VAT-aware, mobile money fields, instant PDF. Free, no sign-up."
-  schema={[schema, breadcrumb, faqSchema(faqs)]}
+<DocToolPage
+  path="/receipt-generator/"
+  title="Free Receipt Generator — Printable PDF Receipts"
+  description="Create a payment receipt in seconds: amount paid, balance due, tax, payment method and your logo. Any currency, free PDF, no sign-up."
+  badge="Payment receipts · Part-payments · Any currency"
+  heading="Free Receipt Generator"
+  sub="Confirm a payment with a clean <strong>PDF receipt</strong>: what was paid, when, how, and any balance still due."
+  docPreset="receipt"
+  faqs={faqs}
 >
-
-  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
-  <section class="tool-hero" aria-labelledby="rec-heading">
-    <div class="container">
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Afrinvoice</a>
-        <span aria-hidden="true">›</span>
-        <span aria-current="page">Receipt Generator</span>
-      </nav>
-
-      <div class="tool-badge">Free · Africa-ready · Instant PDF</div>
-
-      <h1 id="rec-heading" class="tool-heading">
-        Free Receipt Generator<br />
-        <span class="shimmer">for Africa</span>
-      </h1>
-
-      <p class="tool-sub">
-        Create professional payment receipts for your clients. Select your country —
-        <strong>currency, VAT, and payment fields</strong> fill automatically.
-        Add "Payment received in full" in the notes. Download a clean PDF instantly.
-        <strong>Free. No account. No watermark.</strong>
-      </p>
-
-      <p class="tool-tip">
-        <strong>Tip:</strong> Use invoice number format <strong>REC-0001</strong> to distinguish receipts.
-        Add payment confirmation in the Notes field.
-      </p>
-    </div>
-  </section>
-
-  <!-- ── Invoice Generator ──────────────────────────────────────────── -->
-  <section class="tool-section" aria-label="Receipt generator">
-    <div class="container">
-      <div class="tool-shell">
-        <InvoiceGenerator client:only="vue" />
-      </div>
-    </div>
-  </section>
-
-  <AdUnit slot="tool-below" />
-
-  <!-- ── Affiliate callout ──────────────────────────────────────────── -->
-  <div class="container affiliate-wrap">
-    <AffiliateCallout affiliate="freshbooks" />
-  </div>
-
-  <!-- ── FAQ ───────────────────────────────────────────────────────── -->
-  <section class="section" aria-labelledby="rec-faq-heading">
-    <div class="container">
-      <FaqSection items={faqs} heading="Receipt Generator — FAQs" headingId="rec-faq-heading" />
-    </div>
-  </section>
-
-</Base>
-
-<style>
-  .tool-hero {
-    padding: 4rem 0 3rem;
-    text-align: center;
-  }
-
-  .breadcrumb {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.8125rem;
-    color: var(--text-4);
-    margin-bottom: 1.5rem;
-  }
-  .breadcrumb a { color: var(--text-3); text-decoration: none; }
-  .breadcrumb a:hover { color: var(--accent); }
-
-  .tool-badge {
-    display: inline-block;
-    padding: 0.3125rem 0.875rem;
-    background: rgba(245, 158, 11, 0.06);
-    border: 1px solid rgba(245, 158, 11, 0.18);
-    border-radius: 9999px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: #D97706;
-    margin-bottom: 1.25rem;
-  }
-
-  .tool-heading {
-    font-size: clamp(1.875rem, 5vw, 3rem);
-    line-height: 1.15;
-    letter-spacing: -0.03em;
-    color: var(--text);
-    margin-bottom: 1.25rem;
-    max-width: 40rem;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .tool-sub {
-    font-size: clamp(1rem, 2vw, 1.0625rem);
-    color: var(--text-3);
-    line-height: 1.75;
-    max-width: 36rem;
-    margin: 0 auto 1rem;
-  }
-  .tool-sub strong { color: var(--text-2); font-weight: 500; }
-
-  .tool-tip {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 0.8125rem;
-    color: var(--text-3);
-    max-width: 34rem;
-    margin: 0 auto;
-  }
-  .tool-tip strong { color: var(--text-2); }
-
-  .tool-section { padding: 2rem 0 2rem; }
-
-  .tool-shell {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    background: var(--surface);
-    min-height: 640px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .affiliate-wrap { padding-top: 0.5rem; padding-bottom: 1rem; }
-</style>
+  <h2>What a good receipt shows</h2>
+  <ul>
+    <li>Receipt number and payment date</li>
+    <li>Who paid, and who was paid</li>
+    <li>What the payment was for</li>
+    <li>Amount paid, tax included and any balance still due</li>
+    <li>Payment method and reference</li>
+  </ul>
+</DocToolPage>
