@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://invoicekit.app/sitemap-index.xml
+Sitemap: https://invoicepassport.com/sitemap-index.xml

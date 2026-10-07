@@ -14,6 +14,7 @@ import jsPDF from 'jspdf';
 import type { InvoiceState } from '../types/invoice';
 import { buildInvoiceView, type InvoiceView } from './invoiceView';
 import { qrMatrix } from './paymentQr';
+import { SITE } from '../site';
 
 type RGB = readonly [number, number, number];
 
@@ -326,7 +327,7 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
 async function buildDoc(state: InvoiceState): Promise<jsPDF> {
   const view = buildInvoiceView(state);
   const { doc, font } = await newDoc(view.paper);
-  doc.setProperties({ title: `${view.title} ${view.number}`.trim(), creator: 'InvoiceKit' });
+  doc.setProperties({ title: `${view.title} ${view.number}`.trim(), creator: SITE.name });
   render(doc, font, view, state);
   return doc;
 }

@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   output: 'static',
   // Keep in sync with SITE.url in src/site.ts
-  site: 'https://invoicekit.app',
+  site: 'https://invoicepassport.com',
   integrations: [vue(), sitemap()],
   vite: {
     plugins: [tailwindcss()],

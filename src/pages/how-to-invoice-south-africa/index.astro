@@ -3,15 +3,16 @@ import Base from '../../layouts/Base.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
 
-const pageUrl   = 'https://invoicekit.app/how-to-invoice-south-africa/';
+const pageUrl   = abs('/how-to-invoice-south-africa/');
 const schema    = articleSchema(
   'How to Invoice Clients in South Africa — SARS VAT Guide',
   pageUrl,
   'Complete guide to invoicing clients in South Africa. SARS VAT 15%, bank EFT payment, VAT registration threshold R1 million, invoice number formats, and a free invoice generator.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
+  { name: SITE.name, url: abs('/') },
   { name: 'How to Invoice Clients in South Africa', url: pageUrl },
 ]);
 
@@ -45,7 +46,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     <div class="container-narrow">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">InvoiceKit</a>
+        <a href="/">{SITE.name}</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">How to Invoice Clients in South Africa</span>
       </nav>
@@ -136,7 +137,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
           <code>ZA-0001</code> → <code>ZA-0002</code> → <code>ZA-0003</code>
         </div>
         <p>
-          InvoiceKit auto-generates sequential ZA-XXXX numbers and increments on each download.
+          {SITE.name} auto-generates sequential ZA-XXXX numbers and increments on each download.
           You can override the format at any time.
         </p>
       </section>

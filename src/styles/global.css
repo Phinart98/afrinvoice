@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────
-   InvoiceKit Design System
+   Design system (brand name lives in src/site.ts)
    Warm paper base + deep teal accent + dark footer
    Aesthetic: Premium business tool — trustworthy, warm, professional
    Fonts: Sora 800 (display) · DM Sans (body) · JetBrains Mono (amounts)

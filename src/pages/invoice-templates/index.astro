@@ -3,15 +3,16 @@ import Base from '../../layouts/Base.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
 
-const pageUrl   = 'https://invoicekit.app/invoice-templates/';
+const pageUrl   = abs('/invoice-templates/');
 const schema    = webAppSchema(
   'Free Invoice Templates — 3 PDF Designs',
   pageUrl,
   'Free invoice templates you fill in online: Minimal, Modern and Classic PDF designs with your logo, country tax presets and payment QR codes. No sign-up.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
+  { name: SITE.name, url: abs('/') },
   { name: 'Invoice Templates', url: pageUrl },
 ]);
 
@@ -73,7 +74,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   <section class="tpl-hero" aria-labelledby="tpl-heading">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">InvoiceKit</a>
+        <a href="/">{SITE.name}</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">Invoice Templates</span>
       </nav>

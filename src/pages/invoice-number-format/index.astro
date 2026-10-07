@@ -4,6 +4,7 @@ import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
 import { COUNTRIES, countryPath } from '../../data/countries';
+import { SITE, abs } from '../../site';
 
 const prefixRows = [
   { label: 'Quotes', prefix: 'Q-' },
@@ -12,14 +13,14 @@ const prefixRows = [
   { label: 'Credit notes', prefix: 'CN-' },
 ];
 
-const pageUrl   = 'https://invoicekit.app/invoice-number-format/';
+const pageUrl   = abs('/invoice-number-format/');
 const schema    = articleSchema(
   'Invoice Number Format Guide — Best Practices',
   pageUrl,
   'How to format invoice numbers: sequential, year-based and prefixed formats, what tax authorities require, and the default format for every country we support.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
+  { name: SITE.name, url: abs('/') },
   { name: 'Invoice Number Format Guide', url: pageUrl },
 ]);
 
@@ -37,7 +38,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     a: 'For businesses issuing many invoices, a year prefix (INV-2026-0001) helps with filing and retrieval. For freelancers with fewer invoices, a simple sequential format (INV-0001) is cleaner and sufficient.',
   },
   {
-    q: 'What format does InvoiceKit use for invoice numbers?',
+    q: 'What format does ' + SITE.name + ' use for invoice numbers?',
     a: 'A prefix plus a zero-padded sequential number, with a separate counter per prefix: INV-0001 by default, Q-0001 for quotes, CN-0001 for credit notes. The counter only advances when you download or print, and you can type your own number at any time.',
   },
 ];
@@ -53,7 +54,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     <div class="container-narrow">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">InvoiceKit</a>
+        <a href="/">{SITE.name}</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">Invoice Number Format Guide</span>
       </nav>
@@ -92,7 +93,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
         <div class="guide-example">
           <code>GH-0001</code><code>NG-0001</code><code>KE-0001</code><code>ZA-0001</code>
         </div>
-        <p>InvoiceKit auto-generates these. Useful if you invoice clients in multiple countries — each invoice is immediately identifiable by market.</p>
+        <p>{SITE.name} auto-generates these. Useful if you invoice clients in multiple countries — each invoice is immediately identifiable by market.</p>
 
         <h3>3. Year + sequential</h3>
         <div class="guide-example">

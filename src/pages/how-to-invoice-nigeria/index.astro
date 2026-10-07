@@ -3,15 +3,16 @@ import Base from '../../layouts/Base.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
 
-const pageUrl   = 'https://invoicekit.app/how-to-invoice-nigeria/';
+const pageUrl   = abs('/how-to-invoice-nigeria/');
 const schema    = articleSchema(
   'How to Invoice in Nigeria — NRS VAT Guide',
   pageUrl,
   'Complete guide to invoicing clients in Nigeria. NRS VAT 7.5%, bank transfer for B2B, OPay/PalmPay mobile options, invoice number formats, and a free invoice generator.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
+  { name: SITE.name, url: abs('/') },
   { name: 'How to Invoice in Nigeria', url: pageUrl },
 ]);
 
@@ -36,7 +37,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 ---
 
 <Base
-  title="How to Invoice in Nigeria — NRS VAT Guide — InvoiceKit"
+  title={`How to Invoice in Nigeria — NRS VAT Guide — ${SITE.name}`}
   description="Complete guide to invoicing clients in Nigeria. NRS VAT 7.5%, bank transfer for B2B, OPay mobile option, Withholding Tax explained. Free invoice generator."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
@@ -45,7 +46,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     <div class="container-narrow">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">InvoiceKit</a>
+        <a href="/">{SITE.name}</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">How to Invoice in Nigeria</span>
       </nav>

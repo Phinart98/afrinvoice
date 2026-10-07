@@ -4,14 +4,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const SITE = {
-  name: 'InvoiceKit',
-  domain: 'invoicekit.app',
-  url: 'https://invoicekit.app',
-  email: 'hello@invoicekit.app',
+  name: 'Invoice Passport',
+  domain: 'invoicepassport.com',
+  url: 'https://invoicepassport.com',
+  email: 'hello@invoicepassport.com',
   tagline: 'The free invoice generator that knows your country\'s rules',
   gaId: 'G-36BE3M8J6V',
   gscVerification: 'BmpMIWd7m9AgoWxqSC4UBoQZLtQvPa9CxQAFcrSYqVY',
-  // Storage keys are namespaced so an old afrinvoice.app key can be migrated once
+  // Storage keys are namespaced so an old afrinvoice.app key can be migrated once. The prefix is
+  // an invisible localStorage key: it stays 'invoicekit' after the rename so saved data isn't orphaned.
   storagePrefix: 'invoicekit',
 } as const;
 

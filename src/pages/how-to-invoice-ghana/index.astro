@@ -3,15 +3,16 @@ import Base from '../../layouts/Base.astro';
 import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
 
-const pageUrl   = 'https://invoicekit.app/how-to-invoice-ghana/';
+const pageUrl   = abs('/how-to-invoice-ghana/');
 const schema    = articleSchema(
   'How to Invoice Clients in Ghana — GRA VAT Guide',
   pageUrl,
   'Complete guide to invoicing clients in Ghana. GRA VAT 20% (15% VAT + levies), invoice number formats, MTN MoMo payment, late payment terms, and a free invoice generator.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
+  { name: SITE.name, url: abs('/') },
   { name: 'How to Invoice Clients in Ghana', url: pageUrl },
 ]);
 
@@ -45,7 +46,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     <div class="container-narrow">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">InvoiceKit</a>
+        <a href="/">{SITE.name}</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">How to Invoice Clients in Ghana</span>
       </nav>
@@ -119,7 +120,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
         </div>
         <p>
           This makes invoices easy to track, sort, and reference in client conversations.
-          InvoiceKit auto-generates these and increments on each download.
+          {SITE.name} auto-generates these and increments on each download.
         </p>
       </section>
 

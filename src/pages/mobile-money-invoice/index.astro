@@ -5,15 +5,16 @@ import FaqSection from '../../components/FaqSection.astro';
 import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import InvoiceGenerator from '../../components/InvoiceGenerator.vue';
 import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
 
-const pageUrl   = 'https://invoicekit.app/mobile-money-invoice/';
+const pageUrl   = abs('/mobile-money-invoice/');
 const schema    = webAppSchema(
   'Invoice with Mobile Money Payment Instructions — Africa',
   pageUrl,
   'Create invoices with MTN MoMo, M-Pesa, EcoCash, OPay payment instructions. Select your country — correct providers auto-fill. Free PDF, no sign-up.',
 );
 const breadcrumb = breadcrumbSchema([
-  { name: 'InvoiceKit', url: 'https://invoicekit.app/' },
+  { name: SITE.name, url: abs('/') },
   { name: 'Mobile Money Invoice Generator', url: pageUrl },
 ]);
 
@@ -55,7 +56,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   <section class="tool-hero" aria-labelledby="momo-heading">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">InvoiceKit</a>
+        <a href="/">{SITE.name}</a>
         <span aria-hidden="true">›</span>
         <span aria-current="page">Mobile Money Invoice Generator</span>
       </nav>
