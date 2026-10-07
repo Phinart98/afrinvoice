@@ -314,7 +314,14 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
     doc.setPage(p);
     if (v.footer && p === pages) {
       set(8, 'normal', C_LIGHT);
-      doc.text(wrap(v.footer, CW), W / 2, H - 11, { align: 'center' });
+      // Long footers grow upward, so they never run into the credit line / page numbers below.
+      const lines = wrap(v.footer, CW);
+      doc.text(lines, W / 2, H - 11 - (lines.length - 1) * 3.4, { align: 'center' });
+    }
+    // The free version's credit: small, bottom-left of the last page, a real link to the site.
+    if (v.madeWith && p === pages) {
+      set(6.5, 'normal', C_LIGHT);
+      doc.textWithLink(v.madeWith, M, H - 6, { url: SITE.url + '/' });
     }
     if (pages > 1) {
       set(7, 'normal', C_LIGHT);
@@ -324,8 +331,10 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
-async function buildDoc(state: InvoiceState): Promise<jsPDF> {
-  const view = buildInvoiceView(state);
+export interface PdfOptions { pro?: boolean }
+
+async function buildDoc(state: InvoiceState, opts: PdfOptions = {}): Promise<jsPDF> {
+  const view = buildInvoiceView(state, opts);
   const { doc, font } = await newDoc(view.paper);
   doc.setProperties({ title: `${view.title} ${view.number}`.trim(), creator: SITE.name });
   render(doc, font, view, state);
@@ -339,17 +348,17 @@ export function pdfFilename(state: InvoiceState): string {
 }
 
 /** Download the invoice as a PDF file. */
-export async function generateInvoicePDF(state: InvoiceState): Promise<void> {
-  (await buildDoc(state)).save(pdfFilename(state));
+export async function generateInvoicePDF(state: InvoiceState, opts: PdfOptions = {}): Promise<void> {
+  (await buildDoc(state, opts)).save(pdfFilename(state));
 }
 
 /** Open the PDF in a new tab with the print dialog (prints the real PDF, not the page). */
-export async function printInvoicePDF(state: InvoiceState): Promise<void> {
+export async function printInvoicePDF(state: InvoiceState, opts: PdfOptions = {}): Promise<void> {
   // Open the tab synchronously (inside the click) so popup blockers allow it, then fill it.
   const win = window.open('', '_blank');
   let doc: jsPDF;
   try {
-    doc = await buildDoc(state);
+    doc = await buildDoc(state, opts);
   } catch (e) {
     win?.close(); // don't leave an empty tab behind when generation fails
     throw e;
@@ -361,6 +370,6 @@ export async function printInvoicePDF(state: InvoiceState): Promise<void> {
 }
 
 /** For tests and previews: the raw PDF bytes. */
-export async function invoicePdfBlob(state: InvoiceState): Promise<Blob> {
-  return (await buildDoc(state)).output('blob');
+export async function invoicePdfBlob(state: InvoiceState, opts: PdfOptions = {}): Promise<Blob> {
+  return (await buildDoc(state, opts)).output('blob');
 }

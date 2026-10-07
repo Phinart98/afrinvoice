@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { loadProfile, peekNextNumber, takeNextNumber } from './invoiceStorage';
+import { SITE } from '../site';
+import { clearPro, loadPro, loadProfile, peekNextNumber, savePro, takeNextNumber } from './invoiceStorage';
 
 // Minimal in-memory localStorage for the node test environment.
 beforeEach(() => {
@@ -24,5 +25,28 @@ describe('legacy Afrinvoice migration', () => {
   it('leaves counters alone when there is no legacy data', () => {
     expect(loadProfile()).toEqual({});
     expect(peekNextNumber('GH-')).toBe('GH-0001');
+  });
+});
+
+const PRO_KEY = `${SITE.storagePrefix}_pro`;
+
+describe('Pro license record', () => {
+  it('round-trips a saved record', () => {
+    savePro({ key: 'K', instanceId: 'I', lastValidated: 123 });
+    expect(loadPro()).toEqual({ key: 'K', instanceId: 'I', lastValidated: 123 });
+  });
+
+  it('reads as no license when nothing is stored, the JSON is corrupt, or fields are missing', () => {
+    expect(loadPro()).toBeNull();
+    localStorage.setItem(PRO_KEY, '{not json');
+    expect(loadPro()).toBeNull();
+    localStorage.setItem(PRO_KEY, JSON.stringify({ key: 'K', lastValidated: 'soon' }));
+    expect(loadPro()).toBeNull();
+  });
+
+  it('clears the record', () => {
+    savePro({ key: 'K', instanceId: 'I', lastValidated: 1 });
+    clearPro();
+    expect(loadPro()).toBeNull();
   });
 });

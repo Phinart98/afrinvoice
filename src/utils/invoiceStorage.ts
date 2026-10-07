@@ -8,12 +8,14 @@
 
 import { SITE } from '../site';
 import type { InvoiceState } from '../types/invoice';
+import type { ProRecord } from './proLicense';
 
 const KEY = {
   profile:  `${SITE.storagePrefix}_profile`,
   clients:  `${SITE.storagePrefix}_clients`,
   history:  `${SITE.storagePrefix}_history`,
   counters: `${SITE.storagePrefix}_counters`,
+  pro:      `${SITE.storagePrefix}_pro`,
 };
 const LEGACY_KEY = 'afrinvoice_business'; // Afrinvoice v1 (same origin only)
 const HISTORY_LIMIT = 30;
@@ -193,4 +195,17 @@ export function importAll(json: string): { ok: true } | { ok: false; error: stri
   } catch {
     return { ok: false, error: 'Could not read that file — is it a JSON backup?' };
   }
+}
+
+// ── Pro license (see proLicense.ts) ──────────────────────────────────────────
+/** The stored license, or null when absent, corrupt or tampered into the wrong shape. */
+export function loadPro(): ProRecord | null {
+  const r = read<Partial<ProRecord> | null>(KEY.pro, null);
+  return r && typeof r.key === 'string' && typeof r.instanceId === 'string' && typeof r.lastValidated === 'number'
+    ? { key: r.key, instanceId: r.instanceId, lastValidated: r.lastValidated }
+    : null;
+}
+export const savePro = (rec: ProRecord) => write(KEY.pro, rec);
+export function clearPro(): void {
+  try { localStorage.removeItem(KEY.pro); } catch { /* private mode */ }
 }

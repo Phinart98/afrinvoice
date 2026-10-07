@@ -4,10 +4,10 @@ import type { InvoiceState } from '../types/invoice';
 import { buildInvoiceView } from '../utils/invoiceView';
 import { qrSvg } from '../utils/paymentQr';
 
-const props = defineProps<{ state: InvoiceState }>();
+const props = defineProps<{ state: InvoiceState; pro?: boolean }>();
 
 // Same view model the PDF renders — the preview can't drift from the download.
-const v = computed(() => buildInvoiceView(props.state));
+const v = computed(() => buildInvoiceView(props.state, { pro: props.pro }));
 const qr = computed(() => (v.value.qr ? qrSvg(v.value.qr.payload, 92) : ''));
 
 // CSS custom properties driven by the colour pickers
@@ -121,6 +121,7 @@ const themeStyle = computed(() => {
       <footer v-if="v.footer" class="inv-footer">
         <p class="inv-footer-note inv-pre">{{ v.footer }}</p>
       </footer>
+      <p v-if="v.madeWith" class="inv-made-with">{{ v.madeWith }}</p>
     </div>
   </div>
 </template>
@@ -331,6 +332,12 @@ const themeStyle = computed(() => {
   text-align: center;
   border-top: 1px solid #F1F5F9;
   padding-top: 0.875rem;
+}
+
+.inv-made-with {
+  margin: 1rem 0 0;
+  font-size: 0.625rem;
+  color: #94A3B8;
 }
 
 .inv-footer-note {

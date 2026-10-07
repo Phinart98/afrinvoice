@@ -9,6 +9,7 @@ import { LABELS, type Labels } from '../i18n/labels';
 import { computeTotals, type InvoiceState, type Totals } from '../types/invoice';
 import { docLocale, formatDate, formatMoney } from './money';
 import { paymentQr } from './paymentQr';
+import { SITE } from '../site';
 
 export type TotalKind = 'normal' | 'grand' | 'muted' | 'balance';
 
@@ -29,6 +30,8 @@ export interface InvoiceView {
   qr: { payload: string; kind: 'sepa' | 'upi' | 'link' } | null;
   notes: string;
   footer: string;
+  /** The free version's credit line; null for Pro. Printed small, apart from the user's own footer. */
+  madeWith: string | null;
   raw: Totals;
 }
 
@@ -41,7 +44,7 @@ const groupIban = (iban: string) => iban.replace(/\s+/g, '').toUpperCase().repla
 /** "USt-IdNr. / Steuernummer" → "USt-IdNr." — one label is enough on the page. */
 const shortLabel = (label: string) => label.split(' / ')[0];
 
-export function buildInvoiceView(s: InvoiceState): InvoiceView {
+export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean } = {}): InvoiceView {
   const country = COUNTRY_BY_KEY[s.countryKey] ?? OTHER_COUNTRY;
   const L = LABELS[s.labelsLang] ?? LABELS.en;
   const locale = docLocale(country.locale, s.labelsLang);
@@ -140,6 +143,7 @@ export function buildInvoiceView(s: InvoiceState): InvoiceView {
     qr: paymentQr(s, t.balanceDue),
     notes: s.notes.trim(),
     footer: s.footerNote.trim(),
+    madeWith: opts.pro ? null : `Made with ${SITE.name} · ${SITE.domain}`,
     raw: t,
   };
 }

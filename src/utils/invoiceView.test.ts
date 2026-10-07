@@ -1,8 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { buildInvoiceView } from './invoiceView';
 import { defaultInvoiceState, type InvoiceState } from '../types/invoice';
+import { SITE } from '../site';
+
+const MADE_WITH = `Made with ${SITE.name} · ${SITE.domain}`;
 
 const make = (p: Partial<InvoiceState>) => buildInvoiceView({ ...defaultInvoiceState(), ...p });
+
+describe('the "Made with" line (free version only)', () => {
+  it('prints the brand line on a free invoice', () => {
+    expect(make({}).madeWith).toBe(MADE_WITH);
+  });
+  it('leaves it off for Pro', () => {
+    expect(buildInvoiceView(defaultInvoiceState(), { pro: true }).madeWith).toBeNull();
+  });
+  it('is never translated or mixed into the user\'s own footer note', () => {
+    const v = make({ labelsLang: 'de', footerNote: 'Vielen Dank' });
+    expect(v.footer).toBe('Vielen Dank');
+    expect(v.madeWith).toBe(MADE_WITH);
+  });
+});
 
 describe('buildInvoiceView', () => {
   it('translates labels and formats money for a German invoice', () => {
