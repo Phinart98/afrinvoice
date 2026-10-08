@@ -40,7 +40,9 @@ describe('brand lives in one place', () => {
   it('Pro can only be switched on with a real checkout URL and product id', () => {
     if (!SITE.pro.enabled) return;
     expect(SITE.pro.checkoutUrl).toMatch(/^https:\/\/[\w.-]+\.lemonsqueezy\.com\//);
-    expect(SITE.pro.productId).toBeGreaterThan(0);
+    expect(SITE.pro.productIds.length).toBeGreaterThan(0);
+    expect(SITE.pro.productIds.every(id => Number.isInteger(id) && id > 0)).toBe(true);
+    expect(SITE.pro.allowTestKeys).toBe(false); // never ship with test keys accepted
   });
 
   it('is Invoice Passport', () => {

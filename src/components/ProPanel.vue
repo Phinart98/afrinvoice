@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { SITE } from '../site';
 import { useProStatus } from '../utils/useProStatus';
 
@@ -8,8 +8,20 @@ const key = ref('');
 const error = ref('');
 const working = ref(false);
 const showKey = ref(false);
+const confirmRemove = ref(false);
+const removeNote = ref('');
 
-onMounted(() => track('pro_view'));
+onMounted(() => {
+  track('pro_view');
+  // Lemon Squeezy redirects buyers to /#pro: open the key form for them (also when already on the page).
+  openOnHash();
+  window.addEventListener('hashchange', openOnHash);
+});
+onUnmounted(() => window.removeEventListener('hashchange', openOnHash));
+
+function openOnHash() {
+  if (location.hash === '#pro' && !pro.value) showKey.value = true;
+}
 
 async function submit() {
   working.value = true;
@@ -20,8 +32,10 @@ async function submit() {
 
 async function remove() {
   working.value = true;
-  await removeFromDevice();
+  const released = await removeFromDevice();
   working.value = false;
+  confirmRemove.value = false;
+  removeNote.value = released ? '' : `Pro is off on this device, but its activation couldn't be released (no connection?). If you need it on another device, email ${SITE.email}.`;
 }
 </script>
 
@@ -30,7 +44,12 @@ async function remove() {
     <template v-if="pro">
       <h3 id="pro-title" class="pro-title">Pro is on for this device</h3>
       <p class="pro-text">No "Made with" line, plus the Executive and Ledger templates. Thank you for supporting {{ SITE.name }}.</p>
-      <button type="button" class="pro-link" :disabled="working" @click="remove">Remove Pro from this device</button>
+      <button v-if="!confirmRemove" type="button" class="pro-link" @click="confirmRemove = true">Remove Pro from this device</button>
+      <p v-else class="pro-confirm">
+        Remove Pro here? You can activate this key again on any device.
+        <button type="button" class="pro-link" :disabled="working" @click="remove">Yes, remove it</button>
+        <button type="button" class="pro-link" @click="confirmRemove = false">Keep Pro</button>
+      </p>
     </template>
 
     <template v-else>
@@ -48,6 +67,7 @@ async function remove() {
         </div>
         <p v-if="error" class="pro-error" role="alert">{{ error }}</p>
       </form>
+      <p v-if="removeNote" class="pro-error" role="status">{{ removeNote }}</p>
       <p class="pro-soon">Coming to Pro: recurring invoices and payment reminders.</p>
     </template>
   </section>
@@ -110,6 +130,7 @@ async function remove() {
 }
 .pro-key-btn:disabled, .pro-link:disabled { opacity: 0.5; cursor: wait; }
 .pro-error { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--error, #DC2626); }
+.pro-confirm { margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-2, #6B6058); display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
 .pro-soon { margin-top: 0.875rem; font-size: 0.75rem; color: var(--text-3, #9A918A); }
 .pro-buy:focus-visible, .pro-link:focus-visible, .pro-key-btn:focus-visible, .pro-key-input:focus-visible {
   outline: 2px solid var(--accent, #0F766E);

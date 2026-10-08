@@ -25,7 +25,7 @@ const activeTab = ref<'form' | 'preview'>('form');
 const activeColorPicker = ref<'classicAccent' | 'modernHeader' | 'modernAccent' | 'brandColor' | null>(null);
 const { pro } = useProStatus();
 // Templates on offer: premium ones only once Pro is on sale (SITE.pro.enabled).
-const templateChoices = computed(() => (['minimal', 'modern', 'classic', ...(SITE.pro.enabled ? PREMIUM_TEMPLATES : [])] as InvoiceState['template'][]));
+const templateChoices = computed(() => (['minimal', 'modern', 'classic', ...(SITE.pro.enabled || pro.value ? PREMIUM_TEMPLATES : [])] as InvoiceState['template'][]));
 const isPremium = (t: InvoiceState['template']) => PREMIUM_TEMPLATES.includes(t);
 const savedAt = ref(0);
 const notice = ref('');          // inline message instead of alert()
@@ -332,7 +332,7 @@ watch(state, () => {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     const keep = pageKeep && state.value.countryKey === props.countryPreset ? pageKeep : undefined;
-    if (saveProfile(state.value, keep)) savedAt.value = Date.now();
+    if (saveProfile(state.value, keep, { pro: pro.value })) savedAt.value = Date.now();
     else flash('Couldn’t save to this browser (private mode or storage full). Your invoice still works.');
   }, 700);
 }, { deep: true });

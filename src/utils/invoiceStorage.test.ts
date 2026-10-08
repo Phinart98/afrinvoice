@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { SITE } from '../site';
-import { clearPro, loadPro, loadProfile, peekNextNumber, savePro, takeNextNumber } from './invoiceStorage';
+import { clearPro, loadPro, loadProfile, peekNextNumber, savePro, saveProfile, takeNextNumber } from './invoiceStorage';
+import { defaultInvoiceState } from '../types/invoice';
 
 // Minimal in-memory localStorage for the node test environment.
 beforeEach(() => {
@@ -48,5 +49,21 @@ describe('Pro license record', () => {
     savePro({ key: 'K', instanceId: 'I', lastValidated: 1 });
     clearPro();
     expect(loadPro()).toBeNull();
+  });
+});
+
+describe('saving a previewed premium template', () => {
+  it('without Pro, keeps the last saved template instead of the premium one', () => {
+    saveProfile({ ...defaultInvoiceState(), template: 'modern' });
+    saveProfile({ ...defaultInvoiceState(), template: 'executive' });
+    expect(loadProfile().template).toBe('modern');
+  });
+  it('with nothing saved before, falls back to minimal', () => {
+    saveProfile({ ...defaultInvoiceState(), template: 'ledger' });
+    expect(loadProfile().template).toBe('minimal');
+  });
+  it('with Pro, saves the premium template', () => {
+    saveProfile({ ...defaultInvoiceState(), template: 'ledger' }, undefined, { pro: true });
+    expect(loadProfile().template).toBe('ledger');
   });
 });

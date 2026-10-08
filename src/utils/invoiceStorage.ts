@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SITE } from '../site';
-import type { InvoiceState } from '../types/invoice';
+import { PREMIUM_TEMPLATES, type InvoiceState } from '../types/invoice';
 import type { ProRecord } from './proLicense';
 
 const KEY = {
@@ -70,9 +70,14 @@ export function loadProfile(): Profile {
 }
 
 /** `keep` overrides fields that must not be saved from this state (e.g. a country page's preset). */
-export function saveProfile(state: InvoiceState, keep?: Profile): boolean {
+export function saveProfile(state: InvoiceState, keep?: Profile, opts: { pro?: boolean } = {}): boolean {
   const profile: Record<string, unknown> = {};
   for (const f of PROFILE_FIELDS) profile[f] = state[f];
+  // A free user previewing a Pro template shouldn't reopen on a template they can't download.
+  if (!opts.pro && PREMIUM_TEMPLATES.includes(state.template)) {
+    const saved = read<Profile>(KEY.profile, {}).template;
+    profile.template = saved && !PREMIUM_TEMPLATES.includes(saved) ? saved : 'minimal';
+  }
   return write(KEY.profile, { ...profile, ...keep });
 }
 

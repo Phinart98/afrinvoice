@@ -22,8 +22,10 @@ export function useProStatus() {
     if (started) return;
     started = true;
     record.value = loadPro();
-    if (record.value && needsRevalidation(record.value, Date.now())) {
-      const fresh = await revalidate(record.value, { productId: SITE.pro.productId, now: Date.now(), fetchFn });
+    // While the shop is off there may be no product ids to check against: never revalidate then,
+    // or every buyer would be dropped as "another product".
+    if (record.value && SITE.pro.enabled && SITE.pro.productIds.length && needsRevalidation(record.value, Date.now())) {
+      const fresh = await revalidate(record.value, { productIds: SITE.pro.productIds, now: Date.now(), fetchFn });
       if (fresh) savePro(fresh); else clearPro();
       record.value = fresh;
     }
@@ -31,7 +33,7 @@ export function useProStatus() {
 
   async function unlock(key: string): Promise<string | null> {
     const instanceName = `${SITE.name} on ${navigator.platform || 'the web'}`;
-    const r = await activate(key, { productId: SITE.pro.productId, instanceName, now: Date.now(), fetchFn });
+    const r = await activate(key, { productIds: SITE.pro.productIds, instanceName, now: Date.now(), fetchFn, allowTestMode: SITE.pro.allowTestKeys });
     if (!r.ok) return r.error;
     savePro(r.record);
     record.value = r.record;
@@ -39,10 +41,12 @@ export function useProStatus() {
     return null;
   }
 
-  async function removeFromDevice(): Promise<void> {
-    if (record.value) await deactivate(record.value, { fetchFn });
+  /** Returns false when Lemon Squeezy couldn't release this device's activation (it's removed locally anyway). */
+  async function removeFromDevice(): Promise<boolean> {
+    const released = record.value ? await deactivate(record.value, { fetchFn }) : true;
     clearPro();
     record.value = null;
+    return released;
   }
 
   return { pro, unlock, removeFromDevice, track: gtagEvent };

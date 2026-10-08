@@ -50,3 +50,16 @@ describe('premium templates', () => {
     expect(brandUses(await render('ledger', true))).toBeGreaterThanOrEqual(3);
   });
 });
+
+describe('premium fallback', () => {
+  // Compare drawing operators only (content streams); whole files always differ by timestamp.
+  const streams = async (template: 'executive' | 'ledger' | 'minimal') => {
+    const s = { ...defaultInvoiceState(), template, businessName: 'Acme', invoiceNumber: 'INV-1',
+      items: [{ description: 'a', quantity: 1, unitPrice: 10 }] };
+    const pdf = Buffer.from(await (await invoicePdfBlob(s, { pro: false })).arrayBuffer()).toString('latin1');
+    return [...pdf.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)].map(m => m[1]);
+  };
+  it.each(['executive', 'ledger'] as const)('a free %s PDF draws exactly like Minimal', async t => {
+    expect(await streams(t)).toEqual(await streams('minimal'));
+  });
+});

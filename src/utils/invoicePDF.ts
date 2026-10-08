@@ -134,7 +134,10 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState, pro: 
   const wrap = (text: string, width: number): string[] => doc.splitTextToSize(text, width) as string[];
 
   let y = 0;
-  const bottom = H - 16;
+  // Reserve room for a footer that wraps: it grows upward from H-11, so the body must stop above it.
+  set(8, 'normal');
+  const footerExtra = v.footer ? (wrap(v.footer, CW).length - 1) * 3.4 : 0;
+  const bottom = H - 16 - footerExtra;
   const ensure = (needed: number) => { if (y + needed > bottom) { doc.addPage(); y = 18; } };
 
   // ── Header ────────────────────────────────────────────────────────────────
@@ -159,7 +162,7 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState, pro: 
   set(8, 'normal', st.headerMuted);
   const senderLines = v.sender.lines.map(line => wrap(line, leftW));
   const leftEnd = y + 1 + nameLines.length * 5.5 + senderLines.reduce((sum, l) => sum + l.length * 4, 0);
-  const rightEnd = y + 1 + (s.template === 'minimal' ? 13 : 13.5) + v.meta.length * 4.3;
+  const rightEnd = y + 1 + (st.tpl === 'minimal' ? 13 : 13.5) + v.meta.length * 4.3;
   const bandH = Math.max(44, Math.max(leftEnd, rightEnd) + 2);
   if (st.headerBand) { color(st.headerBand, 'fill'); doc.rect(0, 0, W, bandH, 'F'); }
   if (st.topBar) { color(st.topBar, 'fill'); doc.rect(0, 0, W, 3, 'F'); }
@@ -176,7 +179,7 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState, pro: 
 
   // Title + number + meta (right)
   let rightY = y + 1;
-  if (s.template === 'minimal') {
+  if (st.tpl === 'minimal') {
     set(8, 'normal', C_LIGHT); doc.text(v.title, R, rightY, { align: 'right' }); rightY += 7;
     set(16, 'bold', C_DARK);   doc.text(v.number || '—', R, rightY, { align: 'right' }); rightY += 6;
   } else {

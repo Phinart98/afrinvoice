@@ -21,7 +21,7 @@ const record: ProRecord = { key: 'KEY-1', instanceId: 'inst-1', lastValidated: T
 describe('activate', () => {
   it('activates a key for our product and returns a record', async () => {
     const ls = fakeLS({ activated: true, instance: { id: 'inst-9' }, license_key: { status: 'active' }, meta: { product_id: PRODUCT } });
-    const r = await activate(' KEY-9 ', { productId: PRODUCT, instanceName: 'Chrome on Windows', now: T0, fetchFn: ls.fetchFn });
+    const r = await activate(' KEY-9 ', { productIds: [PRODUCT], instanceName: 'Chrome on Windows', now: T0, fetchFn: ls.fetchFn });
     expect(r).toEqual({ ok: true, record: { key: 'KEY-9', instanceId: 'inst-9', lastValidated: T0 } });
     expect(ls.calls[0].url).toBe('https://api.lemonsqueezy.com/v1/licenses/activate');
     expect(ls.calls[0].form.get('license_key')).toBe('KEY-9');
@@ -30,25 +30,42 @@ describe('activate', () => {
 
   it('refuses a valid key that belongs to a different product', async () => {
     const ls = fakeLS({ activated: true, instance: { id: 'x' }, license_key: { status: 'active' }, meta: { product_id: 999 } });
-    const r = await activate('KEY', { productId: PRODUCT, instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
+    const r = await activate('KEY', { productIds: [PRODUCT], instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
     expect(r).toEqual({ ok: false, error: 'This key is for a different product.' });
+    // ...and the activation it just used up on that key is released again.
+    expect(ls.calls[1].url).toBe('https://api.lemonsqueezy.com/v1/licenses/deactivate');
+    expect(ls.calls[1].form.get('instance_id')).toBe('x');
+  });
+
+  it('accepts a key for any of our listed products (e.g. after a price change)', async () => {
+    const ls = fakeLS({ activated: true, instance: { id: 'i' }, license_key: { status: 'active' }, meta: { product_id: 555 } });
+    const r = await activate('KEY', { productIds: [PRODUCT, 555], instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
+    expect(r.ok).toBe(true);
+  });
+
+  it('refuses a Lemon Squeezy test-mode key unless test keys are allowed', async () => {
+    const body = { activated: true, instance: { id: 'i' }, license_key: { status: 'active', test_mode: true }, meta: { product_id: PRODUCT } };
+    const live = await activate('KEY', { productIds: [PRODUCT], instanceName: 'x', now: T0, fetchFn: fakeLS(body).fetchFn });
+    expect(live).toEqual({ ok: false, error: 'This is a test-mode key.' });
+    const test = await activate('KEY', { productIds: [PRODUCT], instanceName: 'x', now: T0, fetchFn: fakeLS(body).fetchFn, allowTestMode: true });
+    expect(test.ok).toBe(true);
   });
 
   it('passes on Lemon Squeezy\'s own error, e.g. the activation limit', async () => {
     const ls = fakeLS({ activated: false, error: 'This license key has reached the activation limit.' }, { status: 400 });
-    const r = await activate('KEY', { productId: PRODUCT, instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
+    const r = await activate('KEY', { productIds: [PRODUCT], instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
     expect(r).toEqual({ ok: false, error: 'This license key has reached the activation limit.' });
   });
 
   it('says so plainly when there is no connection', async () => {
     const ls = fakeLS({}, { fail: true });
-    const r = await activate('KEY', { productId: PRODUCT, instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
+    const r = await activate('KEY', { productIds: [PRODUCT], instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
     expect(r).toEqual({ ok: false, error: 'Could not reach the license server. Check your connection and try again.' });
   });
 
   it('rejects an empty key without calling the server', async () => {
     const ls = fakeLS({});
-    const r = await activate('   ', { productId: PRODUCT, instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
+    const r = await activate('   ', { productIds: [PRODUCT], instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
     expect(r).toEqual({ ok: false, error: 'Paste your license key first.' });
     expect(ls.calls).toHaveLength(0);
   });
@@ -76,32 +93,52 @@ describe('revalidation', () => {
     expect(needsRevalidation(record, T0 + REVALIDATE_MS + 1)).toBe(true);
   });
 
+  it('is due at once when the last check is stamped in the future (a clock that was ahead)', () => {
+    expect(needsRevalidation({ ...record, lastValidated: T0 + 2 * DAY }, T0)).toBe(true);
+    expect(needsRevalidation({ ...record, lastValidated: T0 + DAY / 2 }, T0)).toBe(false);
+  });
+
+  it('keeps the record on a rate limit (429): only a definitive answer may remove Pro', async () => {
+    const ls = fakeLS({ error: 'Too Many Attempts.' }, { status: 429 });
+    expect(await revalidate(record, { productIds: [PRODUCT], now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toEqual(record);
+  });
+
+  it('keeps the record when a proxy returns an HTML error page', async () => {
+    const fetchFn = async () => new Response('<html>blocked</html>', { status: 403 });
+    expect(await revalidate(record, { productIds: [PRODUCT], now: T0 + 8 * DAY, fetchFn })).toEqual(record);
+  });
+
+  it('drops the record when Lemon Squeezy answers that the key no longer exists (404, valid:false)', async () => {
+    const ls = fakeLS({ valid: false, error: 'license_key not found.' }, { status: 404 });
+    expect(await revalidate(record, { productIds: [PRODUCT], now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toBeNull();
+  });
+
   it('refreshes the timestamp when the key is still valid for our product', async () => {
     const ls = fakeLS({ valid: true, license_key: { status: 'active' }, meta: { product_id: PRODUCT } });
-    const r = await revalidate(record, { productId: PRODUCT, now: T0 + 8 * DAY, fetchFn: ls.fetchFn });
+    const r = await revalidate(record, { productIds: [PRODUCT], now: T0 + 8 * DAY, fetchFn: ls.fetchFn });
     expect(r).toEqual({ ...record, lastValidated: T0 + 8 * DAY });
     expect(ls.calls[0].url).toBe('https://api.lemonsqueezy.com/v1/licenses/validate');
     expect(ls.calls[0].form.get('instance_id')).toBe('inst-1');
   });
 
   it('drops the record when the key was refunded or disabled', async () => {
-    const ls = fakeLS({ valid: false, error: 'license_key is disabled', license_key: { status: 'disabled' } });
-    expect(await revalidate(record, { productId: PRODUCT, now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toBeNull();
+    const ls = fakeLS({ valid: false, error: 'license_key is disabled', license_key: { status: 'disabled' }, meta: { product_id: PRODUCT } }); // our product, refunded
+    expect(await revalidate(record, { productIds: [PRODUCT], now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toBeNull();
   });
 
   it('drops the record when the key turns out to belong to another product', async () => {
     const ls = fakeLS({ valid: true, license_key: { status: 'active' }, meta: { product_id: 1 } });
-    expect(await revalidate(record, { productId: PRODUCT, now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toBeNull();
+    expect(await revalidate(record, { productIds: [PRODUCT], now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toBeNull();
   });
 
   it('keeps the old record unchanged when offline (grace applies)', async () => {
     const ls = fakeLS({}, { fail: true });
-    expect(await revalidate(record, { productId: PRODUCT, now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toEqual(record);
+    expect(await revalidate(record, { productIds: [PRODUCT], now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toEqual(record);
   });
 
   it('keeps the old record on a server error (5xx), so an outage never locks a paying user out', async () => {
     const ls = fakeLS({ error: 'oops' }, { status: 503 });
-    expect(await revalidate(record, { productId: PRODUCT, now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toEqual(record);
+    expect(await revalidate(record, { productIds: [PRODUCT], now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toEqual(record);
   });
 });
 

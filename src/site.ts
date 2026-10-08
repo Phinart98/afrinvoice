@@ -15,13 +15,18 @@ export const SITE = {
   // an invisible localStorage key: it stays 'invoicekit' after the rename so saved data isn't orphaned.
   storagePrefix: 'invoicekit',
   // One-time Pro unlock (removes the "Made with" line, adds the Executive and Ledger templates).
-  // Off until the Lemon Squeezy product exists: then paste its checkout URL and product id here and
-  // set enabled: true. A test refuses `enabled` without both.
+  // Off until the Lemon Squeezy product exists. To switch on:
+  //   1. paste the LIVE checkout URL and LIVE product id (test-mode ids differ from live ones);
+  //   2. set enabled: true (a test refuses it without both);
+  //   3. bump "Last updated" on the privacy page (its Pro paragraph appears now);
+  //   4. in Lemon Squeezy, set the purchase redirect to ${url}/#pro (opens the key form).
+  // NEVER remove an old product id: buyers of it would lose Pro at their next weekly check.
   pro: {
     enabled: false as boolean,
     price: '$9',
     checkoutUrl: '',
-    productId: 0,
+    productIds: [] as number[],
+    allowTestKeys: false as boolean, // true only while testing with Lemon Squeezy test-mode keys
   },
 } as const;
 
