@@ -2,6 +2,10 @@
 import { FEATURED_COUNTRIES, countryPath } from '../data/countries';
 import { SITE } from '../site';
 
+// Wordmark: first word regular, the rest bold ("Invoice **Passport**").
+const [brandFirst, ...brandRestParts] = SITE.name.split(' ');
+const brandRest = brandRestParts.join(' ');
+
 const countryLinks = [
   ...FEATURED_COUNTRIES.map(c => ({ href: countryPath(c), label: `${c.flag} ${c.name}` })),
   { href: '/invoice-requirements-by-country/', label: 'All countries →' },
@@ -60,7 +64,7 @@ const isToolsActive = toolLinks.some(l => pathname.startsWith(l.href));
         <circle cx="20" cy="20" r="5" fill="#0A0F1E" stroke="#0F766E" stroke-width="1.25"/>
         <path d="M17.5 20l1.8 1.8 3.2-3.2" stroke="#0F766E" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span class="nav-logo-text">Invoice<span class="nav-logo-bold">Kit</span></span>
+      <span class="nav-logo-text">{brandFirst} <span class="nav-logo-bold">{brandRest}</span></span>
     </a>
 
     <!-- Desktop nav -->

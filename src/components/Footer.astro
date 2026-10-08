@@ -2,6 +2,10 @@
 import { FEATURED_COUNTRIES, countryPath } from '../data/countries';
 import { SITE } from '../site';
 
+// Wordmark: first word regular, the rest bold ("Invoice **Passport**").
+const [brandFirst, ...brandRestParts] = SITE.name.split(' ');
+const brandRest = brandRestParts.join(' ');
+
 const invoiceTools = [
   { href: '/',                      label: 'Invoice generator' },
   { href: '/quote-generator/',      label: 'Quote generator' },
@@ -48,7 +52,7 @@ const site = [
           <line x1="5.5" y1="15.5" x2="13"   y2="15.5" stroke="#475569" stroke-width="1.1" stroke-linecap="round"/>
           <line x1="5.5" y1="19.5" x2="16.5" y2="19.5" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <span class="footer-logo-text">Invoice<strong>Kit</strong></span>
+        <span class="footer-logo-text">{brandFirst} <strong>{brandRest}</strong></span>
       </a>
       <p class="footer-tagline">
         {SITE.tagline}. Free, no sign-up, and your data never leaves your browser.

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { defaultInvoiceState, computeTotals, type InvoiceState, type TaxLine } from '../types/invoice';
+import { defaultInvoiceState, computeTotals, PREMIUM_TEMPLATES, type InvoiceState, type TaxLine } from '../types/invoice';
 import { COUNTRY_BY_KEY, OTHER_COUNTRY, CURRENCIES, countriesByRegion, REGION_NAMES, countryPath, COUNTRIES,
   type CountryConfig, type PaymentRail, type TaxPreset } from '../data/countries';
 import { LABEL_LANGS, type DocType } from '../i18n/labels';
@@ -13,6 +13,8 @@ import { paymentQr } from '../utils/paymentQr';
 import { formatMoney, localToday, addDays } from '../utils/money';
 import { SITE } from '../site';
 import InvoicePreview from './InvoicePreview.vue';
+import ProPanel from './ProPanel.vue';
+import { useProStatus } from '../utils/useProStatus';
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 const props = defineProps<{ countryPreset?: string; docPreset?: DocType }>();
@@ -20,7 +22,11 @@ const props = defineProps<{ countryPreset?: string; docPreset?: DocType }>();
 // ── Core state ────────────────────────────────────────────────────────────────
 const state = ref<InvoiceState>(defaultInvoiceState());
 const activeTab = ref<'form' | 'preview'>('form');
-const activeColorPicker = ref<'classicAccent' | 'modernHeader' | 'modernAccent' | null>(null);
+const activeColorPicker = ref<'classicAccent' | 'modernHeader' | 'modernAccent' | 'brandColor' | null>(null);
+const { pro } = useProStatus();
+// Templates on offer: premium ones only once Pro is on sale (SITE.pro.enabled).
+const templateChoices = computed(() => (['minimal', 'modern', 'classic', ...(SITE.pro.enabled ? PREMIUM_TEMPLATES : [])] as InvoiceState['template'][]));
+const isPremium = (t: InvoiceState['template']) => PREMIUM_TEMPLATES.includes(t);
 const savedAt = ref(0);
 const notice = ref('');          // inline message instead of alert()
 const busy = ref(false);         // PDF being generated
@@ -361,12 +367,18 @@ function track(action: 'download' | 'print') {
 
 async function output(action: 'download' | 'print') {
   if (busy.value) return;
+  // A premium template is previewable for free, but downloading it needs Pro: say so, don't silently swap.
+  if (SITE.pro.enabled && isPremium(state.value.template) && !pro.value) {
+    flash('Executive and Ledger are Pro templates. Unlock Pro below, or pick Minimal, Modern or Classic.');
+    document.getElementById('pro')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
   busy.value = true;
   try {
     assignNumber();
     await nextTick();
-    if (action === 'download') await generateInvoicePDF(state.value);
-    else await printInvoicePDF(state.value);
+    if (action === 'download') await generateInvoicePDF(state.value, { pro: pro.value });
+    else await printInvoicePDF(state.value, { pro: pro.value });
     history.value = addToHistory(state.value, totals.value.total);
     if (state.value.clientName.trim() && !clients.value.some(c => c.name === state.value.clientName.trim())) {
       clients.value = saveClient({ name: state.value.clientName.trim(), email: state.value.clientEmail, address: state.value.clientAddress, taxId: state.value.clientTaxId });
@@ -462,9 +474,9 @@ const correctionHref = computed(() =>
           <div class="field">
             <span class="field-label" id="tpl-label">Template</span>
             <div class="template-pills" role="group" aria-labelledby="tpl-label">
-              <button v-for="t in (['minimal', 'modern', 'classic'] as const)" :key="t" type="button"
+              <button v-for="t in templateChoices" :key="t" type="button"
                 :class="['tpl-pill', { active: state.template === t }]" :aria-pressed="state.template === t"
-                @click="selectTemplate(t)">{{ t[0].toUpperCase() + t.slice(1) }}</button>
+                @click="selectTemplate(t)">{{ t[0].toUpperCase() + t.slice(1) }}<span v-if="isPremium(t) && !pro" class="tpl-pro"> Pro</span></button>
             </div>
           </div>
         </div>
@@ -472,9 +484,9 @@ const correctionHref = computed(() =>
         <!-- ── Template colours ───────────────────────────────────── -->
         <div v-if="state.template !== 'minimal'" class="form-card modern-colors-card">
           <h3 class="card-title">Template colours</h3>
-          <div v-for="key in (state.template === 'classic' ? ['classicAccent'] : ['modernHeader', 'modernAccent']) as ('classicAccent' | 'modernHeader' | 'modernAccent')[]"
+          <div v-for="key in (state.template === 'classic' ? ['classicAccent'] : isPremium(state.template) ? ['brandColor'] : ['modernHeader', 'modernAccent']) as ('classicAccent' | 'modernHeader' | 'modernAccent' | 'brandColor')[]"
             :key="key" class="color-row">
-            <span class="field-label">{{ key === 'modernHeader' ? 'Header' : key === 'modernAccent' ? 'Accent' : 'Total amount' }}</span>
+            <span class="field-label">{{ key === 'modernHeader' ? 'Header' : key === 'modernAccent' ? 'Accent' : key === 'brandColor' ? 'Brand colour' : 'Total amount' }}</span>
             <div class="color-picker-wrap" @click.stop>
               <button type="button" class="color-trigger" :aria-expanded="activeColorPicker === key" @click="toggleColorPicker(key)">
                 <span class="color-preview" :style="{ background: state[key] }"></span>
@@ -864,13 +876,14 @@ const correctionHref = computed(() =>
             </button>
             <button type="button" class="print-btn" :disabled="busy" @click="output('print')">Print</button>
           </div>
-          <p class="download-hint">No sign-up · No watermark · Made in your browser</p>
+          <p class="download-hint">No sign-up · No limits · Made in your browser</p>
           <div class="row-actions row-actions-center">
             <button type="button" class="link-btn" @click="newDocument">New document</button>
             <button type="button" class="link-btn" :aria-expanded="showHistory" @click="showHistory = !showHistory">
               History ({{ history.length }})
             </button>
           </div>
+          <ProPanel v-if="SITE.pro.enabled" />
           <div v-if="showHistory" class="history">
             <p v-if="!history.length" class="card-hint">Documents you download appear here, saved in this browser.</p>
             <ul v-else>
@@ -897,7 +910,7 @@ const correctionHref = computed(() =>
 
     <!-- ═════════════════════════ PREVIEW PANE ═════════════════════════ -->
     <div id="panel-preview" :class="['preview-pane', { 'pane-active': activeTab === 'preview' }]" role="tabpanel" aria-labelledby="tab-preview">
-      <InvoicePreview :state="state" />
+      <InvoicePreview :state="state" :pro="pro" />
     </div>
 
   </div>
@@ -1649,5 +1662,12 @@ const correctionHref = computed(() =>
 @media (max-width: 520px) {
   .tax-row { grid-template-columns: 1fr 72px 28px; }
   .tax-row select { grid-column: 1 / span 2; }
+}
+
+.tpl-pro {
+  font-size: 0.625rem;
+  font-weight: 700;
+  vertical-align: 1px;
+  opacity: 0.75;
 }
 </style>

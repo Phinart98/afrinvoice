@@ -95,3 +95,13 @@ export async function revalidate(
   if (!body.valid || body.meta?.product_id !== opts.productId) return null;
   return { ...rec, lastValidated: opts.now };
 }
+
+/** Free this device's activation slot (3 per key). Best effort: false when it couldn't be reached. */
+export async function deactivate(rec: ProRecord, opts: { fetchFn: FetchFn }): Promise<boolean> {
+  try {
+    const { body } = await post(opts.fetchFn, 'deactivate', { license_key: rec.key, instance_id: rec.instanceId });
+    return (body as { deactivated?: boolean }).deactivated === true;
+  } catch {
+    return false;
+  }
+}

@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { InvoiceState } from '../types/invoice';
+import { PREMIUM_TEMPLATES, effectiveTemplate, type InvoiceState } from '../types/invoice';
+import { SITE } from '../site';
 import { buildInvoiceView } from '../utils/invoiceView';
 import { qrSvg } from '../utils/paymentQr';
 
 const props = defineProps<{ state: InvoiceState; pro?: boolean }>();
+
+// While Pro is on sale, free users may PREVIEW a premium template (try before buying); the download is
+// what's gated. Before Pro exists, a stored premium template simply shows as Minimal, like the PDF.
+const tpl = computed(() => (SITE.pro.enabled ? props.state.template : effectiveTemplate(props.state.template, !!props.pro)));
+const proPreview = computed(() => !props.pro && PREMIUM_TEMPLATES.includes(tpl.value));
 
 // Same view model the PDF renders — the preview can't drift from the download.
 const v = computed(() => buildInvoiceView(props.state, { pro: props.pro }));
@@ -13,8 +19,9 @@ const qr = computed(() => (v.value.qr ? qrSvg(v.value.qr.payload, 92) : ''));
 // CSS custom properties driven by the colour pickers
 const themeStyle = computed(() => {
   const s = props.state;
-  if (s.template === 'classic') return { '--c-accent': s.classicAccent || '#115E59' };
-  if (s.template === 'modern') return { '--m-header': s.modernHeader || '#0F172A', '--m-accent': s.modernAccent || '#0EA5E9' };
+  if (tpl.value === 'classic') return { '--c-accent': s.classicAccent || '#115E59' };
+  if (tpl.value === 'modern') return { '--m-header': s.modernHeader || '#0F172A', '--m-accent': s.modernAccent || '#0EA5E9' };
+  if (tpl.value === 'executive' || tpl.value === 'ledger') return { '--brand': s.brandColor || '#0F766E' };
   return {};
 });
 </script>
@@ -22,11 +29,12 @@ const themeStyle = computed(() => {
 <template>
   <div class="preview-wrap">
     <div
-      :class="['inv', 'tpl-' + state.template, 'paper-' + v.paper]"
+      :class="['inv', 'tpl-' + tpl, 'paper-' + v.paper]"
       :style="themeStyle"
       :lang="v.locale"
       aria-label="Invoice preview"
     >
+      <p v-if="proPreview" class="inv-pro-badge">Pro template preview</p>
       <!-- ── Header ──────────────────────────────────────────────────── -->
       <header class="inv-header">
         <div class="inv-sender">
@@ -37,7 +45,7 @@ const themeStyle = computed(() => {
           </div>
         </div>
 
-        <div v-if="state.template !== 'minimal'" class="inv-label-block">
+        <div v-if="tpl !== 'minimal'" class="inv-label-block">
           <p class="inv-title">{{ v.title }}</p>
           <p class="inv-dim">{{ v.L.number }}&nbsp;<span class="inv-mono">{{ v.number || '—' }}</span></p>
           <p v-for="[label, value] in v.meta" :key="label" class="inv-dim">{{ label }}: {{ value }}</p>
@@ -49,7 +57,7 @@ const themeStyle = computed(() => {
         </div>
       </header>
 
-      <hr v-if="state.template !== 'modern'" class="inv-rule" />
+      <hr v-if="tpl !== 'modern' && tpl !== 'executive'" class="inv-rule" />
 
       <!-- ── Bill to ─────────────────────────────────────────────────── -->
       <section class="inv-bill-to">
@@ -392,6 +400,60 @@ const themeStyle = computed(() => {
 }
 .tpl-modern .inv-grand-label { color: #ffffff; font-size: 0.8125rem; }
 .tpl-modern .inv-grand-val   { color: #ffffff; font-size: 0.9375rem; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   EXECUTIVE (Pro) — dark header band · ruled table · brand total strip
+   ══════════════════════════════════════════════════════════════════════ */
+.tpl-executive { padding-top: 0; }
+.tpl-executive .inv-header {
+  background: #0F172A;
+  margin: 0 -2rem 1.25rem;
+  padding: 1.5rem 2rem;
+  border-radius: 6px 6px 0 0;
+}
+.tpl-executive .inv-biz-name,
+.tpl-executive .inv-title,
+.tpl-executive .inv-label-block .inv-mono { color: #ffffff; }
+.tpl-executive .inv-sender .inv-dim,
+.tpl-executive .inv-label-block .inv-dim { color: rgba(255,255,255,0.6); }
+.tpl-executive .inv-section-label { color: #475569; }
+.tpl-executive .inv-th {
+  background: transparent;
+  color: #475569;
+  border-top: 1.5px solid #0F172A;
+  border-bottom: 1.5px solid #0F172A;
+}
+.tpl-executive .inv-grand,
+.tpl-ledger .inv-grand {
+  margin: 0.25rem -0.5rem -0.25rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-top: none;
+}
+.tpl-executive .inv-grand { background: var(--brand, #0F766E); }
+.tpl-executive .inv-grand-label, .tpl-executive .inv-grand-val,
+.tpl-ledger .inv-grand-label, .tpl-ledger .inv-grand-val { color: #ffffff; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   LEDGER (Pro) — brand top bar · brand title and table head · dark total
+   ══════════════════════════════════════════════════════════════════════ */
+.tpl-ledger { border-top: 6px solid var(--brand, #0F766E); }
+.tpl-ledger .inv-title { color: var(--brand, #0F766E); }
+.tpl-ledger .inv-section-label { color: #475569; }
+.tpl-ledger .inv-th { background: var(--brand, #0F766E); }
+.tpl-ledger .inv-grand { background: #0F172A; }
+
+.inv-pro-badge {
+  display: inline-block;
+  margin: 0 0 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: #0F172A;
+  color: #ffffff;
+  font-size: 0.625rem;
+  font-weight: 600;
+}
+.tpl-executive .inv-pro-badge { margin-top: 0.75rem; }
 
 /* ══════════════════════════════════════════════════════════════════════
    MINIMAL TEMPLATE OVERRIDES

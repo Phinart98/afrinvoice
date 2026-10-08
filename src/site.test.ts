@@ -19,7 +19,8 @@ describe('brand lives in one place', () => {
     const leaks = files('src')
       .filter(f => /\.(astro|vue|ts|css)$/.test(f) && !/site(\.test)?\.ts$/.test(f))
       .flatMap(f => readFileSync(f, 'utf8').split('\n').map((line, i) => [f, i + 1, line] as const))
-      .filter(([, , line]) => OLD_BRANDS.test(line))
+      // Strip tags first: a wordmark like Invoice<span>Kit</span> must not hide the old name.
+      .filter(([, , line]) => OLD_BRANDS.test(line) || OLD_BRANDS.test(line.replace(/<[^>]*>/g, '')))
       .map(([f, n]) => `${f}:${n}`);
     expect(leaks).toEqual([]);
   });
@@ -34,6 +35,12 @@ describe('brand lives in one place', () => {
   it('astro.config.mjs and robots.txt point at the domain in site.ts', () => {
     expect(readFileSync('astro.config.mjs', 'utf8')).toContain(`site: '${SITE.url}'`);
     expect(readFileSync('public/robots.txt', 'utf8')).toContain(`${SITE.url}/sitemap-index.xml`);
+  });
+
+  it('Pro can only be switched on with a real checkout URL and product id', () => {
+    if (!SITE.pro.enabled) return;
+    expect(SITE.pro.checkoutUrl).toMatch(/^https:\/\/[\w.-]+\.lemonsqueezy\.com\//);
+    expect(SITE.pro.productId).toBeGreaterThan(0);
   });
 
   it('is Invoice Passport', () => {

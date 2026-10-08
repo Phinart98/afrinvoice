@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activate, revalidate, proStatus, needsRevalidation, GRACE_MS, REVALIDATE_MS, type ProRecord } from './proLicense';
+import { activate, deactivate, revalidate, proStatus, needsRevalidation, GRACE_MS, REVALIDATE_MS, type ProRecord } from './proLicense';
 
 const PRODUCT = 424242;
 const DAY = 86_400_000;
@@ -102,5 +102,19 @@ describe('revalidation', () => {
   it('keeps the old record on a server error (5xx), so an outage never locks a paying user out', async () => {
     const ls = fakeLS({ error: 'oops' }, { status: 503 });
     expect(await revalidate(record, { productId: PRODUCT, now: T0 + 8 * DAY, fetchFn: ls.fetchFn })).toEqual(record);
+  });
+});
+
+describe('deactivate', () => {
+  it('frees this device\'s activation slot at Lemon Squeezy', async () => {
+    const ls = fakeLS({ deactivated: true });
+    expect(await deactivate(record, { fetchFn: ls.fetchFn })).toBe(true);
+    expect(ls.calls[0].url).toBe('https://api.lemonsqueezy.com/v1/licenses/deactivate');
+    expect(ls.calls[0].form.get('license_key')).toBe('KEY-1');
+    expect(ls.calls[0].form.get('instance_id')).toBe('inst-1');
+  });
+  it('reports false (never throws) when offline, so removing locally still works', async () => {
+    const ls = fakeLS({}, { fail: true });
+    expect(await deactivate(record, { fetchFn: ls.fetchFn })).toBe(false);
   });
 });

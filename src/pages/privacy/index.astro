@@ -21,10 +21,17 @@ import { SITE } from '../../site';
       <p>Clearing your browser data deletes it. Use <strong>Export backup</strong> in the History panel if you want a copy.</p>
 
       <h2>What we measure</h2>
-      <p>We use Google Analytics 4 to count page views and a single event when an invoice is downloaded or printed. That event records the country, document type, template and currency, never names, amounts or any text you entered. In the EEA, the UK and Switzerland, analytics cookies are only set if you accept them in the consent banner. Google’s handling of this data is described in the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>.</p>
+      <p>We use Google Analytics 4 to count page views and a single event when an invoice is downloaded or printed. That event records the country, document type, template and currency, never names, amounts or any text you entered.{SITE.pro.enabled && ' We also count, anonymously, when the Pro panel is shown, when its Buy button is clicked, and when a license is activated.'} In the EEA, the UK and Switzerland, analytics cookies are only set if you accept them in the consent banner. Google’s handling of this data is described in the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a>.</p>
 
       <h2>Advertising and affiliate links</h2>
       <p>{SITE.name} is free and may show ads or recommend accounting tools through affiliate links. If ads are added, this page will name the ad network, and the same consent rules will apply.</p>
+
+      {SITE.pro.enabled && (
+        <>
+          <h2>Pro purchases</h2>
+          <p>{SITE.name} Pro is sold by Lemon Squeezy, which handles the payment, tax and your receipt as the merchant of record; we never see your card details. Lemon Squeezy's handling of your data is described in its <a href="https://www.lemonsqueezy.com/privacy" rel="noopener">privacy policy</a>. Your license key is stored only in this browser and is checked with Lemon Squeezy about once a week.</p>
+        </>
+      )}
 
       <h2>Contact</h2>
       <p>Questions or requests: <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
