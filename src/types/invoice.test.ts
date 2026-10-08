@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeTotals, defaultInvoiceState, type InvoiceState } from './invoice';
+import { computeTotals, defaultInvoiceState, effectiveTemplate, PREMIUM_TEMPLATES, type InvoiceState } from './invoice';
 import { COUNTRIES, COUNTRY_BY_KEY } from '../data/countries';
 import { docLocale, formatDate, formatMoney, localToday, minorDigits, roundMoney } from '../utils/money';
 
@@ -123,5 +123,21 @@ describe('country data', () => {
       'zambia', 'malawi', 'cameroon', 'ivory-coast', 'senegal', 'mozambique', 'botswana', 'egypt']) {
       expect(COUNTRY_BY_KEY[k], k).toBeDefined();
     }
+  });
+});
+
+describe('templates', () => {
+  it('lists the two premium templates', () => {
+    expect(PREMIUM_TEMPLATES).toEqual(['executive', 'ledger']);
+  });
+  it('renders a premium template only for Pro; free falls back to minimal', () => {
+    expect(effectiveTemplate('executive', true)).toBe('executive');
+    expect(effectiveTemplate('ledger', false)).toBe('minimal');
+    expect(effectiveTemplate('modern', false)).toBe('modern');
+  });
+  it('starts new invoices on a free template with a brand colour ready', () => {
+    const s = defaultInvoiceState();
+    expect(PREMIUM_TEMPLATES).not.toContain(s.template);
+    expect(s.brandColor).toMatch(/^#[0-9A-F]{6}$/i);
   });
 });

@@ -26,7 +26,7 @@ export const PROFILE_FIELDS = [
   'countryKey', 'currency', 'labelsLang', 'paper', 'template', 'taxes', 'taxNote', 'pricesIncludeTax',
   'paymentRail', 'bankName', 'accountName', 'accountNumber', 'bankCode', 'swiftCode', 'iban', 'bic',
   'momoProvider', 'momoNumber', 'momoName', 'upiId', 'paymentLink',
-  'classicAccent', 'modernHeader', 'modernAccent', 'footerNote',
+  'classicAccent', 'modernHeader', 'modernAccent', 'brandColor', 'footerNote',
 ] as const satisfies readonly (keyof InvoiceState)[];
 
 export type Profile = Partial<Pick<InvoiceState, typeof PROFILE_FIELDS[number]>>;

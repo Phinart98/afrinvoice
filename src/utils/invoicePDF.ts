@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import jsPDF from 'jspdf';
-import type { InvoiceState } from '../types/invoice';
+import { effectiveTemplate, type InvoiceState, type Template } from '../types/invoice';
 import { buildInvoiceView, type InvoiceView } from './invoiceView';
 import { qrMatrix } from './paymentQr';
 import { SITE } from '../site';
@@ -75,6 +75,11 @@ function logoFormat(dataUrl: string): 'PNG' | 'JPEG' | null {
 }
 
 interface Style {
+  tpl: Template;              // the template actually drawn (premium falls back to minimal without Pro)
+  topBar: RGB | null;         // ledger: thin brand-colour bar across the top of the first page
+  titleColor: RGB;            // the big document title
+  labelColor: RGB;            // small section labels (Bill to, Payment, Notes)
+  zebra: boolean;             // shade every other item row
   headerBand: RGB | null;     // modern: coloured band behind the header
   headerText: RGB;
   headerMuted: RGB;
@@ -84,26 +89,42 @@ interface Style {
   grand: 'text' | 'strip' | 'plain';
 }
 
-function styleFor(s: InvoiceState): Style {
-  if (s.template === 'modern') {
+const BRAND_FALLBACK: RGB = [15, 118, 110];
+
+function styleFor(s: InvoiceState, pro: boolean): Style {
+  const tpl = effectiveTemplate(s.template, pro);
+  const base = { tpl, topBar: null, labelColor: C_LIGHT, titleColor: C_DARK };
+  if (tpl === 'modern') {
     const band = hexToRgb(s.modernHeader, C_DARK);
-    return { headerBand: band, headerText: C_WHITE, headerMuted: [190, 205, 225], tableHead: 'fill', tableFill: band,
-      accent: hexToRgb(s.modernAccent, [14, 165, 233]), grand: 'strip' };
+    const accent = hexToRgb(s.modernAccent, [14, 165, 233]);
+    return { ...base, titleColor: accent, labelColor: accent, zebra: true, headerBand: band, headerText: C_WHITE,
+      headerMuted: [190, 205, 225], tableHead: 'fill', tableFill: band, accent, grand: 'strip' };
   }
-  if (s.template === 'classic') {
-    return { headerBand: null, headerText: C_DARK, headerMuted: C_MID, tableHead: 'fill', tableFill: C_DARK,
-      accent: hexToRgb(s.classicAccent, [180, 83, 9]), grand: 'text' };
+  if (tpl === 'classic') {
+    return { ...base, zebra: true, headerBand: null, headerText: C_DARK, headerMuted: C_MID, tableHead: 'fill',
+      tableFill: C_DARK, accent: hexToRgb(s.classicAccent, [180, 83, 9]), grand: 'text' };
   }
-  return { headerBand: null, headerText: C_DARK, headerMuted: C_MID, tableHead: 'rule', tableFill: C_DARK,
-    accent: C_DARK, grand: 'plain' };
+  if (tpl === 'executive') {
+    // Restrained: a dark header band, ruled table with shaded rows, and the brand colour only on the total.
+    return { ...base, titleColor: C_WHITE, labelColor: C_MID, zebra: true, headerBand: C_DARK, headerText: C_WHITE,
+      headerMuted: [190, 205, 225], tableHead: 'rule', tableFill: C_DARK, accent: hexToRgb(s.brandColor, BRAND_FALLBACK), grand: 'strip' };
+  }
+  if (tpl === 'ledger') {
+    // Brand-led: a top bar, brand table head and title, shaded rows, and a dark total strip.
+    const brand = hexToRgb(s.brandColor, BRAND_FALLBACK);
+    return { ...base, topBar: brand, titleColor: brand, labelColor: C_MID, zebra: true, headerBand: null,
+      headerText: C_DARK, headerMuted: C_MID, tableHead: 'fill', tableFill: brand, accent: C_DARK, grand: 'strip' };
+  }
+  return { ...base, zebra: false, headerBand: null, headerText: C_DARK, headerMuted: C_MID, tableHead: 'rule',
+    tableFill: C_DARK, accent: C_DARK, grand: 'plain' };
 }
 
 // ── Renderer ─────────────────────────────────────────────────────────────────
-function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void {
+function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState, pro: boolean): void {
   const [W, H] = PAPER[v.paper];
   const R = W - M;
   const CW = W - 2 * M;
-  const st = styleFor(s);
+  const st = styleFor(s, pro);
   const color = (c: RGB, target: 'text' | 'fill' | 'draw') =>
     target === 'text' ? doc.setTextColor(...c) : target === 'fill' ? doc.setFillColor(...c) : doc.setDrawColor(...c);
   const set = (size: number, weight: 'normal' | 'bold' = 'normal', c: RGB = C_DARK) => {
@@ -141,6 +162,7 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
   const rightEnd = y + 1 + (s.template === 'minimal' ? 13 : 13.5) + v.meta.length * 4.3;
   const bandH = Math.max(44, Math.max(leftEnd, rightEnd) + 2);
   if (st.headerBand) { color(st.headerBand, 'fill'); doc.rect(0, 0, W, bandH, 'F'); }
+  if (st.topBar) { color(st.topBar, 'fill'); doc.rect(0, 0, W, 3, 'F'); }
 
   if (logo) doc.addImage(v.sender.logo, logo.fmt, M, y - 4, logo.w, logo.h);
   set(12.5, 'bold', st.headerText);
@@ -158,17 +180,17 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
     set(8, 'normal', C_LIGHT); doc.text(v.title, R, rightY, { align: 'right' }); rightY += 7;
     set(16, 'bold', C_DARK);   doc.text(v.number || '—', R, rightY, { align: 'right' }); rightY += 6;
   } else {
-    set(19, 'bold', st.headerBand ? st.accent : C_DARK); doc.text(v.title, R, rightY + 2, { align: 'right' }); rightY += 9;
+    set(19, 'bold', st.titleColor); doc.text(v.title, R, rightY + 2, { align: 'right' }); rightY += 9;
     set(8.5, 'normal', st.headerMuted); doc.text(`${v.L.number} ${v.number || '—'}`, R, rightY, { align: 'right' }); rightY += 4.5;
   }
   set(8, 'normal', st.headerMuted);
   for (const [label, value] of v.meta) { doc.text(`${label}: ${value}`, R, rightY, { align: 'right' }); rightY += 4.3; }
 
   y = Math.max(leftY, rightY, st.headerBand ? bandH : 0) + 6;
-  if (!st.headerBand) { rule(y - 2, M, R, s.template === 'minimal' ? 0.5 : 0.25, s.template === 'minimal' ? C_DARK : C_RULE); y += 5; }
+  if (!st.headerBand) { rule(y - 2, M, R, st.tpl === 'minimal' ? 0.5 : 0.25, st.tpl === 'minimal' ? C_DARK : C_RULE); y += 5; }
 
   // ── Bill to ───────────────────────────────────────────────────────────────
-  set(6.8, 'bold', st.headerBand ? st.accent : C_LIGHT);
+  set(6.8, 'bold', st.labelColor);
   doc.text(v.L.billTo.toUpperCase(), M, y); y += 5;
   set(9.5, 'bold', C_DARK);
   const clientName = wrap(v.client.name || '—', CW * 0.6);
@@ -211,7 +233,7 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
     const desc = wrap(it.description, COL_DESC - padL - 3);
     const rowH = Math.max(8, desc.length * LINE + 3.7);
     if (y + rowH > bottom) { doc.addPage(); y = 18; drawHead(); set(8.5, 'normal', C_DARK); }
-    if (st.tableHead === 'fill' && i % 2 === 1) { color(C_ALT, 'fill'); doc.rect(M, y, CW, rowH, 'F'); }
+    if (st.zebra && i % 2 === 1) { color(C_ALT, 'fill'); doc.rect(M, y, CW, rowH, 'F'); }
     const ty = y + 5.3;
     doc.text(desc, M + padL, ty);
     color(C_MID, 'text');
@@ -220,7 +242,7 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
     color(C_DARK, 'text');
     doc.text(it.amount, xAmt, ty, { align: 'right' });
     y += rowH;
-    if (st.tableHead === 'rule' && i < v.items.length - 1) rule(y, M, R, 0.15);
+    if (st.tableHead === 'rule' && !st.zebra && i < v.items.length - 1) rule(y, M, R, 0.15);
   });
   rule(y, M, R, st.tableHead === 'rule' ? 0.4 : 0.25, st.tableHead === 'rule' ? C_DARK : C_RULE);
   y += 6;
@@ -274,7 +296,7 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
     ensure(blockH);
     rule(y, M, R); y += 6;
     const top = y;
-    set(6.8, 'bold', st.headerBand ? st.accent : C_LIGHT);
+    set(6.8, 'bold', st.labelColor);
     doc.text(v.L.paymentDetails.toUpperCase(), M, y); y += 5.5;
     const labelW = 34;
     for (const [label, value] of v.payment) {
@@ -302,7 +324,7 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState): void
     const l = wrap(v.notes, CW);
     ensure(Math.min(l.length * LINE + 12, 60));
     rule(y, M, R); y += 6;
-    set(6.8, 'bold', st.headerBand ? st.accent : C_LIGHT);
+    set(6.8, 'bold', st.labelColor);
     doc.text(v.L.notes.toUpperCase(), M, y); y += 5.5;
     set(8.5, 'normal', C_MID);
     for (const line of l) { ensure(LINE); doc.text(line, M, y); y += LINE; }
@@ -337,7 +359,7 @@ async function buildDoc(state: InvoiceState, opts: PdfOptions = {}): Promise<jsP
   const view = buildInvoiceView(state, opts);
   const { doc, font } = await newDoc(view.paper);
   doc.setProperties({ title: `${view.title} ${view.number}`.trim(), creator: SITE.name });
-  render(doc, font, view, state);
+  render(doc, font, view, state, !!opts.pro);
   return doc;
 }
 

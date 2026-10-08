@@ -31,9 +31,17 @@ export interface InvoiceVisible {
   qr:            boolean;   // payment QR code (SEPA / UPI / payment link)
 }
 
+export type Template = 'classic' | 'modern' | 'minimal' | 'executive' | 'ledger';
+
+/** Pro-only PDF templates. Free users can preview them; downloads fall back to Minimal. */
+export const PREMIUM_TEMPLATES: readonly Template[] = ['executive', 'ledger'];
+
+export const effectiveTemplate = (t: Template, pro: boolean): Template =>
+  !pro && PREMIUM_TEMPLATES.includes(t) ? 'minimal' : t;
+
 export interface InvoiceState {
   // ── Template, country, document ─────────────────────────────────────────
-  template: 'classic' | 'modern' | 'minimal';
+  template: Template;
   countryKey: string;
   docType: DocType;
   titleOverride: string;       // '' = use the translated title for docType
@@ -93,6 +101,7 @@ export interface InvoiceState {
   classicAccent: string;
   modernHeader: string;
   modernAccent: string;
+  brandColor: string;          // premium templates (Executive, Ledger)
 
   notes: string;
   footerNote: string;
@@ -137,6 +146,7 @@ export function defaultInvoiceState(): InvoiceState {
     classicAccent: '#115E59',
     modernHeader: '#0F172A',
     modernAccent: '#0EA5E9',
+    brandColor: '#0F766E',
 
     notes: '',
     footerNote: '',
