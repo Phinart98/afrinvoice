@@ -1,5 +1,5 @@
 import type { CountryConfig } from './types';
-import { EU_REVERSE_CHARGE } from './europe';
+import { EU_REVERSE_CHARGE, reverseCharge } from './europe';
 
 // Same wording as the constant in europe.ts (that one is not exported, so it is repeated here).
 
@@ -13,6 +13,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'USt. 10% (ermäßigt)', taxes: [{ label: 'USt.', rate: 10 }] },
       { label: 'USt. 13% (ermäßigt)', taxes: [{ label: 'USt.', rate: 13 }] },
       { label: 'Kleinunternehmer (no VAT)', taxes: [], note: 'Umsatzsteuerfrei aufgrund der Kleinunternehmerregelung (§ 6 Abs 1 Z 27 UStG).' },
+      reverseCharge('Übergang der Steuerschuld auf den Leistungsempfänger'),
     ],
     taxIdLabel: 'UID-Nummer (ATU…)', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'AT-',
@@ -77,7 +78,8 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'btw 21% (standaardtarief)', taxes: [{ label: 'btw', rate: 21 }] },
       { label: 'btw 6% (verlaagd tarief)', taxes: [{ label: 'btw', rate: 6 }] },
       { label: 'btw 12% (tussentarief)', taxes: [{ label: 'btw', rate: 12 }] },
-      { label: 'Franchise scheme (small business, no VAT)', taxes: [], note: 'Vrijgesteld van btw: kleine onderneming (vrijstellingsregeling).' },
+      { label: 'Franchise scheme (small business, no VAT)', taxes: [], note: 'Bijzondere vrijstellingsregeling kleine ondernemingen.' },
+      reverseCharge('Btw verlegd / Autoliquidation'),
     ],
     taxIdLabel: 'Ondernemingsnummer / btw-nr (BE 0…)', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'BE-',
@@ -112,6 +114,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'IVA 13% (taxa intermédia)', taxes: [{ label: 'IVA', rate: 13 }] },
       { label: 'IVA 6% (taxa reduzida)', taxes: [{ label: 'IVA', rate: 6 }] },
       { label: 'Isento de IVA (artigo 53.º do CIVA)', taxes: [], note: 'IVA - Isento ao abrigo do artigo 53.º do CIVA.' },
+      reverseCharge('Autoliquidação'),
     ],
     taxIdLabel: 'NIF', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'FT-',
@@ -148,6 +151,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'VAT 8% (stawka obniżona)', taxes: [{ label: 'VAT', rate: 8 }] },
       { label: 'VAT 5% (stawka obniżona)', taxes: [{ label: 'VAT', rate: 5 }] },
       { label: 'Zwolnienie podmiotowe (no VAT)', taxes: [], note: 'Zwolnienie podmiotowe z VAT na podstawie art. 113 ust. 1 ustawy o VAT.' },
+      reverseCharge('Odwrotne obciążenie'),
     ],
     taxIdLabel: 'NIP', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'FV/',
@@ -182,6 +186,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'Moms 12% (reduced)', taxes: [{ label: 'Moms', rate: 12 }] },
       { label: 'Moms 6% (reduced)', taxes: [{ label: 'Moms', rate: 6 }] },
       { label: 'Not VAT-registered (under SEK 120,000)', taxes: [] },
+      reverseCharge('Omvänd betalningsskyldighet'),
     ],
     taxIdLabel: 'Momsregistreringsnr (SE…01) / Org.nr', documentTitle: 'invoice', rails: ['bank', 'iban'], bankCodeLabel: 'Bankgiro / Plusgiro',
     invoicePrefix: 'SE-',
@@ -216,6 +221,7 @@ export const EUROPE_MORE: CountryConfig[] = [
     taxPresets: [
       { label: 'Moms 25%', taxes: [{ label: 'Moms', rate: 25 }] },
       { label: 'Not VAT-registered (under DKK 50,000)', taxes: [] },
+      reverseCharge('Omvendt betalingspligt'),
     ],
     taxIdLabel: 'CVR-nummer', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'DK-',
@@ -283,6 +289,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'ALV 13.5% (reduced)', taxes: [{ label: 'ALV', rate: 13.5 }] },
       { label: 'ALV 10% (reduced)', taxes: [{ label: 'ALV', rate: 10 }] },
       { label: 'Not VAT-registered (turnover up to €20,000)', taxes: [] },
+      reverseCharge('Käännetty verovelvollisuus'),
     ],
     taxIdLabel: 'Y-tunnus / ALV-tunniste (FI…)', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'FI-',
@@ -314,6 +321,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'DPH 21% (základní sazba)', taxes: [{ label: 'DPH', rate: 21 }] },
       { label: 'DPH 12% (snížená sazba)', taxes: [{ label: 'DPH', rate: 12 }] },
       { label: 'Neplátce DPH (turnover under CZK 2,000,000)', taxes: [] },
+      reverseCharge('Daň odvede zákazník'),
     ],
     taxIdLabel: 'IČO / DIČ (CZ…)', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'CZ-',
@@ -348,6 +356,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'TVA 8% (taux réduit)', taxes: [{ label: 'TVA', rate: 8 }] },
       { label: 'TVA 3% (taux super-réduit)', taxes: [{ label: 'TVA', rate: 3 }] },
       { label: 'Petite entreprise (franchise, no VAT)', taxes: [], note: 'TVA non applicable: franchise pour petites entreprises.' },
+      reverseCharge('Autoliquidation'),
     ],
     taxIdLabel: 'N° TVA (LU…)', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'LU-',
@@ -381,6 +390,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'VAT 7% (reduced)', taxes: [{ label: 'VAT', rate: 7 }] },
       { label: 'VAT 5% (reduced)', taxes: [{ label: 'VAT', rate: 5 }] },
       { label: 'Article 11 small business (no VAT)', taxes: [], note: 'VAT exempt under Article 11 of the VAT Act.' },
+      reverseCharge(),
     ],
     taxIdLabel: 'VAT number (MT…)', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'MT-',
@@ -414,6 +424,7 @@ export const EUROPE_MORE: CountryConfig[] = [
       { label: 'VAT 9% (reduced)', taxes: [{ label: 'VAT', rate: 9 }] },
       { label: 'VAT 5% (reduced)', taxes: [{ label: 'VAT', rate: 5 }] },
       { label: 'Not VAT-registered (under €15,600)', taxes: [] },
+      reverseCharge(),
     ],
     taxIdLabel: 'VAT number (CY…)', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'CY-',

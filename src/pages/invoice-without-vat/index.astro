@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
+import { COUNTRIES, COUNTRY_BY_KEY, countryPath } from '../../data/countries';
+import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
+
+const pageUrl = abs('/invoice-without-vat/');
+const description = 'When you can send an invoice without VAT or GST, and the exact exemption wording to print in Germany, France, Austria, Italy, Poland, Portugal, Belgium, India and more.';
+
+// Countries where the law asks the invoice to state why no tax is charged. The wording itself
+// comes from the country data, so the guide prints exactly what the generator prints.
+const REQUIRED: { key: string; preset: RegExp; basis: string }[] = [
+  { key: 'germany',  preset: /Kleinunternehmer/, basis: 'Small-business scheme, § 19 UStG' },
+  { key: 'austria',  preset: /Kleinunternehmer/, basis: 'Small-business scheme, § 6 (1) 27 UStG' },
+  { key: 'france',   preset: /franchise/,        basis: 'Franchise en base, article 293 B of the CGI' },
+  { key: 'belgium',  preset: /Franchise/,        basis: 'Small-business franchise scheme' },
+  { key: 'italy',    preset: /forfettario/,      basis: 'Regime forfettario, Law 190/2014' },
+  { key: 'poland',   preset: /Zwolnienie/,       basis: 'Exemption under art. 113 of the VAT Act' },
+  { key: 'portugal', preset: /53/,               basis: 'Exemption under article 53 of the CIVA' },
+  { key: 'india',    preset: /LUT/,              basis: 'Export of services under a Letter of Undertaking' },
+];
+const required = REQUIRED.map(r => {
+  const c = COUNTRY_BY_KEY[r.key];
+  return { c, basis: r.basis, note: c.taxPresets.find(p => r.preset.test(p.label))?.note ?? '' };
+});
+
+// Everywhere else with a "not registered" setup: a plain statement is enough.
+const requiredKeys = new Set(REQUIRED.map(r => r.key));
+const plain = COUNTRIES
+  .filter(c => !requiredKeys.has(c.key))
+  .map(c => ({ c, p: c.taxPresets.find(p => p.taxes.length === 0 && !/reverse charge|export/i.test(p.label)) }))
+  .filter((x): x is { c: typeof x.c; p: NonNullable<typeof x.p> } => !!x.p);
+
+const faqs: FaqItem[] = [
+  { q: 'Is “VAT 0%” the same as not charging VAT?',
+    a: 'No. A 0% line says the sale is taxable at a zero rate, which is how many countries treat exports. If you are exempt or not registered, leave the tax line off altogether and print the reason instead.' },
+  { q: 'Do I still need a tax number on the invoice?',
+    a: 'Show the number you have. Germany, for example, still expects your Steuernummer or USt-IdNr. on every invoice, and Belgium and Italy expect your VAT number even under their small-business schemes. If you have no tax number at all, simply leave that line off.' },
+  { q: 'What happens when I pass the threshold?',
+    a: 'From then on you register and charge tax as normal, and some countries require it from the very invoice that takes you over the limit. Each country page lists the threshold and the date the rule was checked.' },
+  { q: `How do I print the note with ${SITE.name}?`,
+    a: 'Open your country’s generator and pick the exemption setup in the tax menu. The invoice drops the tax line and prints the wording at the bottom.' },
+];
+---
+
+<Base
+  title="Invoice Without VAT: Exemption Wording for Each Country"
+  description={description}
+  schema={[
+    articleSchema('How to invoice without VAT', pageUrl, description, '2026-10-21'),
+    breadcrumbSchema([{ name: SITE.name, url: abs('/') }, { name: 'Invoicing without VAT', url: pageUrl }]),
+    faqSchema(faqs),
+  ]}
+>
+  <article class="article container-narrow" aria-labelledby="guide-heading">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">Invoicing without VAT</span>
+    </nav>
+    <h1 id="guide-heading">How to invoice without VAT</h1>
+    <p class="lead">Plenty of freelancers and small businesses send invoices with no VAT or GST on them, and that is perfectly legal when there is a reason. In several countries, though, the invoice has to say what the reason is, in words the tax office recognises. Here is when you can leave the tax off and what to print instead.</p>
+
+    <h2>When an invoice can go out without tax</h2>
+    <ul>
+      <li><strong>You are under the registration threshold</strong> and haven’t registered, as most new freelancers in the UK, Canada or Australia are.</li>
+      <li><strong>You use a small-business scheme</strong>, such as Germany’s Kleinunternehmerregelung or France’s franchise en base, which lets you stay out of VAT below a turnover limit.</li>
+      <li><strong>You sell services to a business in another EU country.</strong> The client accounts for the VAT, and the invoice says so. That is the <a href="/reverse-charge-invoice/">reverse charge</a>, which has wording of its own.</li>
+      <li><strong>You export services outside your country</strong>, which many countries zero-rate. India is the best-known case where the invoice needs a set statement.</li>
+    </ul>
+    <p>Spain is the exception worth knowing: it has no general small-business exemption, so almost every self-employed person there charges IVA from the first invoice.</p>
+
+    <h2>Countries where the wording is required</h2>
+    <p>These countries expect the invoice to name the rule that lets you skip the tax. Copy the wording exactly, or let the generator print it for you.</p>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Country</th><th>Why there is no tax</th><th>What the invoice says</th></tr></thead>
+        <tbody>
+          {required.map(r => (
+            <tr><td><a href={countryPath(r.c)}>{r.c.name}</a></td><td>{r.basis}</td><td lang={r.c.labelsLang}>{r.note}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Everywhere else, a plain statement works</h2>
+    <p>In these countries there is no set phrase. Leave the tax line off, don’t show a tax number you don’t have, and add a short line so your client isn’t left wondering.</p>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Country</th><th>Setup in the generator</th><th>Printed note</th></tr></thead>
+        <tbody>
+          {plain.map(({ c, p }) => (
+            <tr><td><a href={countryPath(c)}>{c.name}</a></td><td>{p.label}</td><td>{p.note ?? 'No set wording'}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>What still has to be on the invoice</h2>
+    <p>Leaving the tax off doesn’t shorten the rest of the invoice. You still need your name and address, your client’s details, a unique <a href="/invoice-number-format/">invoice number</a>, the date, what you supplied and the total. Each <a href="/invoice-requirements-by-country/">country page</a> has the full checklist.</p>
+
+    <div class="cta">
+      <a href="/invoice-requirements-by-country/" class="btn btn-primary">Pick your country</a>
+      <p>Every country’s generator has the exemption setup in its tax menu.</p>
+    </div>
+  </article>
+
+  <section class="section" aria-labelledby="faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Questions about invoicing without VAT" headingId="faq-heading" />
+    </div>
+  </section>
+</Base>

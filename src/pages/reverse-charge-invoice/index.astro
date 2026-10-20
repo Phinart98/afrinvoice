@@ -1,0 +1,91 @@
+---
+import Base from '../../layouts/Base.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
+import { COUNTRIES, countryPath } from '../../data/countries';
+import { articleSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
+
+const pageUrl = abs('/reverse-charge-invoice/');
+const description = 'How to write a reverse charge invoice for a business client in another EU country: when it applies, what the invoice must show, and the official wording in every EU language.';
+
+// Every EU country's reverse-charge setup, read from the same data the generator prints.
+const rows = COUNTRIES
+  .map(c => ({ c, p: c.taxPresets.find(p => /reverse charge/i.test(p.label)) }))
+  .filter((x): x is { c: typeof x.c; p: NonNullable<typeof x.p> } => !!x.p)
+  .sort((a, b) => a.c.name.localeCompare(b.c.name));
+
+const faqs: FaqItem[] = [
+  { q: 'Does the reverse charge apply to private customers?',
+    a: 'No. It only applies when your client is a VAT-registered business. Services to consumers in other EU countries are usually taxed where you are, or under the One Stop Shop rules for digital services.' },
+  { q: 'How do I check my client’s VAT number?',
+    a: 'Use the European Commission’s free VIES service. Check the number before you invoice and keep a record of the result, because an invalid number means you should have charged VAT.' },
+  { q: 'Is it the same for goods?',
+    a: 'Not quite. Goods sent to a business in another EU country are an intra-Community supply, which is exempt under a different article and needs its own wording and proof of transport. This page covers services.' },
+  { q: 'What about clients in the UK, Switzerland or Norway?',
+    a: 'They are outside the EU, so this wording doesn’t apply. Services you sell to a business there are usually outside the scope of your own VAT, and the invoice simply shows no VAT with a short note saying why.' },
+  { q: 'Is there anything to file afterwards?',
+    a: 'Yes. Most EU countries want reverse-charge sales listed in your VAT return and in the EC Sales List (the recapitulative statement), usually monthly or quarterly.' },
+];
+---
+
+<Base
+  title="Reverse Charge Invoice: Wording for Every EU Country"
+  description={description}
+  schema={[
+    articleSchema('How to write a reverse charge invoice', pageUrl, description, '2026-10-21'),
+    breadcrumbSchema([{ name: SITE.name, url: abs('/') }, { name: 'Reverse charge invoices', url: pageUrl }]),
+    faqSchema(faqs),
+  ]}
+>
+  <article class="article container-narrow" aria-labelledby="guide-heading">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">Reverse charge invoices</span>
+    </nav>
+    <h1 id="guide-heading">How to write a reverse charge invoice</h1>
+    <p class="lead">When you sell services to a VAT-registered business in another EU country, you don’t charge VAT. Your client accounts for it in their own country instead, and your invoice has to say so. That is the reverse charge, and getting the wording right is most of the job.</p>
+
+    <h2>When it applies</h2>
+    <p>Three things have to be true. You are VAT-registered in an EU country, your client is a VAT-registered business in a different EU country, and you are selling services. If your client is a private person, or in the same country as you, charge VAT as normal.</p>
+
+    <h2>What the invoice must show</h2>
+    <ul>
+      <li>Your VAT number and your client’s VAT number, checked in the EU’s VIES service.</li>
+      <li>The net price with no VAT line, or VAT shown as zero.</li>
+      <li>A statement that the reverse charge applies. The VAT Directive asks for the words “Reverse charge”, and each country uses the official version in its own language.</li>
+      <li>Everything a normal invoice needs: a unique number, the date, both addresses and what you supplied.</li>
+    </ul>
+
+    <h2>The wording, country by country</h2>
+    <p>This is what the generator prints when you pick the reverse-charge setup. Where your country’s invoices are in its own language, the official local wording comes first, followed by the English, so your client can read it too.</p>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Your country</th><th>Printed on the invoice</th></tr></thead>
+        <tbody>
+          {rows.map(({ c, p }) => (
+            <tr><td><a href={countryPath(c)}>{c.name}</a></td><td>{p.note}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Making one</h2>
+    <ol>
+      <li>Open your country’s generator from the table above.</li>
+      <li>In the tax menu, pick <strong>EU business client, services (reverse charge)</strong>.</li>
+      <li>Add your client’s VAT number to their details, then download the PDF.</li>
+    </ol>
+    <p>Not VAT-registered at all? Then the reverse charge isn’t for you, and you print your exemption instead. See <a href="/invoice-without-vat/">invoicing without VAT</a>.</p>
+
+    <div class="cta">
+      <a href="/germany-invoice-generator/" class="btn btn-primary">Try it with Germany</a>
+      <p>Every EU country page has the same setup in its tax menu.</p>
+    </div>
+  </article>
+
+  <section class="section" aria-labelledby="faq-heading">
+    <div class="container">
+      <FaqSection items={faqs} heading="Questions about the reverse charge" headingId="faq-heading" />
+    </div>
+  </section>
+</Base>

@@ -23,6 +23,20 @@ describe('country list', () => {
     expect(featured.filter(c => c.region === 'africa').length).toBeLessThanOrEqual(2);
   });
 
+  it('offers the EU reverse-charge setup in every EU country, and nowhere else', () => {
+    const EU = ['ireland', 'germany', 'france', 'netherlands', 'spain', 'italy', 'austria', 'belgium', 'portugal',
+      'poland', 'sweden', 'denmark', 'finland', 'czech-republic', 'luxembourg', 'malta', 'cyprus'];
+    for (const c of COUNTRIES) {
+      const rc = c.taxPresets.find(p => /reverse charge/i.test(p.label));
+      if (EU.includes(c.key)) {
+        expect(rc?.taxes, c.key).toEqual([]);
+        expect(rc?.note, c.key).toMatch(/Reverse charge \(Article 196, Directive 2006\/112\/EC\)\.$/);
+      } else {
+        expect(rc, c.key).toBeUndefined();
+      }
+    }
+  });
+
   it('marks countries that need government e-invoicing in their first rule', () => {
     for (const key of ['italy', 'belgium', 'poland', 'portugal', 'mexico', 'brazil', 'colombia', 'saudi-arabia']) {
       expect(COUNTRY_BY_KEY[key].rules[0], key).toMatch(/foreign clients/i);

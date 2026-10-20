@@ -1,6 +1,13 @@
-import type { CountryConfig } from './types';
+import type { CountryConfig, TaxPreset } from './types';
 
-export const EU_REVERSE_CHARGE = 'Selling to a VAT-registered business in another EU country? Charge 0%, show both VAT numbers and add “Reverse charge — Article 196, Directive 2006/112/EC”.';
+export const EU_REVERSE_CHARGE = 'Selling services to a VAT-registered business in another EU country? Pick the reverse-charge setup: it charges 0% and prints the required wording. Show your client’s VAT number as well as your own.';
+
+/** B2B services to a business in another EU country: no VAT, and the invoice must say the customer accounts for it (VAT Directive Art. 196 and 226(11a)). `local` is the official wording in the label language. */
+export const reverseCharge = (local?: string): TaxPreset => ({
+  label: 'EU business client, services (reverse charge)',
+  taxes: [],
+  note: `${local ? `${local} / ` : ''}Reverse charge (Article 196, Directive 2006/112/EC).`,
+});
 
 export const EUROPE: CountryConfig[] = [
   {
@@ -40,6 +47,7 @@ export const EUROPE: CountryConfig[] = [
       { label: 'VAT 23% (standard)', taxes: [{ label: 'VAT', rate: 23 }] },
       { label: 'VAT 13.5% (reduced)', taxes: [{ label: 'VAT', rate: 13.5 }] },
       { label: 'Not VAT-registered', taxes: [] },
+      reverseCharge(),
     ],
     taxIdLabel: 'VAT number', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'INV-',
@@ -65,6 +73,7 @@ export const EUROPE: CountryConfig[] = [
       { label: 'USt. 19% (Regelsteuersatz)', taxes: [{ label: 'USt.', rate: 19 }] },
       { label: 'USt. 7% (ermäßigt)', taxes: [{ label: 'USt.', rate: 7 }] },
       { label: 'Kleinunternehmer (§ 19 UStG — no VAT)', taxes: [], note: 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).' },
+      reverseCharge('Steuerschuldnerschaft des Leistungsempfängers'),
     ],
     taxIdLabel: 'USt-IdNr. / Steuernummer', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'RE-',
@@ -94,6 +103,7 @@ export const EUROPE: CountryConfig[] = [
       { label: 'TVA 10% (taux intermédiaire)', taxes: [{ label: 'TVA', rate: 10 }] },
       { label: 'TVA 5,5% (taux réduit)', taxes: [{ label: 'TVA', rate: 5.5 }] },
       { label: 'Micro-entreprise (franchise en base)', taxes: [], note: 'TVA non applicable, art. 293 B du CGI.' },
+      reverseCharge('Autoliquidation'),
     ],
     taxIdLabel: 'SIRET / N° TVA', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'F-',
@@ -122,6 +132,7 @@ export const EUROPE: CountryConfig[] = [
       { label: 'btw 21% (hoog tarief)', taxes: [{ label: 'btw', rate: 21 }] },
       { label: 'btw 9% (laag tarief)', taxes: [{ label: 'btw', rate: 9 }] },
       { label: 'KOR — small business scheme (no VAT)', taxes: [], note: 'Vrijgesteld van btw op grond van de kleineondernemersregeling (KOR).' },
+      reverseCharge('Btw verlegd'),
     ],
     taxIdLabel: 'Btw-id / KvK', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'F-',
@@ -148,6 +159,7 @@ export const EUROPE: CountryConfig[] = [
       { label: 'New autónomo — IVA 21% − IRPF 7%', taxes: [{ label: 'IVA', rate: 21 }, { label: 'IRPF', rate: 7, kind: 'withhold' }] },
       { label: 'IVA 21% only (companies, or sales to consumers)', taxes: [{ label: 'IVA', rate: 21 }] },
       { label: 'IVA 10% (reducido)', taxes: [{ label: 'IVA', rate: 10 }] },
+      reverseCharge('Inversión del sujeto pasivo'),
     ],
     taxIdLabel: 'NIF', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'F-',
@@ -175,6 +187,7 @@ export const EUROPE: CountryConfig[] = [
       { label: 'IVA 22% (ordinaria)', taxes: [{ label: 'IVA', rate: 22 }] },
       { label: 'Professional — IVA 22% − ritenuta d’acconto 20%', taxes: [{ label: 'IVA', rate: 22 }, { label: 'Ritenuta d’acconto', rate: 20, kind: 'withhold' }] },
       { label: 'Regime forfettario (no IVA)', taxes: [], note: 'Operazione effettuata ai sensi dell’art. 1, commi 54–89, L. 190/2014 — regime forfettario.' },
+      reverseCharge('Inversione contabile'),
     ],
     taxIdLabel: 'Partita IVA', documentTitle: 'invoice', rails: ['iban'],
     invoicePrefix: 'FT-',
