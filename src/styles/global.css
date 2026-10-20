@@ -34,7 +34,17 @@
   --accent-glow:  #B9DCD7;
   --accent-subtle:#E6F2F0;
 
-  --stamp:        #5B3FA6;   /* visa ink: the stamp only */
+  --stamp:        #5B3FA6;   /* kept for reference; the stamp is now a fill */
+
+  /* Fills: big flat planes of colour do the work that borders and fades used to */
+  --band:         #0F766E;   /* hero band */
+  --on-band:      #FFFFFF;
+  --on-band-2:    #D5EEEA;
+  --tint:         #DCEBE7;   /* section band */
+  --desk:         #CFE3DE;   /* behind the invoice preview */
+  --card-fill:    #EAF1EE;   /* form groups */
+  --stamp-fill:   #F6C445;   /* saffron: the rules-checked stamp */
+  --on-stamp:     #1E1A0B;
 
   --footer-bg:    #142422;
   --footer-text:  #A9B8B4;
@@ -74,13 +84,21 @@
 /* ── Design tokens: dark (system, unless the visitor picked light) ── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:           #0F1716;
-    --surface:      #172220;
-    --surface-2:    #1D2A28;
-    --surface-3:    #243331;
-    --surface-4:    #2E3F3C;
-    --border:       #2A3835;
-    --border-light: #223030;
+    --bg:           #0E2422;
+    --surface:      #0B1D1B;
+    --surface-2:    #18403B;
+    --surface-3:    #1F4C46;
+    --surface-4:    #275A53;
+    --border:       #2B5A54;
+    --border-light: #1F4A44;
+    --band:         #0F766E;
+    --on-band:      #FFFFFF;
+    --on-band-2:    #D5EEEA;
+    --tint:         #133A36;
+    --desk:         #1A4A44;
+    --card-fill:    #15352F;
+    --stamp-fill:   #F6C445;
+    --on-stamp:     #1E1A0B;
     --text:         #E4ECEA;
     --text-2:       #B4C2BE;
     --text-3:       #9AABA7;
@@ -93,7 +111,7 @@
     --accent-glow:  #24504A;
     --accent-subtle:#173230;
     --stamp:        #B39BF5;
-    --footer-bg:    #0A1110;
+    --footer-bg:    #081A18;
     --footer-text:  #8FA19D;
     --footer-head:  #E4ECEA;
     --success:      #5FD3A6;
@@ -106,13 +124,21 @@
   }
 }
 :root[data-theme="dark"] {
-  --bg:           #0F1716;
-  --surface:      #172220;
-  --surface-2:    #1D2A28;
-  --surface-3:    #243331;
-  --surface-4:    #2E3F3C;
-  --border:       #2A3835;
-  --border-light: #223030;
+  --bg:           #0E2422;
+  --surface:      #0B1D1B;
+  --surface-2:    #18403B;
+  --surface-3:    #1F4C46;
+  --surface-4:    #275A53;
+  --border:       #2B5A54;
+  --border-light: #1F4A44;
+  --band:         #0F766E;
+  --on-band:      #FFFFFF;
+  --on-band-2:    #D5EEEA;
+  --tint:         #133A36;
+  --desk:         #1A4A44;
+  --card-fill:    #15352F;
+  --stamp-fill:   #F6C445;
+  --on-stamp:     #1E1A0B;
   --text:         #E4ECEA;
   --text-2:       #B4C2BE;
   --text-3:       #9AABA7;
@@ -125,7 +151,7 @@
   --accent-glow:  #24504A;
   --accent-subtle:#173230;
   --stamp:        #B39BF5;
-  --footer-bg:    #0A1110;
+  --footer-bg:    #081A18;
   --footer-text:  #8FA19D;
   --footer-head:  #E4ECEA;
   --success:      #5FD3A6;
@@ -239,19 +265,17 @@ code {
   display: inline-flex;
   flex-direction: column;
   gap: 0.125rem;
-  padding: 0.5rem 0.875rem 0.5625rem;
-  border: 2px solid var(--stamp);
-  outline: 1px solid var(--stamp);
-  outline-offset: 2px;
-  border-radius: 4px;
-  color: var(--stamp);
+  padding: 0.625rem 1rem 0.6875rem;
+  background: var(--stamp-fill);
+  color: var(--on-stamp);
+  border-radius: 3px;
   transform: rotate(-2deg);
   line-height: 1.25;
   max-width: 17rem;
 }
 .stamp-top { font-size: 0.8125rem; font-weight: 600; }
 .stamp-main { font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; }
-.stamp-sm { padding: 0.25rem 0.5rem 0.3125rem; border-width: 1.5px; outline-offset: 1.5px; transform: rotate(-1.5deg); }
+.stamp-sm { padding: 0.3125rem 0.5625rem 0.375rem; transform: rotate(-1.5deg); }
 .stamp-sm .stamp-top { font-size: 0.6875rem; }
 .stamp-sm .stamp-main { font-size: 0.8125rem; }
 
@@ -365,7 +389,31 @@ code {
 .breadcrumb a { color: var(--text-3); text-decoration: none; }
 .breadcrumb a:hover { color: var(--accent); }
 
-.country-hero { padding: 3rem 0 2rem; }
+.country-hero, .band-hero {
+  padding: 3rem 0 3.25rem;
+  margin-bottom: 2.5rem;
+  background: var(--band);
+  color: var(--on-band);
+}
+.country-hero .country-heading, .band-hero h1 { color: var(--on-band); }
+.country-hero .country-sub, .band-hero p { color: var(--on-band-2); }
+.country-hero .country-sub strong, .band-hero strong { color: var(--on-band); }
+.country-hero .breadcrumb, .country-hero .breadcrumb a { color: var(--on-band-2); }
+.country-hero .breadcrumb a:hover { color: var(--on-band); }
+.country-hero a:not(.breadcrumb a), .band-hero a {
+  color: var(--on-band);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.country-hero .stamp, .band-hero .stamp { color: var(--on-stamp); }
+
+/* Section band: a flat plane of colour, not a border, separates it */
+.band { background: var(--tint); }
+
+/* Table heads are filled */
+.data-table thead th, .compare thead th { background: var(--accent); color: var(--on-accent); }
 
 /* Text on the left, an optional stamp on the right; the stamp drops below on phones */
 .hero-row {
@@ -398,7 +446,7 @@ code {
 .tool-section { padding: 0 0 2rem; }
 
 .tool-shell {
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface);

@@ -139,7 +139,7 @@ const themeStyle = computed(() => {
 .preview-wrap {
   height: 100%;
   overflow-y: auto;
-  background: var(--surface-2);
+  background: var(--desk);
   padding: 1.25rem;
   display: flex;
   justify-content: center;
@@ -152,7 +152,6 @@ const themeStyle = computed(() => {
   max-width: 560px;
   padding: 2rem 2rem 1.5rem;
   border-radius: 6px;
-  border: 1px solid var(--border);
   font-family: var(--font);
   font-size: 0.8125rem;
   color: #0F172A;

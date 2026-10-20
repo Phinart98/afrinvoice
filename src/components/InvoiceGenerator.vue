@@ -960,7 +960,6 @@ const correctionHref = computed(() =>
 .form-pane {
   width: 55%;
   min-width: 0;
-  border-right: 1px solid var(--border);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1034,8 +1033,8 @@ const correctionHref = computed(() =>
 
 /* ── Form card ───────────────────────────────────────────────────────────── */
 .form-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--card-fill);
+  border: none;
   border-radius: var(--radius);
   padding: 1rem 1.125rem;
   display: flex;

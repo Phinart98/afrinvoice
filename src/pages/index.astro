@@ -53,7 +53,7 @@ const pageDescription = `Free invoice generator that knows your country’s rule
 ---
 
 <Base title={pageTitle} description={pageDescription} schema={[schema, faqSchema(faqs)]}>
-  <section class="hero" aria-labelledby="hero-heading">
+  <section class="hero band-hero" aria-labelledby="hero-heading">
     <div class="container hero-row">
       <div class="hero-text">
         <h1 id="hero-heading" class="hero-heading">A free invoice generator that knows your country’s rules</h1>
@@ -84,7 +84,7 @@ const pageDescription = `Free invoice generator that knows your country’s rule
 
   <AdUnit slot="tool-below" />
 
-  <section class="features section" aria-labelledby="features-heading">
+  <section class="features section band" aria-labelledby="features-heading">
     <div class="container">
       <h2 id="features-heading" class="features-heading">What changes when you pick a country</h2>
       <p class="features-lead">A few examples. Every rate can be edited, and you can add tax lines, withholding, discounts and shipping.</p>
@@ -126,31 +126,21 @@ const pageDescription = `Free invoice generator that knows your country’s rule
 
 <style>
   /* ── Hero: left-aligned, the stamp on the right; the tool starts right after ── */
-  .hero { padding: 3.5rem 0 2.25rem; }
+  .hero { padding: 3.5rem 0 3.5rem; }
 
   .hero-heading {
     font-size: clamp(2rem, 5vw, 3.05rem);
     line-height: 1.08;
     letter-spacing: -0.03em;
-    color: var(--text);
     max-width: 18em;
     margin-bottom: 1rem;
   }
 
   .hero-sub {
     font-size: clamp(1rem, 2vw, 1.125rem);
-    color: var(--text-2);
     line-height: 1.65;
     max-width: 40rem;
   }
-  .hero-sub a {
-    color: var(--text);
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
-    text-decoration-thickness: 2px;
-    text-underline-offset: 3px;
-  }
-  .hero-sub a:hover { color: var(--accent); }
 
   /* ── Comparison table ─────────────────────────────── */
   .features-heading { margin-bottom: 0.5rem; }
@@ -161,7 +151,6 @@ const pageDescription = `Free invoice generator that knows your country’s rule
     width: 100%;
     border-collapse: collapse;
     background: var(--surface);
-    border: 1px solid var(--border);
     font-size: 0.9375rem;
   }
   .compare th, .compare td {
@@ -170,12 +159,7 @@ const pageDescription = `Free invoice generator that knows your country’s rule
     padding: 0.875rem 1rem;
     border-bottom: 1px solid var(--border);
   }
-  .compare thead th {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--text-3);
-    background: var(--surface-2);
-  }
+  .compare thead th { font-size: 0.8125rem; font-weight: 700; }
   .compare tbody th { font-weight: 700; white-space: nowrap; }
   .compare tbody th a { color: var(--text); }
   .compare tbody th a:hover { color: var(--accent); }
