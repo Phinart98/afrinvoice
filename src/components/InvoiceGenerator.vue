@@ -444,7 +444,7 @@ const correctionHref = computed(() =>
 </script>
 
 <template>
-  <div class="gen-wrap">
+  <div class="gen-wrap" :data-doc="state.docType">
 
     <!-- ── Mobile tab bar ─────────────────────────────────────────────── -->
     <div class="tab-bar" role="tablist" aria-label="Invoice generator views">
@@ -1033,7 +1033,7 @@ const correctionHref = computed(() =>
 
 /* ── Form card ───────────────────────────────────────────────────────────── */
 .form-card {
-  background: var(--card-fill);
+  background: var(--sheet-invoice);
   border: none;
   border-radius: var(--radius);
   padding: 1rem 1.125rem;

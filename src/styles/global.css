@@ -2,53 +2,54 @@
 
 /* ─────────────────────────────────────────────────────────
    Design system (brand name lives in src/site.ts)
-   Idea: a calm official form, checked at a border. One family (Public Sans,
-   made for US government forms), a cool paper ground, teal for actions, and a
-   single bold mark: the violet "rules checked" stamp (.stamp, below).
-   Solid fills only. The invoice preview stays white in both themes: it is the printout.
+   Idea: the duplicate book. Carbon-copy ink on plain paper, and colour that
+   always means something: like the copies of a receipt book, each document
+   type has its own sheet colour (invoice white, quote canary, receipt pink,
+   proforma blue, credit note green). The one red is the "No. 0001" block.
+   Dark mode is the carbon paper itself. Flat fills only, no gradients, and
+   the invoice preview stays white in both themes: it is the printout.
 ───────────────────────────────────────────────────────── */
 
 /* ── Design tokens: light ────────────────────────────── */
 :root {
   --font: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --bg:           #F4F6F4;   /* paper */
-  --surface:      #FFFFFF;   /* sheet: cards, inputs */
-  --surface-2:    #EDF1EF;
-  --surface-3:    #E3E9E6;
-  --surface-4:    #D6DDDA;
+  --bg:           #F2F2F5;   /* paper */
+  --surface:      #FFFFFF;
+  --surface-2:    #E3E4EE;
+  --surface-3:    #D9DAE8;
+  --surface-4:    #C9CBDD;
 
-  --border:       #D6DDDA;   /* rule */
-  --border-light: #E3E9E6;
+  --border:       #C9CBDD;
+  --border-light: #E3E4EE;
 
-  --text:         #142422;   /* ink */
-  --text-2:       #4C5B58;
-  --text-3:       #5F6E6B;
-  --text-4:       #7D8A87;
+  --text:         #22256B;   /* carbon-copy ink */
+  --text-2:       #3D4072;
+  --text-3:       #55587E;
+  --text-4:       #66698E;
 
-  --accent:       #0F766E;
-  --accent-hover: #115E59;
-  --accent-deep:  #134E4A;
+  --accent:       #2B2F8F;
+  --accent-hover: #1F2270;
+  --accent-deep:  #1D2050;
   --on-accent:    #FFFFFF;
-  --accent-dim:   #D5EAE7;
-  --accent-glow:  #B9DCD7;
-  --accent-subtle:#E6F2F0;
+  --accent-dim:   #D9DAF0;
+  --accent-glow:  #C4C6EA;
+  --accent-subtle:#E8E9F6;
 
-  --stamp:        #5B3FA6;   /* kept for reference; the stamp is now a fill */
+  --red:          #C8102E;   /* the "No." block: the one bold mark */
+  --desk:         #E3E4EE;   /* behind the invoice preview */
 
-  /* Fills: big flat planes of colour do the work that borders and fades used to */
-  --band:         #0F766E;   /* hero band */
-  --on-band:      #FFFFFF;
-  --on-band-2:    #D5EEEA;
-  --tint:         #DCEBE7;   /* section band */
-  --desk:         #CFE3DE;   /* behind the invoice preview */
-  --card-fill:    #EAF1EE;   /* form groups */
-  --stamp-fill:   #F6C445;   /* saffron: the rules-checked stamp */
-  --on-stamp:     #1E1A0B;
+  /* Sheet colours: what a fill means. Always pale, always with carbon ink on top. */
+  --sheet-invoice:  #ECECF3;
+  --sheet-quote:    #FFF0A6;
+  --sheet-receipt:  #FFD2DC;
+  --sheet-proforma: #D6E6FF;
+  --sheet-credit:   #D9F0D2;
+  --sheet-ink:      #22256B;
 
-  --footer-bg:    #142422;
-  --footer-text:  #A9B8B4;
-  --footer-head:  #E4ECEA;
+  --footer-bg:    #1D2050;
+  --footer-text:  #B9BBDA;
+  --footer-head:  #FFFFFF;
 
   /* Invoice preview: always paper */
   --invoice-bg:     #FFFFFF;
@@ -71,8 +72,8 @@
 
   --shadow-sm:    none;
   --shadow:       none;
-  --shadow-lg:    0 6px 20px rgba(20, 36, 34, 0.14);
-  --shadow-invoice: 0 1px 0 #D6DDDA, 0 0 0 1px #D6DDDA;
+  --shadow-lg:    0 6px 20px rgba(34, 37, 107, 0.16);
+  --shadow-invoice: none;
   --shadow-accent: none;
 
   --ease:         150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -84,83 +85,94 @@
 /* ── Design tokens: dark (system, unless the visitor picked light) ── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg:           #0E2422;
-    --surface:      #0B1D1B;
-    --surface-2:    #18403B;
-    --surface-3:    #1F4C46;
-    --surface-4:    #275A53;
-    --border:       #2B5A54;
-    --border-light: #1F4A44;
-    --band:         #0F766E;
-    --on-band:      #FFFFFF;
-    --on-band-2:    #D5EEEA;
-    --tint:         #133A36;
-    --desk:         #1A4A44;
-    --card-fill:    #15352F;
-    --stamp-fill:   #F6C445;
-    --on-stamp:     #1E1A0B;
-    --text:         #E4ECEA;
-    --text-2:       #B4C2BE;
-    --text-3:       #9AABA7;
-    --text-4:       #82938F;
-    --accent:       #4FC1B2;
-    --accent-hover: #74D3C6;
-    --accent-deep:  #A6E5DC;
-    --on-accent:    #06201D;
-    --accent-dim:   #1C3A36;
-    --accent-glow:  #24504A;
-    --accent-subtle:#173230;
-    --stamp:        #B39BF5;
-    --footer-bg:    #081A18;
-    --footer-text:  #8FA19D;
-    --footer-head:  #E4ECEA;
-    --success:      #5FD3A6;
-    --success-dim:  #16332A;
-    --error:        #F28B8B;
-    --error-dim:    #3A1C1C;
-    --shadow-lg:    0 6px 20px rgba(0, 0, 0, 0.5);
-    --shadow-invoice: none;
+    --bg:           #1D2050;   /* carbon paper */
+    --surface:      #262A63;
+    --surface-2:    #2C3070;
+    --surface-3:    #353A80;
+    --surface-4:    #40458F;
+    --border:       #40458F;
+    --border-light: #353A80;
+    --text:         #F1F1F8;
+    --text-2:       #D4D5EA;
+    --text-3:       #B9BBDA;
+    --text-4:       #A2A5CF;
+    --accent:       #FFF0A6;   /* in the dark, actions are canary */
+    --accent-hover: #FFE680;
+    --accent-deep:  #FFF7D1;
+    --on-accent:    #1D2050;
+    --accent-dim:   #353A80;
+    --accent-glow:  #4A4F9C;
+    --accent-subtle:#2C3070;
+    --desk:         #2C3070;
+    --footer-bg:    #15183D;
+    --footer-text:  #B9BBDA;
+    --footer-head:  #FFFFFF;
+    --success:      #8FE3B8;
+    --success-dim:  #1F4A3C;
+    --error:        #FF9DA8;
+    --error-dim:    #4A2236;
+    --shadow-lg:    0 6px 20px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg:           #0E2422;
-  --surface:      #0B1D1B;
-  --surface-2:    #18403B;
-  --surface-3:    #1F4C46;
-  --surface-4:    #275A53;
-  --border:       #2B5A54;
-  --border-light: #1F4A44;
-  --band:         #0F766E;
-  --on-band:      #FFFFFF;
-  --on-band-2:    #D5EEEA;
-  --tint:         #133A36;
-  --desk:         #1A4A44;
-  --card-fill:    #15352F;
-  --stamp-fill:   #F6C445;
-  --on-stamp:     #1E1A0B;
-  --text:         #E4ECEA;
-  --text-2:       #B4C2BE;
-  --text-3:       #9AABA7;
-  --text-4:       #82938F;
-  --accent:       #4FC1B2;
-  --accent-hover: #74D3C6;
-  --accent-deep:  #A6E5DC;
-  --on-accent:    #06201D;
-  --accent-dim:   #1C3A36;
-  --accent-glow:  #24504A;
-  --accent-subtle:#173230;
-  --stamp:        #B39BF5;
-  --footer-bg:    #081A18;
-  --footer-text:  #8FA19D;
-  --footer-head:  #E4ECEA;
-  --success:      #5FD3A6;
-  --success-dim:  #16332A;
-  --error:        #F28B8B;
-  --error-dim:    #3A1C1C;
-  --shadow-lg:    0 6px 20px rgba(0, 0, 0, 0.5);
-  --shadow-invoice: none;
+  --bg:           #1D2050;   /* carbon paper */
+  --surface:      #262A63;
+  --surface-2:    #2C3070;
+  --surface-3:    #353A80;
+  --surface-4:    #40458F;
+  --border:       #40458F;
+  --border-light: #353A80;
+  --text:         #F1F1F8;
+  --text-2:       #D4D5EA;
+  --text-3:       #B9BBDA;
+  --text-4:       #A2A5CF;
+  --accent:       #FFF0A6;   /* in the dark, actions are canary */
+  --accent-hover: #FFE680;
+  --accent-deep:  #FFF7D1;
+  --on-accent:    #1D2050;
+  --accent-dim:   #353A80;
+  --accent-glow:  #4A4F9C;
+  --accent-subtle:#2C3070;
+  --desk:         #2C3070;
+  --footer-bg:    #15183D;
+  --footer-text:  #B9BBDA;
+  --footer-head:  #FFFFFF;
+  --success:      #8FE3B8;
+  --success-dim:  #1F4A3C;
+  --error:        #FF9DA8;
+  --error-dim:    #4A2236;
+  --shadow-lg:    0 6px 20px rgba(0, 0, 0, 0.45);
   color-scheme: dark;
+}
+
+/* The generator's form groups take the sheet colour of the chosen document */
+.gen-wrap[data-doc="quote"]       .form-card { background: var(--sheet-quote); }
+.gen-wrap[data-doc="receipt"]     .form-card { background: var(--sheet-receipt); }
+.gen-wrap[data-doc="proforma"]    .form-card { background: var(--sheet-proforma); }
+.gen-wrap[data-doc="credit-note"] .form-card { background: var(--sheet-credit); }
+.gen-wrap .form-card.download-card { background: transparent; }
+
+/* A pale sheet always carries light-mode ink and controls, in either theme */
+.on-sheet, .form-card:not(.download-card) {
+  --text:         #22256B;
+  --text-2:       #3D4072;
+  --text-3:       #55587E;
+  --text-4:       #66698E;
+  --surface:      #FFFFFF;
+  --surface-2:    #FFFFFF;
+  --surface-3:    #F2F2F5;
+  --border:       #B9BBD6;
+  --accent:       #2B2F8F;
+  --accent-hover: #1F2270;
+  --on-accent:    #FFFFFF;
+  --accent-dim:   #D9DAF0;
+  --accent-subtle:#FFFFFF;
+  --success:      #047857;
+  --error:        #B91C1C;
+  --error-dim:    #FBE3E3;
+  color: var(--text);
+  color-scheme: light;
 }
 
 /* ── Reset ───────────────────────────────────────────── */
@@ -258,23 +270,44 @@ code {
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
-/* ── The stamp: the site's one bold mark ─────────────────
-   A rubber passport stamp in violet ink with a double rule. It always carries a
-   real date (when the country rules were last checked), never decoration. */
-.stamp {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  padding: 0.625rem 1rem 0.6875rem;
-  background: var(--stamp-fill);
-  color: var(--on-stamp);
-  border-radius: 3px;
-  transform: rotate(-2deg);
-  line-height: 1.25;
-  max-width: 17rem;
+/* ── Sheets: the hero fan, and small "rules checked" slips ──
+   Each sheet is a flat fill whose colour means a document type. */
+.sheet-fan { position: relative; width: 18rem; height: 14.5rem; flex-shrink: 0; }
+.sheet {
+  position: absolute; left: 0; width: 16rem; height: 8rem;
+  border-radius: 3px; padding: 0.375rem 0.875rem;
+  font-weight: 700; font-size: 0.875rem; line-height: 1.5;
+  color: var(--sheet-ink); text-decoration: none;
+  display: flex; flex-direction: column; justify-content: space-between;
 }
-.stamp-top { font-size: 0.8125rem; font-weight: 600; }
+.sheet:hover { color: var(--sheet-ink); text-decoration: underline; text-underline-offset: 3px; }
+.sheet small { font-weight: 600; font-size: 0.8125rem; line-height: 1.35; color: #3D4072; }
+.sheet-credit   { top: 0;      background: var(--sheet-credit);   transform: rotate(-1deg); }
+.sheet-proforma { top: 1.6rem; background: var(--sheet-proforma); transform: rotate(1deg); }
+.sheet-receipt  { top: 3.2rem; background: var(--sheet-receipt);  transform: rotate(-1.5deg); }
+.sheet-quote    { top: 4.8rem; background: var(--sheet-quote);    transform: rotate(1deg); }
+.sheet-invoice  { top: 6.4rem; background: #FFFFFF; transform: rotate(-2deg); box-shadow: 0 0 0 1px #C9CBDD; padding: 0.75rem 0.875rem; font-size: 1rem; }
+.sheet-no {
+  align-self: flex-end; background: var(--red); color: #FFFFFF;
+  font-size: 0.8125rem; font-weight: 700; padding: 0.125rem 0.5rem; border-radius: 2px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 760px) {
+  .sheet-fan { width: 100%; height: 13.5rem; }
+  .sheet { width: 100%; }
+}
+
+/* A single slip: a white sheet with the date the rules were checked */
+.stamp {
+  display: inline-flex; flex-direction: column; gap: 0.125rem;
+  padding: 0.75rem 1rem 0.625rem; max-width: 17rem;
+  background: #FFFFFF; color: var(--sheet-ink);
+  box-shadow: 0 0 0 1px #C9CBDD; border-radius: 3px;
+  transform: rotate(-2deg); line-height: 1.3;
+}
+.stamp-top { font-size: 0.8125rem; font-weight: 600; color: #3D4072; }
 .stamp-main { font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.01em; }
+.stamp .sheet-no { margin-top: 0.5rem; }
 .stamp-sm { padding: 0.3125rem 0.5625rem 0.375rem; transform: rotate(-1.5deg); }
 .stamp-sm .stamp-top { font-size: 0.6875rem; }
 .stamp-sm .stamp-main { font-size: 0.8125rem; }
@@ -389,28 +422,12 @@ code {
 .breadcrumb a { color: var(--text-3); text-decoration: none; }
 .breadcrumb a:hover { color: var(--accent); }
 
-.country-hero, .band-hero {
-  padding: 3rem 0 3.25rem;
-  margin-bottom: 2.5rem;
-  background: var(--band);
-  color: var(--on-band);
+.country-hero { padding: 3rem 0 2.5rem; }
+.hero-links a, .country-sub a {
+  color: var(--text); font-weight: 600;
+  text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px;
 }
-.country-hero .country-heading, .band-hero h1 { color: var(--on-band); }
-.country-hero .country-sub, .band-hero p { color: var(--on-band-2); }
-.country-hero .country-sub strong, .band-hero strong { color: var(--on-band); }
-.country-hero .breadcrumb, .country-hero .breadcrumb a { color: var(--on-band-2); }
-.country-hero .breadcrumb a:hover { color: var(--on-band); }
-.country-hero a:not(.breadcrumb a), .band-hero a {
-  color: var(--on-band);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-}
-
-.country-hero .stamp, .band-hero .stamp { color: var(--on-stamp); }
-
-/* Section band: a flat plane of colour, not a border, separates it */
-.band { background: var(--tint); }
+.hero-links a:hover, .country-sub a:hover { color: var(--accent); }
 
 /* Table heads are filled */
 .data-table thead th, .compare thead th { background: var(--accent); color: var(--on-accent); }
