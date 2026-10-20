@@ -84,15 +84,15 @@ async function remove() {
   border: 1px solid var(--border, #DDD7CF);
   border-radius: var(--radius, 10px);
 }
-.pro-title { font: 700 1rem/1.3 'Sora', sans-serif; color: var(--text, #1C1612); }
+.pro-title { font: 700 1rem/1.3 var(--font); color: var(--text, #1C1612); }
 .pro-text { margin-top: 0.375rem; font-size: 0.875rem; color: var(--text-2, #6B6058); }
 .pro-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 0.875rem; }
 .pro-buy {
   display: inline-block;
   padding: 0.625rem 1rem;
   border-radius: var(--radius-sm, 6px);
-  background: var(--accent, #0F766E);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
   font-weight: 600;
   font-size: 0.875rem;
   text-decoration: none;
@@ -117,14 +117,14 @@ async function remove() {
   padding: 0.5rem 0.625rem;
   border: 1px solid var(--border, #DDD7CF);
   border-radius: var(--radius-sm, 6px);
-  font: 0.8125rem 'JetBrains Mono', monospace;
+  font: 0.8125rem var(--font); font-variant-numeric: tabular-nums;
 }
 .pro-key-btn {
   padding: 0.5rem 0.875rem;
   border: none;
   border-radius: var(--radius-sm, 6px);
-  background: var(--text, #1C1612);
-  color: #fff;
+  background: var(--text);
+  color: var(--bg);
   font-weight: 600;
   cursor: pointer;
 }

@@ -25,6 +25,7 @@ const faqs: FaqItem[] = [
   { q: 'How often is this data checked?',
     a: `Each country shows the month it was last verified against official sources. Spot something out of date? Email ${SITE.email}.` },
 ];
+import { checkedSpan } from '../../utils/stamp';
 ---
 
 <Base
@@ -39,9 +40,16 @@ const faqs: FaqItem[] = [
   <section class="country-hero" aria-labelledby="hub-heading">
     <div class="container">
       <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">Countries</span></nav>
-      <div class="country-badge">{COUNTRIES.length} countries · sources cited · checked monthly</div>
-      <h1 id="hub-heading" class="country-heading">Invoice requirements by country</h1>
-      <p class="country-sub">The standard tax, the tax ID to print, the currency and whether e-invoicing applies, <strong>at a glance</strong>. Each country links to a free generator with its rules built in.</p>
+      <div class="hero-row">
+        <div class="hero-text">
+          <h1 id="hub-heading" class="country-heading">Invoice requirements by country</h1>
+          <p class="country-sub">The standard tax, the tax ID to print, the currency and whether e-invoicing applies, for {COUNTRIES.length} countries with their sources cited. Each country links to a free generator with its rules built in.</p>
+        </div>
+        <p class="stamp" aria-label={`Rules for ${COUNTRIES.length} countries, checked ${checkedSpan(COUNTRIES.map(c => c.lastVerified))}`}>
+          <span class="stamp-top">Rules for {COUNTRIES.length} countries</span>
+          <span class="stamp-main">Checked {checkedSpan(COUNTRIES.map(c => c.lastVerified))}</span>
+        </p>
+      </div>
     </div>
   </section>
 
@@ -56,7 +64,7 @@ const faqs: FaqItem[] = [
               <tbody>
                 {list.map(c => (
                   <tr>
-                    <td><a href={countryPath(c)}><span aria-hidden="true">{c.flag}</span> {c.name}</a></td>
+                    <td><a href={countryPath(c)}>{c.name}</a></td>
                     <td>{standardTax(c)}</td>
                     <td>{c.taxIdLabel}</td>
                     <td>{c.currency}</td>
@@ -88,7 +96,7 @@ const faqs: FaqItem[] = [
   .data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
   .data-table th, .data-table td { text-align: left; padding: 0.625rem 0.875rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
   .data-table tr:last-child td { border-bottom: none; }
-  .data-table th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); background: var(--surface-2); }
+  .data-table th { font-size: 0.8125rem; font-weight: 600; color: var(--text-3); background: var(--surface-2); }
   .data-table td { color: var(--text-2); }
   .data-table a { color: var(--text); font-weight: 600; text-decoration: none; }
   .data-table a:hover { color: var(--accent); }

@@ -143,7 +143,7 @@ export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean } = {}):
     qr: paymentQr(s, t.balanceDue),
     notes: s.notes.trim(),
     footer: s.footerNote.trim(),
-    madeWith: opts.pro ? null : `Made with ${SITE.name} · ${SITE.domain}`,
+    madeWith: opts.pro ? null : `Made with ${SITE.name}, ${SITE.domain}`,
     raw: t,
   };
 }

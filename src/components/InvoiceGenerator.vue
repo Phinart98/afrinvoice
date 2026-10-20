@@ -12,6 +12,7 @@ import { generateInvoicePDF, printInvoicePDF } from '../utils/invoicePDF';
 import { paymentQr } from '../utils/paymentQr';
 import { formatMoney, localToday, addDays } from '../utils/money';
 import { SITE } from '../site';
+import { checkedMonth } from '../utils/stamp';
 import InvoicePreview from './InvoicePreview.vue';
 import ProPanel from './ProPanel.vue';
 import { useProStatus } from '../utils/useProStatus';
@@ -466,7 +467,7 @@ const correctionHref = computed(() =>
             <select id="country-select" :value="state.countryKey" class="form-select"
               @change="applyCountry(($event.target as HTMLSelectElement).value)">
               <optgroup v-for="[region, list] in regions" :key="region" :label="REGION_NAMES[region]">
-                <option v-for="c in list" :key="c.key" :value="c.key">{{ c.flag }} {{ c.name }}</option>
+                <option v-for="c in list" :key="c.key" :value="c.key">{{ c.name }}</option>
               </optgroup>
               <option value="other">🌍 Other country (set tax yourself)</option>
             </select>
@@ -513,7 +514,7 @@ const correctionHref = computed(() =>
         <div class="form-card">
           <div class="card-title-row">
             <h3 class="card-title">Document</h3>
-            <button v-if="state.docType === 'quote'" type="button" class="link-btn" @click="convertToInvoice">Turn this quote into an invoice →</button>
+            <button v-if="state.docType === 'quote'" type="button" class="link-btn" @click="convertToInvoice">Turn this quote into an invoice</button>
           </div>
           <div class="field-row">
             <div class="field field-grow">
@@ -536,7 +537,7 @@ const correctionHref = computed(() =>
               <div class="label-with-toggle">
                 <label class="field-label" for="inv-due">{{ state.docType === 'quote' ? 'Valid until' : 'Due date' }}</label>
                 <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.dueDate }]" :aria-pressed="state.visible.dueDate"
-                  @click="state.visible.dueDate = !state.visible.dueDate">{{ state.visible.dueDate ? 'on invoice' : 'hidden' }}</button>
+                  @click="state.visible.dueDate = !state.visible.dueDate">{{ state.visible.dueDate ? 'printed' : 'hidden' }}</button>
               </div>
               <input id="inv-due" v-model="state.dueDate" type="date" class="form-input" />
               <div class="chips">
@@ -607,7 +608,7 @@ const correctionHref = computed(() =>
               <div class="label-with-toggle">
                 <label class="field-label" for="biz-email">Email</label>
                 <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.bizEmail }]" :aria-pressed="state.visible.bizEmail"
-                  @click="state.visible.bizEmail = !state.visible.bizEmail">{{ state.visible.bizEmail ? 'on invoice' : 'hidden' }}</button>
+                  @click="state.visible.bizEmail = !state.visible.bizEmail">{{ state.visible.bizEmail ? 'printed' : 'hidden' }}</button>
               </div>
               <input id="biz-email" v-model="state.businessEmail" type="email" class="form-input" placeholder="hello@yourco.com" autocomplete="email" />
             </div>
@@ -615,7 +616,7 @@ const correctionHref = computed(() =>
               <div class="label-with-toggle">
                 <label class="field-label" for="biz-phone">Phone</label>
                 <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.bizPhone }]" :aria-pressed="state.visible.bizPhone"
-                  @click="state.visible.bizPhone = !state.visible.bizPhone">{{ state.visible.bizPhone ? 'on invoice' : 'hidden' }}</button>
+                  @click="state.visible.bizPhone = !state.visible.bizPhone">{{ state.visible.bizPhone ? 'printed' : 'hidden' }}</button>
               </div>
               <input id="biz-phone" v-model="state.businessPhone" class="form-input" autocomplete="tel" />
             </div>
@@ -645,7 +646,7 @@ const correctionHref = computed(() =>
               <div class="label-with-toggle">
                 <label class="field-label" for="client-email">Email</label>
                 <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.clientEmail }]" :aria-pressed="state.visible.clientEmail"
-                  @click="state.visible.clientEmail = !state.visible.clientEmail">{{ state.visible.clientEmail ? 'on invoice' : 'hidden' }}</button>
+                  @click="state.visible.clientEmail = !state.visible.clientEmail">{{ state.visible.clientEmail ? 'printed' : 'hidden' }}</button>
               </div>
               <input id="client-email" v-model="state.clientEmail" type="email" class="form-input" placeholder="client@example.com" />
             </div>
@@ -655,7 +656,7 @@ const correctionHref = computed(() =>
               <div class="label-with-toggle">
                 <label class="field-label" for="client-address">Address</label>
                 <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.clientAddress }]" :aria-pressed="state.visible.clientAddress"
-                  @click="state.visible.clientAddress = !state.visible.clientAddress">{{ state.visible.clientAddress ? 'on invoice' : 'hidden' }}</button>
+                  @click="state.visible.clientAddress = !state.visible.clientAddress">{{ state.visible.clientAddress ? 'printed' : 'hidden' }}</button>
               </div>
               <textarea id="client-address" v-model="state.clientAddress" class="form-input form-textarea" rows="2" />
             </div>
@@ -707,7 +708,7 @@ const correctionHref = computed(() =>
           <div class="card-title-row">
             <h3 class="card-title">{{ country.taxName === 'Tax' ? 'Tax' : country.taxName }} &amp; totals</h3>
             <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.tax }]" :aria-pressed="state.visible.tax"
-              @click="state.visible.tax = !state.visible.tax">{{ state.visible.tax ? 'tax on invoice' : 'tax hidden' }}</button>
+              @click="state.visible.tax = !state.visible.tax">{{ state.visible.tax ? 'printed' : 'hidden' }}</button>
           </div>
           <div class="field">
             <label class="field-label" for="tax-preset">Tax setup for {{ country.name }}</label>
@@ -769,11 +770,16 @@ const correctionHref = computed(() =>
             <div v-if="totals.withheld"><dt>Withheld</dt><dd class="mono">−{{ money(totals.withheld) }}</dd></div>
             <div class="summary-total"><dt>{{ totals.amountPaid ? 'Balance due' : 'Total' }}</dt><dd class="mono">{{ money(totals.balanceDue) }}</dd></div>
           </dl>
-          <p class="data-note">
-            {{ country.key !== 'other' ? `${country.name} rates last checked ${country.lastVerified}.` : '' }}
-            <a v-if="country.key !== 'other'" :href="countryPath(country)">Invoice rules for {{ country.name }}</a>
-            · <a :href="correctionHref">Something wrong? Tell us</a>
-          </p>
+          <div class="data-note">
+            <p v-if="country.key !== 'other'" class="stamp stamp-sm">
+              <span class="stamp-top">{{ country.name }} rules</span>
+              <span class="stamp-main">Checked {{ checkedMonth(country.lastVerified) }}</span>
+            </p>
+            <p>
+              <a v-if="country.key !== 'other'" :href="countryPath(country)">Invoice rules for {{ country.name }}</a><template v-if="country.key !== 'other'">. </template>
+              <a :href="correctionHref">Something wrong? Tell us</a>.
+            </p>
+          </div>
         </div>
 
         <!-- ── Payment ────────────────────────────────────────────── -->
@@ -781,7 +787,7 @@ const correctionHref = computed(() =>
           <div class="card-title-row">
             <h3 class="card-title">How to pay you</h3>
             <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.payment }]" :aria-pressed="state.visible.payment"
-              @click="state.visible.payment = !state.visible.payment">{{ state.visible.payment ? 'on invoice' : 'hidden' }}</button>
+              @click="state.visible.payment = !state.visible.payment">{{ state.visible.payment ? 'printed' : 'hidden' }}</button>
           </div>
           <div class="payment-toggle" role="group" aria-label="Payment method">
             <button v-for="r in availableRails" :key="r" type="button" :class="['pay-btn', { active: state.paymentRail === r }]"
@@ -876,7 +882,7 @@ const correctionHref = computed(() =>
             </button>
             <button type="button" class="print-btn" :disabled="busy" @click="output('print')">Print</button>
           </div>
-          <p class="download-hint">No sign-up · No limits · Made in your browser</p>
+          <p class="download-hint">Free, and nothing you type leaves this browser.</p>
           <div class="row-actions row-actions-center">
             <button type="button" class="link-btn" @click="newDocument">New document</button>
             <button type="button" class="link-btn" :aria-expanded="showHistory" @click="showHistory = !showHistory">
@@ -889,7 +895,7 @@ const correctionHref = computed(() =>
             <ul v-else>
               <li v-for="h in history" :key="h.id">
                 <span class="history-main"><strong class="mono">{{ h.number }}</strong> {{ h.clientName || '—' }}</span>
-                <span class="history-meta mono">{{ formatMoney(h.total, h.currency, country.locale) }} · {{ h.savedAt.slice(0, 10) }}</span>
+                <span class="history-meta mono">{{ formatMoney(h.total, h.currency, country.locale) }}, {{ h.savedAt.slice(0, 10) }}</span>
                 <span class="history-actions">
                   <button type="button" class="link-btn" @click="openEntry(h, false)">Open</button>
                   <button type="button" class="link-btn" @click="openEntry(h, true)">Duplicate</button>
@@ -939,7 +945,7 @@ const correctionHref = computed(() =>
   padding: 0.75rem;
   font-size: 0.875rem;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   color: var(--text-3);
   background: none;
   border: none;
@@ -1007,6 +1013,7 @@ const correctionHref = computed(() =>
   /* Template pills: ensure they wrap rather than overflow */
   .template-pills { flex-wrap: wrap; }
   .top-bar        { gap: 0.5rem; }
+  .top-bar > .field-grow { flex: 1 1 100%; }
 }
 
 /* ── Form scroll area ────────────────────────────────────────────────────── */
@@ -1076,16 +1083,12 @@ const correctionHref = computed(() =>
 .field-row-tight { gap: 0.5rem; }
 
 .field-label {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-3);
+  color: var(--text-2);
 }
 .field-optional {
   font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
   color: var(--text-4);
 }
 
@@ -1096,16 +1099,16 @@ const correctionHref = computed(() =>
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.8125rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   color: var(--text);
-  background: #ffffff;
+  background: var(--surface);
   transition: border-color 150ms, box-shadow 150ms;
   outline: none;
   box-sizing: border-box;
 }
 .form-input:focus {
-  border-color: #0F766E;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 .form-select {
   width: 100%;
@@ -1113,17 +1116,17 @@ const correctionHref = computed(() =>
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 0.8125rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   color: var(--text);
-  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.625rem center;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.625rem center;
   appearance: none;
   outline: none;
   cursor: pointer;
   transition: border-color 150ms;
 }
-.form-select:focus { border-color: #0F766E; box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12); }
+.form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
 .form-textarea { resize: vertical; min-height: 56px; }
-.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+.mono { font-family: var(--font); font-variant-numeric: tabular-nums; font-size: 0.75rem; }
 
 /* ── Template pills ──────────────────────────────────────────────────────── */
 .template-pills {
@@ -1132,10 +1135,10 @@ const correctionHref = computed(() =>
 }
 .tpl-pill {
   padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text-3);
@@ -1143,9 +1146,9 @@ const correctionHref = computed(() =>
   transition: all 150ms;
 }
 .tpl-pill.active {
-  background: #0F766E;
-  border-color: #0F766E;
-  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
 }
 .tpl-pill.tpl-disabled {
   opacity: 0.45;
@@ -1156,7 +1159,7 @@ const correctionHref = computed(() =>
 .saved-badge {
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #16A34A;
+  color: var(--success);
   animation: fadeInOut 1.8s ease forwards;
 }
 @keyframes fadeInOut {
@@ -1192,9 +1195,9 @@ const correctionHref = computed(() =>
   background: var(--surface-2);
   cursor: pointer;
   transition: all 150ms;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
 }
-.logo-btn:hover { border-color: #0F766E; color: var(--accent); }
+.logo-btn:hover { border-color: var(--accent); color: var(--accent); }
 .logo-remove-btn {
   font-size: 0.75rem;
   color: var(--text-4);
@@ -1202,10 +1205,10 @@ const correctionHref = computed(() =>
   border: none;
   cursor: pointer;
   padding: 0 0.25rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   transition: color 150ms;
 }
-.logo-remove-btn:hover { color: #EF4444; }
+.logo-remove-btn:hover { color: var(--error); }
 
 /* ── Line items ──────────────────────────────────────────────────────────── */
 .item-label-row {
@@ -1226,8 +1229,8 @@ const correctionHref = computed(() =>
   padding: 0 0 0.375rem;
   border-bottom: 1px solid var(--border);
 }
-.ih-desc { font-size: 0.6875rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
-.ih-num  { font-size: 0.6875rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; text-align: right; }
+.ih-desc { font-size: 0.8125rem; font-weight: 600; color: var(--text-2); }
+.ih-num  { font-size: 0.8125rem; font-weight: 600; color: var(--text-2); text-align: right; }
 .ih-del  { /* spacer for delete col */ }
 
 .item-row {
@@ -1260,7 +1263,7 @@ const correctionHref = computed(() =>
   transition: all 150ms;
   flex-shrink: 0;
 }
-.item-del-btn:hover:not(:disabled) { background: #FEE2E2; color: #EF4444; }
+.item-del-btn:hover:not(:disabled) { background: var(--error-dim); color: var(--error); }
 .item-del-btn:disabled { opacity: 0.25; cursor: not-allowed; }
 
 .add-row-btn {
@@ -1272,15 +1275,15 @@ const correctionHref = computed(() =>
   font-weight: 600;
   color: var(--accent);
   background: none;
-  border: 1px dashed rgba(15, 118, 110, 0.4);
+  border: 1px dashed var(--accent);
   border-radius: 6px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   transition: all 150ms;
   align-self: flex-start;
   margin-top: 0.25rem;
 }
-.add-row-btn:hover { background: rgba(15, 118, 110, 0.06); border-color: #0F766E; }
+.add-row-btn:hover { background: var(--accent-subtle); }
 
 /* ── Payment toggle ──────────────────────────────────────────────────────── */
 .payment-toggle {
@@ -1295,7 +1298,7 @@ const correctionHref = computed(() =>
   padding: 0.4375rem 0.875rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   background: var(--surface-2);
   color: var(--text-3);
   border: none;
@@ -1303,7 +1306,7 @@ const correctionHref = computed(() =>
   transition: all 150ms;
 }
 .pay-btn:first-child { border-right: 1px solid var(--border); }
-.pay-btn.active { background: #0F766E; color: #ffffff; }
+.pay-btn.active { background: var(--accent); color: var(--on-accent); }
 .pay-btn:not(.active):hover { background: var(--surface-3); color: var(--text); }
 
 /* ── Visibility toggle — "on invoice" / "hidden" pill ───────────────────── */
@@ -1314,35 +1317,28 @@ const correctionHref = computed(() =>
 }
 
 .vis-toggle {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0.1rem 0.375rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  background: rgba(16, 185, 129, 0.07);
-  color: #059669;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
   cursor: pointer;
-  transition: all 150ms;
-  font-family: 'DM Sans', sans-serif;
-  line-height: 1.6;
+  font-family: var(--font);
+  line-height: 1.4;
   flex-shrink: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
 }
-.vis-toggle:hover { background: rgba(16, 185, 129, 0.14); }
-.vis-toggle.vis-off {
-  border-color: rgba(148, 163, 184, 0.35);
-  background: rgba(148, 163, 184, 0.08);
-  color: var(--text-4);
-}
-.vis-toggle.vis-off:hover { background: rgba(148, 163, 184, 0.15); }
+.vis-toggle:hover { text-decoration-style: solid; }
+.vis-toggle.vis-off { color: var(--text-4); }
 
 /* ── Tax hidden warning ──────────────────────────────────────────────────── */
 .vis-tax-warn {
   font-size: 0.6875rem;
-  color: #0F766E;
-  background: rgba(15, 118, 110, 0.07);
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  color: var(--text);
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-dim);
   border-radius: 5px;
   padding: 0.375rem 0.625rem;
   margin: 0;
@@ -1379,11 +1375,11 @@ const correctionHref = computed(() =>
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 1.5rem;
-  background: #0F766E;
-  color: #ffffff;
+  background: var(--accent);
+  color: var(--on-accent);
   font-size: 0.9375rem;
   font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -1392,7 +1388,7 @@ const correctionHref = computed(() =>
   justify-content: center;
   letter-spacing: -0.01em;
 }
-.download-btn:hover  { background: #0F766E; }
+.download-btn:hover  { background: var(--accent-hover); }
 .download-btn:active { transform: scale(0.99); }
 
 .print-btn {
@@ -1405,7 +1401,7 @@ const correctionHref = computed(() =>
   color: var(--text-2);
   font-size: 0.9375rem;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
@@ -1445,7 +1441,7 @@ const correctionHref = computed(() =>
   border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   transition: border-color 150ms;
   outline: none;
   align-self: flex-start;
@@ -1461,7 +1457,7 @@ const correctionHref = computed(() =>
 }
 
 .color-hex {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font); font-variant-numeric: tabular-nums;
   font-size: 0.6875rem;
   color: var(--text-3);
   text-transform: uppercase;
@@ -1522,7 +1518,7 @@ const correctionHref = computed(() =>
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 .color-cell.active {
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3.5px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--text);
   transform: scale(1.1);
   z-index: 1;
 }
@@ -1554,7 +1550,7 @@ const correctionHref = computed(() =>
   padding: 0.25rem 0.625rem;
   font-size: 0.6875rem;
   font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   color: var(--text-3);
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -1571,7 +1567,7 @@ const correctionHref = computed(() =>
   top: 0;
   z-index: 5;
   background: var(--text);
-  color: #fff;
+  color: var(--bg);
   font-size: 0.8125rem;
   padding: 0.625rem 0.875rem;
   border-radius: var(--radius-sm);
@@ -1603,7 +1599,7 @@ const correctionHref = computed(() =>
   font-size: 0.6875rem;
   padding: 0.125rem 0.5rem;
   border: 1px solid var(--border);
-  border-radius: var(--radius-full);
+  border-radius: 4px;
   background: var(--surface-2);
   color: var(--text-2);
   cursor: pointer;
@@ -1640,7 +1636,9 @@ const correctionHref = computed(() =>
 .summary .summary-total { color: var(--text); font-weight: 700; font-size: 0.9375rem; }
 .summary dd { margin: 0; }
 
-.data-note { font-size: 0.75rem; color: var(--text-3); line-height: 1.5; }
+.data-note { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; font-size: 0.75rem; color: var(--text-3); line-height: 1.5; }
+.data-note p { color: var(--text-3); font-size: 0.75rem; line-height: 1.5; }
+.data-note .stamp { margin: 0.25rem 0 0.25rem 0.125rem; }
 .data-note a { color: var(--accent); }
 
 .history ul { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; margin: 0.5rem 0 0.75rem; max-height: 260px; overflow-y: auto; }

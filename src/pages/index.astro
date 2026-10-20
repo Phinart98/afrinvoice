@@ -4,7 +4,8 @@ import AdUnit from '../components/AdUnit.astro';
 import FaqSection from '../components/FaqSection.astro';
 import AffiliateCallout from '../components/AffiliateCallout.astro';
 import InvoiceGenerator from '../components/InvoiceGenerator.vue';
-import { COUNTRIES, FEATURED_COUNTRIES, countryPath } from '../data/countries';
+import { COUNTRIES, COUNTRY_BY_KEY, countryPath, type CountryConfig } from '../data/countries';
+import { checkedSpan } from '../utils/stamp';
 import { webAppSchema, faqSchema } from '../utils/schema';
 import { SITE } from '../site';
 import type { FaqItem } from '../components/FaqSection.astro';
@@ -15,27 +16,22 @@ const schema = webAppSchema(
   'Free invoice, quote and receipt generator with country tax presets (VAT, GST, sales tax, withholding), any currency, payment QR codes and 7 invoice languages. No sign-up, instant PDF.',
 );
 
-const icon = (d: string) => `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
-const features = [
-  { icon: icon('<circle cx="10" cy="10" r="8"/><path d="M2 10h16M10 2a12 12 0 010 16M10 2a12 12 0 000 16"/>'),
-    title: `Knows the rules in ${COUNTRIES.length} countries`,
-    body: 'UK VAT, Canadian GST/HST by province, India CGST + SGST, Australian GST, EU VAT with reverse charge, Spanish IRPF, Ghana levies: set up in one click, every rate editable.' },
-  { icon: icon('<path d="M4 6h12M4 10h12M4 14h7"/><path d="M14 13l2 2 3-3"/>'),
-    title: 'Everything a real invoice needs',
-    body: 'Several tax lines, tax-inclusive prices, withholding, discounts, shipping, part-payments and balance due. Quotes, receipts, proformas and credit notes too.' },
-  { icon: icon('<rect x="3" y="3" width="5" height="5"/><rect x="12" y="3" width="5" height="5"/><rect x="3" y="12" width="5" height="5"/><path d="M12 12h2v2h-2zM15 15h2v2h-2z"/>'),
-    title: 'Get paid faster',
-    body: 'IBAN with a SEPA QR code any European banking app can scan, a UPI QR for India, mobile money in Africa, or your PayPal, Stripe or Wise link as a QR code.' },
-  { icon: icon('<path d="M4 4h9l3 3v9H4z"/><path d="M7 10h6M7 13h4"/>'),
-    title: 'Speaks your client’s language',
-    body: 'Print the invoice in English, French, German, Spanish, Portuguese, Italian or Dutch, with local number and date formats on A4 or US Letter.' },
-  { icon: icon('<rect x="4" y="9" width="12" height="8" rx="1.5"/><path d="M7 9V6a3 3 0 016 0v3"/>'),
-    title: 'Private by design',
-    body: 'No account and no upload. Your business details, clients and invoice history stay in your browser. Export a backup whenever you like.' },
-  { icon: icon('<path d="M4 4h12v12H4z"/><path d="M4 8h12M8 8v8"/>'),
-    title: '3 clean templates, no watermark',
-    body: 'Minimal, Modern and Classic, with your logo and colours. Every currency symbol prints correctly: ₦, ₹, ₵, € and the rest.' },
-];
+// "What changes when you pick a country": five contrasting countries, read straight from the data
+const langName = new Intl.DisplayNames(['en'], { type: 'language' });
+const railName = (c: CountryConfig) => ({
+  bank: 'Bank transfer',
+  iban: 'IBAN, with a SEPA QR code',
+  'mobile-money': c.mobileProviders?.length ? c.mobileProviders.slice(0, 2).map(p => p.name).join(' or ') : 'Mobile money',
+  upi: 'UPI, with a QR code',
+})[c.rails[0]];
+const compared = ['germany', 'france', 'india', 'united-states', 'ghana'].map(k => COUNTRY_BY_KEY[k]).map(c => ({
+  c,
+  tax: c.taxPresets[0]?.label ?? 'No tax',
+  paper: c.paper === 'Letter' ? 'US Letter' : 'A4',
+  pay: railName(c),
+  lang: langName.of(c.labelsLang) ?? c.labelsLang,
+}));
+const checked = checkedSpan(COUNTRIES.map(c => c.lastVerified));
 
 const faqs: FaqItem[] = [
   { q: `Is ${SITE.name} really free?`,
@@ -54,36 +50,27 @@ const faqs: FaqItem[] = [
 
 const pageTitle = `Free Invoice Generator with VAT, GST & Sales Tax Built In — ${SITE.name}`;
 const pageDescription = `Free invoice generator that knows your country’s rules: VAT, GST, sales tax and withholding presets for ${COUNTRIES.length} countries, any currency, payment QR codes, quotes and receipts. No sign-up, instant PDF.`;
-const moreCount = COUNTRIES.length - FEATURED_COUNTRIES.length;
 ---
 
 <Base title={pageTitle} description={pageDescription} schema={[schema, faqSchema(faqs)]}>
   <section class="hero" aria-labelledby="hero-heading">
-    <div class="container">
-      <div class="hero-content">
-        <div class="hero-badge anim-fade-up anim-delay-1">Free · No sign-up · Nothing uploaded</div>
-        <h1 id="hero-heading" class="hero-heading anim-fade-up anim-delay-2">
-          The free invoice generator<br />
-          <span class="shimmer">that knows your country’s rules.</span>
-        </h1>
-        <p class="hero-sub anim-fade-up anim-delay-3">
-          Pick your country and the right taxes, currency, paper size and payment details set themselves up.
-          <strong>Download a professional PDF in under a minute.</strong>
+    <div class="container hero-row">
+      <div class="hero-text">
+        <h1 id="hero-heading" class="hero-heading">A free invoice generator that knows your country’s rules</h1>
+        <p class="hero-sub">
+          Pick your country and the taxes, currency, paper size and payment details set themselves up.
+          It’s ready for <a href={countryPath(COUNTRY_BY_KEY['germany'])}>Germany</a>,
+          <a href={countryPath(COUNTRY_BY_KEY['india'])}>India</a>,
+          <a href={countryPath(COUNTRY_BY_KEY['ghana'])}>Ghana</a>,
+          <a href={countryPath(COUNTRY_BY_KEY['united-kingdom'])}>the UK</a>,
+          <a href={countryPath(COUNTRY_BY_KEY['united-states'])}>the US</a> and
+          <a href="/invoice-requirements-by-country/">{COUNTRIES.length - 5} more countries</a>.
         </p>
-        <div class="hero-chips anim-fade-up anim-delay-4" role="list" aria-label="Country invoice generators">
-          {FEATURED_COUNTRIES.map(c => (
-            <a href={countryPath(c)} class="country-chip" role="listitem"><span aria-hidden="true">{c.flag}</span> {c.name}</a>
-          ))}
-          <a href="/invoice-requirements-by-country/" class="country-chip" role="listitem">+ {moreCount} more</a>
-        </div>
-        <div class="hero-stats anim-fade-up anim-delay-5">
-          <div class="hero-stat"><span class="hero-stat-num mono">{COUNTRIES.length}</span><span class="hero-stat-label">countries</span></div>
-          <div class="hero-stat-sep" aria-hidden="true"></div>
-          <div class="hero-stat"><span class="hero-stat-num mono">7</span><span class="hero-stat-label">invoice languages</span></div>
-          <div class="hero-stat-sep" aria-hidden="true"></div>
-          <div class="hero-stat"><span class="hero-stat-num mono">100%</span><span class="hero-stat-label">in your browser</span></div>
-        </div>
       </div>
+      <p class="stamp" aria-label={`Rules for ${COUNTRIES.length} countries, checked ${checked}`}>
+        <span class="stamp-top">Rules for {COUNTRIES.length} countries</span>
+        <span class="stamp-main">Checked {checked}</span>
+      </p>
     </div>
   </section>
 
@@ -99,16 +86,30 @@ const moreCount = COUNTRIES.length - FEATURED_COUNTRIES.length;
 
   <section class="features section" aria-labelledby="features-heading">
     <div class="container">
-      <h2 id="features-heading" class="features-heading">Everything you need to get paid, nothing you don’t</h2>
-      <div class="features-grid">
-        {features.map(f => (
-          <div class="feature-card">
-            <div class="feature-icon" set:html={f.icon} aria-hidden="true" />
-            <h3 class="feature-title">{f.title}</h3>
-            <p class="feature-body">{f.body}</p>
-          </div>
-        ))}
-      </div>
+      <h2 id="features-heading" class="features-heading">What changes when you pick a country</h2>
+      <p class="features-lead">A few examples. Every rate can be edited, and you can add tax lines, withholding, discounts and shipping.</p>
+      <table class="compare">
+        <thead>
+          <tr><th scope="col">Country</th><th scope="col">Tax on the invoice</th><th scope="col">Tax ID</th><th scope="col">Paper</th><th scope="col">Clients pay by</th><th scope="col">Printed in</th></tr>
+        </thead>
+        <tbody>
+          {compared.map(r => (
+            <tr>
+              <th scope="row"><a href={countryPath(r.c)}>{r.c.name}</a></th>
+              <td data-label="Tax on the invoice">{r.tax}</td>
+              <td data-label="Tax ID">{r.c.taxIdLabel}</td>
+              <td data-label="Paper">{r.paper}</td>
+              <td data-label="Clients pay by">{r.pay}</td>
+              <td data-label="Printed in">{r.lang}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="features-more">
+        The same form makes quotes, receipts, proformas and credit notes, in any currency and in seven languages.
+        Nothing you type is uploaded: your details, clients and invoice history stay in this browser, and
+        Export backup moves them to another device.
+      </p>
     </div>
   </section>
 
@@ -124,188 +125,75 @@ const moreCount = COUNTRIES.length - FEATURED_COUNTRIES.length;
 </Base>
 
 <style>
-  /* ── Hero ─────────────────────────────────────────── */
-  .hero {
-    position: relative;
-    padding: 6rem 0 4rem;
-    overflow: hidden;
-    text-align: center;
-  }
+  /* ── Hero: left-aligned, the stamp on the right; the tool starts right after ── */
+  .hero { padding: 3.5rem 0 2.25rem; }
 
-
-  .hero-content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.625rem;
-    max-width: 52rem;
-    margin: 0 auto;
-  }
-
-  /* Badge */
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.3125rem 0.875rem;
-    background: rgba(15, 118, 110, 0.06);
-    border: 1px solid rgba(15, 118, 110, 0.18);
-    border-radius: 9999px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: #0F766E;
-    letter-spacing: 0.01em;
-  }
-
-  /* Headline */
   .hero-heading {
-    font-size: clamp(2.125rem, 6vw, 3.75rem);
-    line-height: 1.1;
+    font-size: clamp(2rem, 5vw, 3.05rem);
+    line-height: 1.08;
     letter-spacing: -0.03em;
     color: var(--text);
+    max-width: 18em;
+    margin-bottom: 1rem;
   }
 
-  /* Subtext */
   .hero-sub {
     font-size: clamp(1rem, 2vw, 1.125rem);
-    color: var(--text-3);
-    line-height: 1.75;
-    max-width: 38rem;
-  }
-  .hero-sub strong {
     color: var(--text-2);
-    font-weight: 500;
-  }
-
-  /* Country chips */
-  .hero-chips {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-
-  /* Stats strip */
-  .hero-stats {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding-top: 0.5rem;
-  }
-
-  .hero-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.125rem;
-  }
-
-  .hero-stat-num {
-    font-size: 1.375rem;
-    font-weight: 600;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .hero-stat-label {
-    font-size: 0.7rem;
-    color: var(--text-4);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 400px) {
-    .hero-stats    { gap: 0.875rem; }
-    .hero-stat-num { font-size: 1.125rem; }
-    .hero-stat-label { font-size: 0.6rem; letter-spacing: 0.03em; }
-    .hero-stat-sep { height: 1.5rem; }
-  }
-
-  .hero-stat-sep {
-    width: 1px;
-    height: 2rem;
-    background: var(--border);
-    flex-shrink: 0;
-  }
-
-  /* ── Tool section ─────────────────────────────────── */
-  .tool-section {
-    padding: 0 0 2rem;
-  }
-
-  /* Shell that gives the Vue island its border/radius and enforces height */
-  .tool-shell {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    background: var(--surface);
-    min-height: 640px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── Features ─────────────────────────────────────── */
-  .features-heading {
-    text-align: center;
-    margin-bottom: 3rem;
-    max-width: 36rem;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .features-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-
-  @media (min-width: 640px) {
-    .features-grid { grid-template-columns: 1fr 1fr; }
-  }
-
-  .feature-card {
-    background: var(--surface);
-    padding: 1.75rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-    transition: background var(--ease);
-  }
-  .feature-card:hover { background: var(--surface-2); }
-
-  .feature-icon {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--accent-subtle);
-    border: 1px solid rgba(15, 118, 110, 0.15);
-    border-radius: 8px;
-    margin-bottom: 0.25rem;
-  }
-
-  .feature-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.01em;
-  }
-
-  .feature-body {
-    font-size: 0.875rem;
-    color: var(--text-3);
     line-height: 1.65;
-    margin: 0;
+    max-width: 40rem;
+  }
+  .hero-sub a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .hero-sub a:hover { color: var(--accent); }
+
+  /* ── Comparison table ─────────────────────────────── */
+  .features-heading { margin-bottom: 0.5rem; }
+  .features-lead { margin-bottom: 1.5rem; max-width: 40rem; }
+  .features-more { margin-top: 1.5rem; max-width: 44rem; }
+
+  .compare {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.9375rem;
+  }
+  .compare th, .compare td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .compare thead th {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-3);
+    background: var(--surface-2);
+  }
+  .compare tbody th { font-weight: 700; white-space: nowrap; }
+  .compare tbody th a { color: var(--text); }
+  .compare tbody th a:hover { color: var(--accent); }
+  .compare td { color: var(--text-2); }
+  .compare tr:last-child > * { border-bottom: none; }
+
+  /* Phones: each country becomes a small labelled block */
+  @media (max-width: 760px) {
+    .compare, .compare tbody, .compare tr, .compare th, .compare td { display: block; }
+    .compare thead { display: none; }
+    .compare tr { padding: 0.875rem 1rem; border-bottom: 1px solid var(--border); }
+    .compare tr:last-child { border-bottom: none; }
+    .compare th, .compare td { padding: 0; border: none; }
+    .compare tbody th { font-size: 1.0625rem; margin-bottom: 0.375rem; }
+    .compare td { display: grid; grid-template-columns: 8.5rem 1fr; gap: 0.75rem; padding: 0.1875rem 0; }
+    .compare td::before { content: attr(data-label); color: var(--text-4); font-size: 0.8125rem; }
   }
 
-  /* ── Affiliate wrap ───────────────────────────────── */
   .affiliate-wrap {
     padding-top: 0.5rem;
     padding-bottom: 1rem;

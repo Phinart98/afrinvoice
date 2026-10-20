@@ -3,7 +3,7 @@ import { buildInvoiceView } from './invoiceView';
 import { defaultInvoiceState, type InvoiceState } from '../types/invoice';
 import { SITE } from '../site';
 
-const MADE_WITH = `Made with ${SITE.name} · ${SITE.domain}`;
+const MADE_WITH = `Made with ${SITE.name}, ${SITE.domain}`;
 
 const make = (p: Partial<InvoiceState>) => buildInvoiceView({ ...defaultInvoiceState(), ...p });
 

@@ -52,7 +52,6 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </nav>
 
       <header class="guide-header">
-        <div class="guide-badge">🇬🇭 Ghana · GRA VAT 20% · MTN MoMo</div>
         <h1 id="guide-heading" class="guide-heading">How to Invoice Clients in Ghana</h1>
         <p class="guide-lead">
           Whether you're a freelance designer in Accra, a consultant billing a corporate client, or a
@@ -137,9 +136,9 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
       <div class="guide-cta-wrap">
         <a href="/ghana-invoice-generator/" class="guide-cta">
-          Create your Ghana invoice →
+          Create your Ghana invoice
         </a>
-        <p class="guide-cta-sub">GRA VAT 20% pre-filled · MTN MoMo fields · Free PDF</p>
+        <p class="guide-cta-sub">Ghana VAT, NHIL and GETFund are filled in for you, with MTN MoMo payment details.</p>
       </div>
 
     </div>
@@ -151,7 +150,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
   <section class="section" aria-labelledby="gh-guide-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Ghana Invoicing — FAQs" headingId="gh-guide-faq-heading" />
+      <FaqSection items={faqs} heading="Questions about invoicing in Ghana" headingId="gh-guide-faq-heading" />
     </div>
   </section>
 
@@ -238,7 +237,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     padding: 0.75rem 1rem;
     background: var(--surface-2);
     border-radius: var(--radius);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font); font-variant-numeric: tabular-nums;
     font-size: 0.875rem;
     color: var(--text);
     display: flex;
@@ -257,15 +256,15 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     display: inline-flex;
     align-items: center;
     padding: 0.875rem 2rem;
-    background: #0F766E;
-    color: #ffffff;
+    background: var(--accent);
+    color: var(--on-accent);
     font-size: 1rem;
     font-weight: 700;
     border-radius: 8px;
     text-decoration: none;
     transition: background var(--ease);
   }
-  .guide-cta:hover { background: #0F766E; }
+  .guide-cta:hover { background: var(--accent-hover); color: var(--on-accent); }
 
   .guide-cta-sub {
     margin-top: 0.625rem;

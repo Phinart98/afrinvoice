@@ -139,7 +139,7 @@ const themeStyle = computed(() => {
 .preview-wrap {
   height: 100%;
   overflow-y: auto;
-  background: #F1F5F9;
+  background: var(--surface-2);
   padding: 1.25rem;
   display: flex;
   justify-content: center;
@@ -152,8 +152,8 @@ const themeStyle = computed(() => {
   max-width: 560px;
   padding: 2rem 2rem 1.5rem;
   border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
-  font-family: 'DM Sans', sans-serif;
+  border: 1px solid var(--border);
+  font-family: var(--font);
   font-size: 0.8125rem;
   color: #0F172A;
   align-self: flex-start;
@@ -161,7 +161,7 @@ const themeStyle = computed(() => {
 
 /* ── Typography utilities ────────────────────────────────────────────── */
 .inv-dim   { color: #475569; font-size: 0.75rem; margin: 0; line-height: 1.6; }
-.inv-mono  { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+.inv-mono  { font-family: var(--font); font-variant-numeric: tabular-nums; font-size: 0.75rem; }
 .inv-pre   { white-space: pre-wrap; }
 
 /* ── Section label (BILL TO, PAYMENT DETAILS, NOTES) ────────────────── */
@@ -199,7 +199,7 @@ const themeStyle = computed(() => {
 }
 
 .inv-biz-name {
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font);
   font-size: 0.9375rem;
   font-weight: 700;
   color: #0F172A;
@@ -213,7 +213,7 @@ const themeStyle = computed(() => {
 }
 
 .inv-title {
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font);
   font-size: 1.375rem;
   font-weight: 800;
   color: #0F172A;
@@ -532,7 +532,7 @@ const themeStyle = computed(() => {
 .inv-qr figcaption { margin-top: 0.125rem; }
 
 .inv-minimal-number {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font); font-variant-numeric: tabular-nums;
   font-size: 1.375rem;
   font-weight: 700;
   color: #0F172A;

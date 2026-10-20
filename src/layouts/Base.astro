@@ -37,7 +37,8 @@ const ogAlt   = `${SITE.name} — ${SITE.tagline}`;
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0F766E" />
+  <meta name="theme-color" content="#F4F6F4" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0F1716" media="(prefers-color-scheme: dark)" />
 
   <title>{ogTitle}</title>
   <meta name="description" content={description} />
@@ -61,17 +62,22 @@ const ogAlt   = `${SITE.name} — ${SITE.tagline}`;
   <meta name="twitter:image"       content={ogImg} />
   <meta name="twitter:image:alt"   content={ogAlt} />
 
-  <!-- Fonts: Sora (display) · DM Sans (body) · JetBrains Mono (amounts) -->
+  <!-- Theme before first paint: a saved choice wins, otherwise the system setting (CSS) decides -->
+  <script is:inline>
+    try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+
+  <!-- Font: Public Sans, one family for everything -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     rel="stylesheet"
     media="print"
     onload="this.media='all'"
-    href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap"
   />
   <noscript>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" />
   </noscript>
 
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

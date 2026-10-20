@@ -14,14 +14,13 @@ interface Props {
   path: string;
   title: string;
   description: string;
-  badge: string;
   heading: string;
   sub: string;
   docPreset?: DocType;
   faqs: FaqItem[];
 }
 
-const { path, title, description, badge, heading, sub, docPreset, faqs } = Astro.props;
+const { path, title, description, heading, sub, docPreset, faqs } = Astro.props;
 const url = abs(path);
 ---
 
@@ -39,7 +38,6 @@ const url = abs(path);
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">{heading}</span>
       </nav>
-      <div class="country-badge">{badge}</div>
       <h1 id="tool-heading" class="country-heading">{heading}</h1>
       <p class="country-sub" set:html={sub} />
     </div>

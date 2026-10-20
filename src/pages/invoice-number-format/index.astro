@@ -60,8 +60,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </nav>
 
       <header class="guide-header">
-        <div class="guide-badge">Evergreen guide · All countries</div>
-        <h1 id="guide-heading" class="guide-heading">Invoice Number Format — Best Practices</h1>
+        <h1 id="guide-heading" class="guide-heading">How to format invoice numbers</h1>
         <p class="guide-lead">
           Every invoice needs a unique number. Here's how to format it professionally,
           stay consistent, and avoid common mistakes, with the default format for every country we support.
@@ -132,7 +131,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
             <span>Country</span><span>Format</span><span>Example</span>
           </div>
           {COUNTRIES.map(c => (
-            <div class="fmt-row"><span><a href={countryPath(c)}>{c.flag} {c.name}</a></span><span>{c.invoicePrefix}XXXX</span><span class="fmt-mono">{c.invoicePrefix}0001</span></div>
+            <div class="fmt-row"><span><a href={countryPath(c)}>{c.name}</a></span><span>{c.invoicePrefix}XXXX</span><span class="fmt-mono">{c.invoicePrefix}0001</span></div>
           ))}
           {prefixRows.map(r => (
             <div class="fmt-row"><span>{r.label} (any country)</span><span>{r.prefix}XXXX</span><span class="fmt-mono">{r.prefix}0001</span></div>
@@ -142,8 +141,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </section>
 
       <div class="guide-cta-wrap">
-        <a href="/" class="guide-cta">Generate your first invoice →</a>
-        <p class="guide-cta-sub">Auto-numbered · Free · No sign-up</p>
+        <a href="/" class="guide-cta">Generate your first invoice</a>
+        <p class="guide-cta-sub">Numbers count up on their own, and it’s free with no sign-up.</p>
       </div>
 
     </div>
@@ -155,7 +154,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
   <section class="section" aria-labelledby="inv-num-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Invoice Number Format — FAQs" />
+      <FaqSection items={faqs} heading="Questions about invoice numbers" />
     </div>
   </section>
 
@@ -172,14 +171,14 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .guide-section p { font-size: 0.9375rem; color: var(--text-2); line-height: 1.75; margin-bottom: 0.75rem; }
   .guide-section ul { margin: 0.5rem 0 0.75rem 1.25rem; display: flex; flex-direction: column; gap: 0.375rem; }
   .guide-section li { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; }
-  .guide-example { margin: 0.5rem 0 0.75rem; padding: 0.75rem 1rem; background: var(--surface-2); border-radius: var(--radius); font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--text); display: flex; gap: 1rem; flex-wrap: wrap; }
+  .guide-example { margin: 0.5rem 0 0.75rem; padding: 0.75rem 1rem; background: var(--surface-2); border-radius: var(--radius); font-family: var(--font); font-variant-numeric: tabular-nums; font-size: 0.875rem; color: var(--text); display: flex; gap: 1rem; flex-wrap: wrap; }
   .format-table { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1rem 0; }
   .fmt-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 0.625rem 0.875rem; font-size: 0.875rem; border-bottom: 1px solid var(--border); }
   .fmt-row:last-child { border-bottom: none; }
   .fmt-header { background: var(--surface-2); font-weight: 700; font-size: 0.75rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
-  .fmt-mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; color: var(--accent); }
+  .fmt-mono { font-family: var(--font); font-variant-numeric: tabular-nums; font-size: 0.8125rem; color: var(--accent); }
   .guide-cta-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border); text-align: center; }
-  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #0F766E; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
-  .guide-cta:hover { background: #0F766E; }
+  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: var(--accent-hover); color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
+  .guide-cta:hover { background: var(--accent-hover); color: var(--on-accent); }
   .guide-cta-sub { margin-top: 0.625rem; font-size: 0.8125rem; color: var(--text-4); }
 </style>

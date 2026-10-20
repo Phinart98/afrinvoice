@@ -1,5 +1,5 @@
 ---
-import { FEATURED_COUNTRIES, countryPath } from '../data/countries';
+import { COUNTRIES, FEATURED_COUNTRIES, countryPath } from '../data/countries';
 import { SITE } from '../site';
 
 // Wordmark: first word regular, the rest bold ("Invoice **Passport**").
@@ -18,8 +18,8 @@ const invoiceTools = [
 ];
 
 const countries = [
-  ...FEATURED_COUNTRIES.map(c => ({ href: countryPath(c), label: `${c.flag} ${c.name}` })),
-  { href: '/invoice-requirements-by-country/', label: 'All countries →' },
+  ...FEATURED_COUNTRIES.map(c => ({ href: countryPath(c), label: c.name })),
+  { href: '/invoice-requirements-by-country/', label: `All ${COUNTRIES.length} countries` },
 ];
 
 const resources = [
@@ -57,14 +57,14 @@ const site = [
       <p class="footer-tagline">
         {SITE.tagline}. Free, no sign-up, and your data never leaves your browser.
       </p>
-      <p class="footer-copy">&copy; {new Date().getFullYear()} {SITE.name} · <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+      <p class="footer-copy">&copy; {new Date().getFullYear()} {SITE.name}<br /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
     </div>
 
     <!-- Nav groups -->
     <div class="footer-nav-groups">
 
       <div class="footer-nav-group">
-        <span class="footer-nav-heading">Invoice Tools</span>
+        <span class="footer-nav-heading">Invoice tools</span>
         <nav aria-label="Invoice tools navigation">
           {invoiceTools.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
         </nav>
@@ -97,8 +97,7 @@ const site = [
 
 <style>
   .footer {
-    border-top: 1px solid rgba(45, 55, 72, 0.5);
-    background: #070C18;
+    background: var(--footer-bg);
     padding: 3rem 0 2rem;
     margin-top: 5rem;
   }
@@ -127,30 +126,30 @@ const site = [
   }
 
   .footer-logo-text {
-    font-family: 'Sora', sans-serif;
+    font-family: var(--font);
     font-size: 0.9375rem;
     font-weight: 700;
-    color: #64748B;
+    color: var(--footer-text);
     letter-spacing: -0.02em;
   }
   .footer-logo-text strong {
-    color: #94A3B8;
+    color: var(--footer-head);
     font-weight: 800;
   }
-  .footer-logo:hover .footer-logo-text        { color: #94A3B8; }
-  .footer-logo:hover .footer-logo-text strong { color: #F1F5F9; }
+  .footer-logo:hover .footer-logo-text        { color: var(--footer-head); }
+  .footer-logo:hover .footer-logo-text strong { color: var(--footer-head); }
 
   /* Fixed: readable on dark background */
   .footer-tagline {
     font-size: 0.8125rem;
-    color: #64748B;
+    color: var(--footer-text);
     line-height: 1.6;
-    max-width: 22ch;
+    max-width: 26ch;
   }
 
   .footer-copy {
     font-size: 0.75rem;
-    color: #475569;
+    color: var(--footer-text);
     line-height: 1;
     margin-top: 0.25rem;
   }
@@ -170,11 +169,9 @@ const site = [
   }
 
   .footer-nav-heading {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #475569;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--footer-head);
     margin-bottom: 0.25rem;
   }
 
@@ -188,17 +185,17 @@ const site = [
   .footer-nav-link {
     display: block;
     font-size: 0.8125rem;
-    color: #64748B;
+    color: var(--footer-text);
     text-decoration: none;
     transition: color 150ms;
     line-height: 1.5;
   }
-  .footer-nav-link:hover { color: #CBD5E1; }
+  .footer-nav-link:hover { color: var(--footer-head); }
 
   /* Small mobile: tighten font so long labels wrap less */
   @media (max-width: 559px) {
     .footer-nav-link    { font-size: 0.75rem; }
-    .footer-nav-heading { font-size: 0.625rem; }
+    .footer-nav-heading { font-size: 0.8125rem; }
     .footer-nav-groups  { gap: 1.75rem 1.25rem; }
   }
 
@@ -227,4 +224,10 @@ const site = [
       gap: 2rem 3rem;
     }
   }
+</style>
+
+<style>
+  .footer-copy { line-height: 1.6; }
+  .footer-copy a { color: var(--footer-text); }
+  .footer-copy a:hover { color: var(--footer-head); }
 </style>

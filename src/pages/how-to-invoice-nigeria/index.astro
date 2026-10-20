@@ -52,7 +52,6 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </nav>
 
       <header class="guide-header">
-        <div class="guide-badge">🇳🇬 Nigeria · NRS VAT 7.5% · Bank Transfer</div>
         <h1 id="guide-heading" class="guide-heading">How to Invoice in Nigeria</h1>
         <p class="guide-lead">
           Invoicing in Nigeria has a few nuances that trip up freelancers and small business owners:
@@ -76,7 +75,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </section>
 
       <section class="guide-section">
-        <h2>NRS VAT — when to charge it</h2>
+        <h2>When to charge NRS VAT</h2>
         <p>
           The Nigeria Revenue Service (NRS, formerly FIRS) VAT rate is <strong>7.5%</strong>
           (raised from 5% in 2020). You are only required to charge VAT if your annual turnover
@@ -89,7 +88,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </section>
 
       <section class="guide-section">
-        <h2>Withholding Tax (WHT) — what you need to know</h2>
+        <h2>Withholding tax (WHT)</h2>
         <p>
           WHT is one of the most confusing aspects of Nigerian invoicing for freelancers.
           Here's how it works:
@@ -137,9 +136,9 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
       <div class="guide-cta-wrap">
         <a href="/nigeria-invoice-generator/" class="guide-cta">
-          Create your Nigeria invoice →
+          Create your Nigeria invoice
         </a>
-        <p class="guide-cta-sub">NRS VAT 7.5% pre-filled · Bank transfer fields · Free PDF</p>
+        <p class="guide-cta-sub">VAT at 7.5% is filled in for you, with Nigerian bank transfer details.</p>
       </div>
 
     </div>
@@ -151,7 +150,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
   <section class="section" aria-labelledby="ng-guide-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Nigeria Invoicing — FAQs" headingId="ng-guide-faq-heading" />
+      <FaqSection items={faqs} heading="Questions about invoicing in Nigeria" headingId="ng-guide-faq-heading" />
     </div>
   </section>
 
@@ -169,8 +168,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .guide-section li { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; }
   .guide-callout { margin-top: 1rem; padding: 0.875rem 1rem; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
   .guide-cta-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border); text-align: center; }
-  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #0F766E; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
-  .guide-cta:hover { background: #0F766E; }
+  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: var(--accent-hover); color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
+  .guide-cta:hover { background: var(--accent-hover); color: var(--on-accent); }
   .guide-cta-sub { margin-top: 0.625rem; font-size: 0.8125rem; color: var(--text-4); }
   .affiliate-wrap { padding-top: 2rem; padding-bottom: 1rem; }
 </style>

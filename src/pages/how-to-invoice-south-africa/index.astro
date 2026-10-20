@@ -52,7 +52,6 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </nav>
 
       <header class="guide-header">
-        <div class="guide-badge">🇿🇦 South Africa · SARS VAT 15% · Bank EFT</div>
         <h1 id="guide-heading" class="guide-heading">How to Invoice Clients in South Africa</h1>
         <p class="guide-lead">
           South Africa has one of the most structured invoicing environments in Africa.
@@ -81,7 +80,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </section>
 
       <section class="guide-section">
-        <h2>SARS VAT — when to charge it</h2>
+        <h2>When to charge SARS VAT</h2>
         <p>
           VAT registration is <strong>mandatory</strong> once your taxable supplies exceed
           <strong>R 2.3 million</strong> in any 12-month period (threshold effective 1 April 2026).
@@ -99,7 +98,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </section>
 
       <section class="guide-section">
-        <h2>Bank EFT — the standard payment method</h2>
+        <h2>Bank EFT is how most clients pay</h2>
         <p>
           For all B2B invoicing in South Africa, <strong>bank EFT</strong> is the expected
           payment method. Include:
@@ -144,9 +143,9 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
       <div class="guide-cta-wrap">
         <a href="/south-africa-invoice-generator/" class="guide-cta">
-          Create your South Africa invoice →
+          Create your South Africa invoice
         </a>
-        <p class="guide-cta-sub">SARS VAT 15% pre-filled · Bank EFT fields · Free PDF</p>
+        <p class="guide-cta-sub">SARS VAT at 15% is filled in for you, with bank EFT details.</p>
       </div>
 
     </div>
@@ -158,7 +157,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
   <section class="section" aria-labelledby="za-guide-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="South Africa Invoicing — FAQs" headingId="za-guide-faq-heading" />
+      <FaqSection items={faqs} heading="Questions about invoicing in South Africa" headingId="za-guide-faq-heading" />
     </div>
   </section>
 
@@ -175,10 +174,10 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .guide-section ul { margin: 0.5rem 0 0.75rem 1.25rem; display: flex; flex-direction: column; gap: 0.375rem; }
   .guide-section li { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; }
   .guide-callout { margin-top: 1rem; padding: 0.875rem 1rem; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
-  .guide-example { margin: 0.5rem 0 0.75rem; padding: 0.75rem 1rem; background: var(--surface-2); border-radius: var(--radius); font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--text); display: flex; gap: 1rem; flex-wrap: wrap; }
+  .guide-example { margin: 0.5rem 0 0.75rem; padding: 0.75rem 1rem; background: var(--surface-2); border-radius: var(--radius); font-family: var(--font); font-variant-numeric: tabular-nums; font-size: 0.875rem; color: var(--text); display: flex; gap: 1rem; flex-wrap: wrap; }
   .guide-cta-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border); text-align: center; }
-  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #0F766E; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
-  .guide-cta:hover { background: #0F766E; }
+  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: var(--accent-hover); color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
+  .guide-cta:hover { background: var(--accent-hover); color: var(--on-accent); }
   .guide-cta-sub { margin-top: 0.625rem; font-size: 0.8125rem; color: var(--text-4); }
   .affiliate-wrap { padding-top: 2rem; padding-bottom: 1rem; }
 </style>

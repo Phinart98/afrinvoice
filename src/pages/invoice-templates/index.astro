@@ -80,8 +80,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </nav>
 
       <h1 id="tpl-heading" class="tpl-heading">
-        Free Invoice Templates<br />
-        <span class="shimmer">you fill in online</span>
+        Free invoice templates you fill in online
       </h1>
 
       <p class="tpl-sub">
@@ -181,7 +180,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
               </ul>
               <p class="tpl-best">Best for: <strong>{t.best}</strong></p>
               <a href={`/?template=${t.name.toLowerCase()}`} class="tpl-use-btn">
-                Use {t.name} template →
+                Use {t.name} template
               </a>
             </div>
           </div>
@@ -198,7 +197,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   <!-- ── FAQ ───────────────────────────────────────────────────────── -->
   <section class="section" aria-labelledby="tpl-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Invoice Templates — FAQs" headingId="tpl-faq-heading" />
+      <FaqSection items={faqs} heading="Questions about the templates" headingId="tpl-faq-heading" />
     </div>
   </section>
 
@@ -259,7 +258,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     flex-direction: column;
     transition: box-shadow var(--ease);
   }
-  .tpl-card:hover:not(.tpl-card--disabled) { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .tpl-card:hover:not(.tpl-card--disabled) { border-color: var(--accent); }
 
   /* ── Mock invoice preview ─────────────────────────────────────────── */
   .tpl-preview {
@@ -393,23 +392,11 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   }
 
   .tpl-tag {
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    padding: 0.1875rem 0.5rem;
-    border-radius: 9999px;
-    background: rgba(15, 118, 110, 0.1);
-    color: #0F766E;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    color: var(--text-3);
   }
-  .tpl-tag--bold {
-    background: rgba(59, 130, 246, 0.1);
-    color: #2563EB;
-  }
-  .tpl-tag--corporate {
-    background: rgba(100, 116, 139, 0.1);
-    color: #475569;
-  }
+
 
   .tpl-desc {
     font-size: 0.8125rem;
@@ -436,7 +423,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     content: '✓';
     position: absolute;
     left: 0;
-    color: #16A34A;
+    color: var(--accent);
     font-weight: 700;
   }
 
@@ -451,8 +438,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     display: inline-flex;
     align-items: center;
     padding: 0.5rem 1rem;
-    background: #0F766E;
-    color: #ffffff;
+    background: var(--accent);
+    color: var(--on-accent);
     font-size: 0.8125rem;
     font-weight: 700;
     border-radius: 6px;
@@ -461,7 +448,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     transition: background var(--ease);
     margin-top: auto;
   }
-  .tpl-use-btn:hover { background: #0F766E; }
+  .tpl-use-btn:hover { background: var(--accent-hover); color: var(--on-accent); }
 
 
   .affiliate-wrap { padding-top: 1rem; padding-bottom: 1rem; }

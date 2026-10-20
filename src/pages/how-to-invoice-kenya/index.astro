@@ -52,7 +52,6 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </nav>
 
       <header class="guide-header">
-        <div class="guide-badge">🇰🇪 Kenya · KRA VAT 16% · M-Pesa</div>
         <h1 id="guide-heading" class="guide-heading">How to Invoice Clients in Kenya</h1>
         <p class="guide-lead">
           Kenya has a well-developed invoicing culture and strong mobile payment infrastructure.
@@ -76,7 +75,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </section>
 
       <section class="guide-section">
-        <h2>KRA VAT — when to charge it</h2>
+        <h2>When to charge KRA VAT</h2>
         <p>
           Kenya Revenue Authority (KRA) VAT is <strong>16%</strong>. You must register for VAT when
           your annual taxable turnover exceeds <strong>KSh 5 million</strong> (approximately $38,500 USD).
@@ -89,7 +88,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </section>
 
       <section class="guide-section">
-        <h2>KRA eTIMS — do you need it?</h2>
+        <h2>Do you need KRA eTIMS?</h2>
         <p>
           KRA's Electronic Tax Invoice Management System (eTIMS) is mandatory for
           <strong>VAT-registered taxpayers</strong>. If you're VAT-registered, you must issue invoices
@@ -129,9 +128,9 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
       <div class="guide-cta-wrap">
         <a href="/kenya-invoice-generator/" class="guide-cta">
-          Create your Kenya invoice →
+          Create your Kenya invoice
         </a>
-        <p class="guide-cta-sub">KRA VAT 16% pre-filled · M-Pesa fields · Free PDF</p>
+        <p class="guide-cta-sub">KRA VAT at 16% is filled in for you, with M-Pesa payment details.</p>
       </div>
 
     </div>
@@ -143,7 +142,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 
   <section class="section" aria-labelledby="ke-guide-faq-heading">
     <div class="container">
-      <FaqSection items={faqs} heading="Kenya Invoicing — FAQs" headingId="ke-guide-faq-heading" />
+      <FaqSection items={faqs} heading="Questions about invoicing in Kenya" headingId="ke-guide-faq-heading" />
     </div>
   </section>
 
@@ -161,8 +160,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .guide-section li { font-size: 0.9375rem; color: var(--text-2); line-height: 1.65; }
   .guide-callout { margin-top: 1rem; padding: 0.875rem 1rem; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; font-size: 0.875rem; color: var(--text-2); line-height: 1.6; }
   .guide-cta-wrap { margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid var(--border); text-align: center; }
-  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: #0F766E; color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
-  .guide-cta:hover { background: #0F766E; }
+  .guide-cta { display: inline-flex; align-items: center; padding: 0.875rem 2rem; background: var(--accent-hover); color: #ffffff; font-size: 1rem; font-weight: 700; border-radius: 8px; text-decoration: none; transition: background var(--ease); }
+  .guide-cta:hover { background: var(--accent-hover); color: var(--on-accent); }
   .guide-cta-sub { margin-top: 0.625rem; font-size: 0.8125rem; color: var(--text-4); }
   .affiliate-wrap { padding-top: 2rem; padding-bottom: 1rem; }
 </style>
