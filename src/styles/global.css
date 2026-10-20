@@ -27,7 +27,7 @@
   --text:         #1B1F2E;   /* ink */
   --text-2:       #4B5165;
   --text-3:       #585E72;
-  --text-4:       #6B7185;
+  --text-4:       #62687C;
 
   --accent:       #1B1F2E;   /* actions are filled with ink */
   --accent-hover: #2E3448;
@@ -225,10 +225,12 @@ code {
   padding: 0 1.5rem;
 }
 .container-narrow {
-  max-width: 720px;
+  max-width: 80rem;
   margin: 0 auto;
-  padding: 0 1.25rem;
+  padding: 0 1.5rem;
 }
+/* Articles keep a readable measure but line up with the rest of the site on the left */
+.container-narrow > * { max-width: 46rem; }
 @media (max-width: 559px) {
   .container { padding: 0 1rem; }
   .container-narrow { padding: 0 1rem; }

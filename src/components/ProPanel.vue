@@ -80,12 +80,12 @@ async function remove() {
   box-sizing: border-box;
   margin-top: 1rem;
   padding: 1rem 1.125rem;
-  background: var(--surface, #fff);
-  border: 1px solid var(--border, #DDD7CF);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius, 10px);
 }
-.pro-title { font: 700 1rem/1.3 var(--font); color: var(--text, #1C1612); }
-.pro-text { margin-top: 0.375rem; font-size: 0.875rem; color: var(--text-2, #6B6058); }
+.pro-title { font: 800 1.0625rem/1.3 var(--font-display); color: var(--text); }
+.pro-text { margin-top: 0.375rem; font-size: 0.875rem; color: var(--text-2); }
 .pro-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 0.875rem; }
 .pro-buy {
   display: inline-block;
@@ -97,25 +97,25 @@ async function remove() {
   font-size: 0.875rem;
   text-decoration: none;
 }
-.pro-buy:hover { background: var(--accent-hover, #115E59); }
+.pro-buy:hover { background: var(--accent-hover); }
 .pro-link {
   background: none;
   border: none;
   padding: 0;
-  color: var(--accent, #0F766E);
+  color: var(--accent);
   font: inherit;
   font-size: 0.875rem;
   text-decoration: underline;
   cursor: pointer;
 }
 .pro-key { margin-top: 0.875rem; }
-.pro-key-label { display: block; font-size: 0.8125rem; color: var(--text-2, #6B6058); margin-bottom: 0.375rem; }
+.pro-key-label { display: block; font-size: 0.8125rem; color: var(--text-2); margin-bottom: 0.375rem; }
 .pro-key-row { display: flex; gap: 0.5rem; }
 .pro-key-input {
   flex: 1;
   min-width: 0;
   padding: 0.5rem 0.625rem;
-  border: 1px solid var(--border, #DDD7CF);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm, 6px);
   font: 0.8125rem var(--font); font-variant-numeric: tabular-nums;
 }
@@ -129,11 +129,11 @@ async function remove() {
   cursor: pointer;
 }
 .pro-key-btn:disabled, .pro-link:disabled { opacity: 0.5; cursor: wait; }
-.pro-error { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--error, #DC2626); }
-.pro-confirm { margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-2, #6B6058); display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
-.pro-soon { margin-top: 0.875rem; font-size: 0.75rem; color: var(--text-3, #9A918A); }
+.pro-error { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--error); }
+.pro-confirm { margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; }
+.pro-soon { margin-top: 0.875rem; font-size: 0.75rem; color: var(--text-3); }
 .pro-buy:focus-visible, .pro-link:focus-visible, .pro-key-btn:focus-visible, .pro-key-input:focus-visible {
-  outline: 2px solid var(--accent, #0F766E);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 </style>

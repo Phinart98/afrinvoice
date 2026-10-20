@@ -12,6 +12,7 @@ interface Props {
 }
 
 const { items, heading = 'Frequently Asked Questions', headingId, class: className } = Astro.props;
+import { SITE } from '../site';
 ---
 
 <script>
@@ -28,7 +29,10 @@ const { items, heading = 'Frequently Asked Questions', headingId, class: classNa
 </script>
 
 <section class:list={['faq-section', className]}>
-  <h2 class="faq-heading" id={headingId}>{heading}</h2>
+  <div class="faq-side">
+    <h2 class="faq-heading" id={headingId}>{heading}</h2>
+    <p class="faq-help">Can’t find your answer? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+  </div>
   <div class="faq-list">
     {items.map(({ q, a }) => (
       <details class="faq-item">
@@ -45,15 +49,23 @@ const { items, heading = 'Frequently Asked Questions', headingId, class: classNa
 </section>
 
 <style>
+  /* Two columns on wide screens: the heading on the left, questions on the right */
   .faq-section {
-    max-width: 48rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 1.5rem 4rem;
+    align-items: start;
+  }
+  @media (max-width: 899px) {
+    .faq-section { grid-template-columns: 1fr; }
   }
 
   .faq-heading {
-    font-size: clamp(1.375rem, 3vw, 1.75rem);
-    margin-bottom: 2rem;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    margin-bottom: 0.75rem;
     color: var(--text);
   }
+  .faq-help { font-size: 0.9375rem; color: var(--text-2); max-width: 22rem; }
 
   .faq-list {
     display: flex;
@@ -74,14 +86,13 @@ const { items, heading = 'Frequently Asked Questions', headingId, class: classNa
     padding: 1.125rem 0;
     cursor: pointer;
     list-style: none;
-    font-size: 0.9375rem;
-    font-weight: 500;
+    font: 700 1.0625rem var(--font-display);
     color: var(--text);
     transition: color var(--ease);
     user-select: none;
   }
   .faq-question::-webkit-details-marker { display: none; }
-  .faq-question:hover { color: var(--accent); }
+  .faq-question:hover { color: var(--text-2); }
 
   .faq-chevron {
     flex-shrink: 0;
@@ -90,7 +101,7 @@ const { items, heading = 'Frequently Asked Questions', headingId, class: classNa
   }
   details[open] .faq-chevron {
     transform: rotate(180deg);
-    color: var(--accent);
+    color: var(--text);
   }
   details[open] .faq-question { color: var(--text); }
 
@@ -99,11 +110,12 @@ const { items, heading = 'Frequently Asked Questions', headingId, class: classNa
     font-size: 0.9375rem;
     line-height: 1.75;
     color: var(--text-2);
+    max-width: 44rem;
   }
 
   /* Style inline links inside FAQ answers */
   .faq-answer :global(a) {
-    color: var(--accent);
+    color: var(--text);
     text-decoration: underline;
     text-underline-offset: 3px;
   }

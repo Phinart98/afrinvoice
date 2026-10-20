@@ -206,12 +206,11 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
 <style>
   .tpl-hero {
     padding: 4rem 0 3rem;
-    text-align: center;
   }
 
   .breadcrumb {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 0.375rem;
     font-size: 0.8125rem;
@@ -228,8 +227,6 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     color: var(--text);
     margin-bottom: 1.25rem;
     max-width: 38rem;
-    margin-left: auto;
-    margin-right: auto;
   }
 
   .tpl-sub {
@@ -237,7 +234,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     color: var(--text-3);
     line-height: 1.75;
     max-width: 34rem;
-    margin: 0 auto;
+    margin: 0;
   }
 
   /* ── Gallery ──────────────────────────────────────────────────────── */
