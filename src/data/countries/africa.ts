@@ -11,7 +11,7 @@ import { PWC, vatParticulars } from './common';
 
 export const AFRICA: CountryConfig[] = [
   {
-    key: 'ghana', name: 'Ghana', flag: '🇬🇭', region: 'africa', featured: true,
+    key: 'ghana', name: 'Ghana', flag: '🇬🇭', region: 'africa',
     currency: 'GHS', currencySymbol: 'GH₵', locale: 'en-GH', paper: 'A4', labelsLang: 'en',
     taxName: 'VAT', taxAuthority: 'GRA', taxAuthorityFull: 'Ghana Revenue Authority',
     taxPresets: [
@@ -65,7 +65,7 @@ export const AFRICA: CountryConfig[] = [
     lastVerified: '2026-09',
   },
   {
-    key: 'kenya', name: 'Kenya', flag: '🇰🇪', region: 'africa', featured: true,
+    key: 'kenya', name: 'Kenya', flag: '🇰🇪', region: 'africa',
     currency: 'KES', currencySymbol: 'KSh', locale: 'en-KE', paper: 'A4', labelsLang: 'en',
     taxName: 'VAT', taxAuthority: 'KRA', taxAuthorityFull: 'Kenya Revenue Authority',
     taxPresets: [
@@ -115,7 +115,7 @@ export const AFRICA: CountryConfig[] = [
     lastVerified: '2026-09',
   },
   {
-    key: 'zimbabwe', name: 'Zimbabwe', flag: '🇿🇼', region: 'africa', featured: true,
+    key: 'zimbabwe', name: 'Zimbabwe', flag: '🇿🇼', region: 'africa',
     currency: 'ZWG', currencySymbol: 'ZWG', locale: 'en-ZW', paper: 'A4', labelsLang: 'en',
     taxName: 'VAT', taxAuthority: 'ZIMRA', taxAuthorityFull: 'Zimbabwe Revenue Authority',
     taxPresets: [{ label: 'VAT 15.5%', taxes: [{ label: 'VAT', rate: 15.5 }] }],

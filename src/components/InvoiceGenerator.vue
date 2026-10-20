@@ -31,6 +31,18 @@ const isPremium = (t: InvoiceState['template']) => PREMIUM_TEMPLATES.includes(t)
 const savedAt = ref(0);
 const notice = ref('');          // inline message instead of alert()
 const busy = ref(false);         // PDF being generated
+
+// German e-invoice (ZUGFeRD/XRechnung) is not built yet: the button measures interest first.
+// Shown only when VAT is charged, since §19 small businesses are exempt from issuing e-invoices.
+const einvOpen = ref(false);
+let einvCounted = false;
+function toggleEinvoice() {
+  einvOpen.value = !einvOpen.value;
+  if (einvOpen.value && !einvCounted) {
+    einvCounted = true;
+    (window as unknown as { gtag?: (...a: unknown[]) => void }).gtag?.('event', 'einvoice_interest', { country: state.value.countryKey });
+  }
+}
 const ready = ref(false);        // profile applied — don't auto-save defaults over it
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let noticeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -883,6 +895,13 @@ const correctionHref = computed(() =>
             <button type="button" class="print-btn" :disabled="busy" @click="output('print')">Print</button>
           </div>
           <p class="download-hint">Free, and nothing you type leaves this browser.</p>
+          <div v-if="state.countryKey === 'germany' && state.taxes.some(t => t.rate > 0 && (t.kind ?? 'add') === 'add')" class="einv">
+            <button type="button" class="link-btn" :aria-expanded="einvOpen" @click="toggleEinvoice">Need an E-Rechnung (ZUGFeRD or XRechnung)?</button>
+            <p v-if="einvOpen" class="einv-note">
+              Not built yet. Most German businesses must send e-invoices from 2027 or 2028, and we count clicks like this one to
+              decide whether to build it. To hear when it’s ready, email <a :href="`mailto:${SITE.email}?subject=E-Rechnung`">{{ SITE.email }}</a>.
+            </p>
+          </div>
           <div class="row-actions row-actions-center">
             <button type="button" class="link-btn" @click="newDocument">New document</button>
             <button type="button" class="link-btn" :aria-expanded="showHistory" @click="showHistory = !showHistory">
@@ -1411,6 +1430,9 @@ const correctionHref = computed(() =>
 .print-btn:hover  { background: var(--surface-3); color: var(--text); }
 .print-btn:active { transform: scale(0.99); }
 
+.einv { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
+.einv-note { font-size: 0.8125rem; color: var(--text-2); max-width: 30rem; margin: 0; line-height: 1.55; }
+.einv-note a { color: var(--text); text-decoration: underline; }
 .download-hint {
   font-size: 0.6875rem;
   color: var(--text-4);

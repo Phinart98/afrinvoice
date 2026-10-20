@@ -145,7 +145,7 @@ export const ASIA_PACIFIC: CountryConfig[] = [
     lastVerified: '2026-09',
   },
   {
-    key: 'united-arab-emirates', name: 'United Arab Emirates', flag: '🇦🇪', region: 'middle-east',
+    key: 'united-arab-emirates', name: 'United Arab Emirates', flag: '🇦🇪', region: 'middle-east', featured: true,
     currency: 'AED', currencySymbol: 'AED', locale: 'en-AE', paper: 'A4', labelsLang: 'en',
     taxName: 'VAT', taxAuthority: 'FTA', taxAuthorityFull: 'Federal Tax Authority',
     taxPresets: [

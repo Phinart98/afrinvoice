@@ -1,6 +1,6 @@
 import type { CountryConfig } from './types';
 
-const EU_REVERSE_CHARGE = 'Selling to a VAT-registered business in another EU country? Charge 0%, show both VAT numbers and add “Reverse charge — Article 196, Directive 2006/112/EC”.';
+export const EU_REVERSE_CHARGE = 'Selling to a VAT-registered business in another EU country? Charge 0%, show both VAT numbers and add “Reverse charge — Article 196, Directive 2006/112/EC”.';
 
 export const EUROPE: CountryConfig[] = [
   {
@@ -115,7 +115,7 @@ export const EUROPE: CountryConfig[] = [
     lastVerified: '2026-09',
   },
   {
-    key: 'netherlands', name: 'Netherlands', flag: '🇳🇱', region: 'europe',
+    key: 'netherlands', name: 'Netherlands', flag: '🇳🇱', region: 'europe', featured: true,
     currency: 'EUR', currencySymbol: '€', locale: 'nl-NL', paper: 'A4', labelsLang: 'nl',
     taxName: 'btw (VAT)', taxAuthority: 'Belastingdienst', taxAuthorityFull: 'Belastingdienst',
     taxPresets: [
@@ -140,7 +140,7 @@ export const EUROPE: CountryConfig[] = [
     lastVerified: '2026-09',
   },
   {
-    key: 'spain', name: 'Spain', flag: '🇪🇸', region: 'europe',
+    key: 'spain', name: 'Spain', flag: '🇪🇸', region: 'europe', featured: true,
     currency: 'EUR', currencySymbol: '€', locale: 'es-ES', paper: 'A4', labelsLang: 'es',
     taxName: 'IVA', taxAuthority: 'AEAT', taxAuthorityFull: 'Agencia Tributaria',
     taxPresets: [

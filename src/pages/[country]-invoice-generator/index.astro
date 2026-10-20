@@ -31,7 +31,7 @@ const presetLine = (taxes: CountryConfig['taxPresets'][number]['taxes']) =>
 const currencyName = new Intl.DisplayNames(['en'], { type: 'currency' }).of(c.currency) ?? c.currency;
 const railNames: Record<string, string> = {
   bank: `bank transfer${c.bankCodeLabel ? ` (with ${c.bankCodeLabel})` : ''}`,
-  iban: 'IBAN / SEPA transfer with a scannable QR code',
+  iban: c.currency === 'EUR' ? 'IBAN / SEPA transfer with a scannable QR code' : 'IBAN bank transfer',
   'mobile-money': c.mobileProviders?.length ? c.mobileProviders.map(p => p.name).join(', ') : 'mobile money',
   upi: 'UPI with a scannable QR code',
 };

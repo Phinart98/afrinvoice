@@ -62,7 +62,7 @@ const pageDescription = `Free invoice generator that knows your country’s rule
           Pick your country and the taxes, currency, paper size and payment details set themselves up.
           It’s ready for <a href={countryPath(COUNTRY_BY_KEY['germany'])}>Germany</a>,
           <a href={countryPath(COUNTRY_BY_KEY['india'])}>India</a>,
-          <a href={countryPath(COUNTRY_BY_KEY['ghana'])}>Ghana</a>,
+          <a href={countryPath(COUNTRY_BY_KEY['canada'])}>Canada</a>,
           <a href={countryPath(COUNTRY_BY_KEY['united-kingdom'])}>the UK</a>,
           <a href={countryPath(COUNTRY_BY_KEY['united-states'])}>the US</a> and
           <a href="/invoice-requirements-by-country/">{COUNTRIES.length - 5} more countries</a>.
@@ -77,7 +77,7 @@ const pageDescription = `Free invoice generator that knows your country’s rule
           <span class="currencies" aria-label="Euro, rupee, cedi, dollar, pound, naira"><span>€</span><span>₹</span><span>₵</span><span>$</span><span>£</span><span>₦</span></span>
         </div>
         <MiniInvoice class="m-half" c={COUNTRY_BY_KEY['india']} net={10000} item="Consulting" color="var(--pic-plum)" meta="INR, GST" />
-        <MiniInvoice class="m-half" c={COUNTRY_BY_KEY['ghana']} net={2000} item="Design work" color="var(--pic-coral)" meta="GHS, MoMo" />
+        <MiniInvoice class="m-half" c={COUNTRY_BY_KEY['australia']} net={2000} item="Design work" color="var(--pic-coral)" meta="AUD, GST" />
       </div>
     </div>
   </section>

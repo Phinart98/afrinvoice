@@ -171,7 +171,7 @@ export const MIDDLE_EAST_MORE: CountryConfig[] = [
     ],
     rules: [
       'VAT-registered businesses in Saudi Arabia must issue e-invoices through a ZATCA-compliant system (the FATOORA platform). A PDF made here does not meet that rule, and ZATCA expects invoices in Arabic — use this tool for foreign clients, quotes and proformas.',
-      'Phase 1 (generation) has applied since December 2021. Phase 2 (integration with ZATCA, where B2B invoices are cleared before delivery) is rolling out in waves; Wave 24 covers taxable supplies above SAR 375,000 and was due by 30 June 2026, and Wave 25 (above SAR 187,500) is due by 1 February 2027.',
+      'Phase 1 (generation) has applied since December 2021. Phase 2, where invoices are integrated with ZATCA, is rolling out in waves by turnover, and ZATCA writes to each business at least six months before its date.',
       'VAT registration is mandatory above SAR 375,000 of taxable supplies a year and voluntary from SAR 187,500.',
       'Non-residents making taxable supplies in Saudi Arabia must register, generally through a tax representative.',
     ],
@@ -200,7 +200,6 @@ export const MIDDLE_EAST_MORE: CountryConfig[] = [
     ],
     rules: [
       'Qatar has no VAT and no general sales tax in 2026, so invoices show no tax line. A GCC-wide 5% VAT has been agreed in principle, but no start date has been set.',
-      'Qatar has no nationwide e-invoicing mandate yet; a draft e-invoicing law was reported as approved by the Cabinet in 2026.',
       'The GTA lists withholding tax among the taxes it collects. A Qatari client paying a foreign company for some services may need to deduct it, so confirm with the client before you send the invoice.',
     ],
     sources: [
@@ -263,7 +262,7 @@ export const MIDDLE_EAST_MORE: CountryConfig[] = [
     ],
     rules: [
       'VAT is 5%. You must register once taxable supplies pass OMR 38,500 in a year, and you may register voluntarily from OMR 19,250. Non-residents making taxable supplies in Oman must register whatever their turnover.',
-      'Mandatory e-invoicing, using accredited providers and XML, starts on 1 April 2027 for taxpayers with annual supplies above OMR 5 million and on 1 October 2027 for everyone else registered for VAT (Decision No. 189/2026). Until then a PDF invoice is accepted.',
+      'Oman has announced mandatory e-invoicing through accredited providers, phased in by business size from 2027. Until your phase starts, a PDF invoice is accepted; check the Oman Tax Authority for your date.',
       'Oman amounts have three decimal places (1 rial = 1,000 baisa).',
     ],
     sources: [

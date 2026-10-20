@@ -1,8 +1,11 @@
 import type { CountryConfig, Region } from './types';
 import { AFRICA } from './africa';
 import { EUROPE } from './europe';
+import { EUROPE_MORE } from './europe-more';
 import { AMERICAS } from './americas';
 import { ASIA_PACIFIC } from './asia-pacific';
+import { ASIA_PACIFIC_MORE } from './asia-pacific-more';
+import { AMERICAS_MORE, MIDDLE_EAST_MORE } from './more-americas-mideast';
 
 export type { CountryConfig, TaxPreset, TaxLineDef, TaxKind, PaymentRail, MobileProvider, Region } from './types';
 
@@ -19,7 +22,9 @@ export const OTHER_COUNTRY: CountryConfig = {
   mandatoryFields: [], rules: [], sources: [], lastVerified: '2026-09',
 };
 
-export const COUNTRIES: CountryConfig[] = [...AMERICAS, ...EUROPE, ...ASIA_PACIFIC, ...AFRICA]
+export const COUNTRIES: CountryConfig[] = [
+  ...AMERICAS, ...AMERICAS_MORE, ...EUROPE, ...EUROPE_MORE, ...ASIA_PACIFIC, ...ASIA_PACIFIC_MORE, ...MIDDLE_EAST_MORE, ...AFRICA,
+]
   .sort((a, b) => a.name.localeCompare(b.name));
 
 export const COUNTRY_BY_KEY: Record<string, CountryConfig> = Object.fromEntries(
