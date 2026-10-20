@@ -8,6 +8,7 @@ import { COUNTRIES, REGION_NAMES, countryPath, type CountryConfig } from '../../
 import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
 import { SITE, abs } from '../../site';
 import { checkedMonth } from '../../utils/stamp';
+import MiniInvoice from '../../components/MiniInvoice.astro';
 
 // One page per country, generated from src/data/countries. Every section below is
 // built from the data of that country (rules, required fields, tax presets, sources),
@@ -95,10 +96,7 @@ const description = `Free ${c.name} invoice generator: ${c.taxPresets[0] ? prese
             Download a PDF in seconds, with no account and no sign-up.
           </p>
         </div>
-        <p class="stamp" aria-label={`${c.name} rules checked ${checkedMonth(c.lastVerified)}`}>
-          <span class="stamp-top">{c.name} rules</span>
-          <span class="stamp-main">Checked {checkedMonth(c.lastVerified)}</span>
-        </p>
+        <MiniInvoice c={c} net={1000} item="Services" color="var(--pic-blue)" checked />
       </div>
     </div>
   </section>

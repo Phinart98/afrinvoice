@@ -1,0 +1,45 @@
+---
+// A small, real invoice for one country: its document title in its own label language,
+// its default tax lines and its currency formatting. Used in the home mosaic and on
+// country pages. The paper stays white in both themes; the total bar uses `color`,
+// standing in for the owner's brand colour (colour only ever appears inside a picture).
+import type { CountryConfig } from '../data/countries';
+import { LABELS, type DocType } from '../i18n/labels';
+import { formatMoney } from '../utils/money';
+import { countryPath } from '../data/countries';
+import { checkedMonth } from '../utils/stamp';
+
+interface Props {
+  c: CountryConfig;
+  net: number;
+  color: string;
+  item: string;
+  /** Shown in the tile header next to the country name. */
+  meta?: string;
+  /** Show "rules checked" under the paper (country pages). */
+  checked?: boolean;
+  class?: string;
+}
+
+const { c, net, color, item, meta, checked = false, class: cls } = Astro.props;
+const L = LABELS[c.labelsLang];
+const title = L.docTitle[(c.documentTitle as DocType) ?? 'invoice'] ?? L.docTitle.invoice;
+const preset = c.taxPresets.find(p => p.taxes.some(t => t.rate > 0)) ?? c.taxPresets[0];
+const lines = (preset?.taxes ?? []).filter(t => t.rate > 0).map(t => ({
+  label: `${t.label} ${t.rate}%`,
+  amount: (net * t.rate) / 100 * (t.kind === 'withhold' ? -1 : 1),
+}));
+const total = net + lines.reduce((s, l) => s + l.amount, 0);
+const money = (n: number) => formatMoney(n, c.currency, c.locale);
+---
+
+<a class:list={['tile', cls]} href={countryPath(c)}>
+  <span class="tile-k">{c.name} <span>{meta ?? `${c.currency}, ${c.paper}`}</span></span>
+  <span class="mini" aria-hidden="true">
+    <span class="mini-h"><b>{title}</b><span class="num">{c.invoicePrefix}0014</span></span>
+    <span class="mini-row"><span>{item}</span><span class="num">{money(net)}</span></span>
+    {lines.slice(0, 3).map(l => <span class="mini-row"><span>{l.label}</span><span class="num">{money(l.amount)}</span></span>)}
+    <span class="mini-tot" style={`background:${color}`}><span>{L.total}</span><span class="num">{money(total)}</span></span>
+  </span>
+  {checked && <span class="tile-note">Rules checked {checkedMonth(c.lastVerified)}</span>}
+</a>

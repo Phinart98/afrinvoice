@@ -1033,8 +1033,8 @@ const correctionHref = computed(() =>
 
 /* ── Form card ───────────────────────────────────────────────────────────── */
 .form-card {
-  background: var(--sheet-invoice);
-  border: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1rem 1.125rem;
   display: flex;
@@ -1100,7 +1100,7 @@ const correctionHref = computed(() =>
   font-size: 0.8125rem;
   font-family: var(--font);
   color: var(--text);
-  background: var(--surface);
+  background: var(--bg);
   transition: border-color 150ms, box-shadow 150ms;
   outline: none;
   box-sizing: border-box;
@@ -1138,9 +1138,9 @@ const correctionHref = computed(() =>
   font-size: 0.75rem;
   font-weight: 600;
   font-family: var(--font);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-3);
+  border: 2px solid var(--border);
+  background: none;
+  color: var(--text);
   cursor: pointer;
   transition: all 150ms;
 }
@@ -1370,6 +1370,7 @@ const correctionHref = computed(() =>
 }
 
 .download-btn {
+  font-family: var(--font-display) !important;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
