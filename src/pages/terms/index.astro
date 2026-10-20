@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import { breadcrumbSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
+---
+
+<Base
+  title="Terms of use"
+  description={`The terms for using ${SITE.name} and buying ${SITE.name} Pro, written in plain English.`}
+  schema={breadcrumbSchema([{ name: SITE.name, url: abs('/') }, { name: 'Terms', url: abs('/terms/') }])}
+>
+  <article class="legal container-narrow" aria-labelledby="terms-heading">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">Terms</span>
+    </nav>
+    <h1 id="terms-heading">Terms of use</h1>
+    <p class="legal-lead">Short version: the tool is free to use, you stay responsible for what your invoices say, and Pro is a one-time licence you can refund within 14 days.</p>
+
+    <h2>Using {SITE.name}</h2>
+    <p>{SITE.name} is a free tool for making invoices, quotes, receipts, proformas and credit notes in your browser. You can use it for personal or business work, as often as you like. Please don’t use it to make fraudulent or misleading documents.</p>
+
+    <h2>Your invoices are your responsibility</h2>
+    <p>The country presets, rates and checklists are there to help, and we check them against official sources. Tax rules change, though, and your situation may differ from the usual case. You are responsible for the content of every document you issue, including the tax you charge. Nothing on this site is tax or legal advice; if you’re unsure, ask your tax authority or an accountant.</p>
+
+    <h2>Your data</h2>
+    <p>What you type stays in your browser and is never sent to us. The <a href="/privacy/">privacy page</a> explains the little we do measure. Because your data lives only in your browser, keep a backup with <strong>Export backup</strong>; we can’t recover data you clear.</p>
+
+    <h2>{SITE.name} Pro</h2>
+    <p>Pro is a one-time licence that costs {SITE.pro.price}. It removes the “Made with {SITE.name}” line from your PDFs and unlocks the Executive and Ledger templates. One licence works on up to 3 devices or browsers at a time. It is for you or your business; please don’t share or resell your key. There is no subscription and no renewal.</p>
+    <p>Payments are handled by Lemon Squeezy, which acts as the merchant of record and sells Pro to you under its own terms of sale. Lemon Squeezy collects any sales tax or VAT and sends your receipt.</p>
+
+    <h2>Refunds</h2>
+    <p>You can get a full refund within 14 days of buying, for any reason. See the <a href="/refund-policy/">refund policy</a>.</p>
+
+    <h2>Changes and availability</h2>
+    <p>We keep improving the tool, so features may change. Features that are free will not be moved behind Pro. We do our best to keep the site running, but it is provided as it is, without guarantees that it will always be available or error-free, and to the extent the law allows we are not liable for losses that come from using it.</p>
+    <p>If these terms change, we will update this page and the date below.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about these terms: <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+    <p class="legal-date">Last updated: 20 October 2026</p>
+  </article>
+</Base>
+
+<style>
+  .legal { padding: 3rem 1.5rem 5rem; }
+  .legal h1 { font-size: clamp(2rem, 4.5vw, 2.75rem); margin-bottom: 1rem; }
+  .legal-lead { font-size: 1.0625rem; color: var(--text-2); margin-bottom: 0.5rem; }
+  .legal h2 { font-size: 1.25rem; margin: 2.25rem 0 0.625rem; }
+  .legal p { color: var(--text-2); line-height: 1.75; margin-bottom: 0.75rem; }
+  .legal-date { font-size: 0.875rem; color: var(--text-3); margin-top: 2rem; }
+  @media (max-width: 559px) { .legal { padding: 2rem 1rem 4rem; } }
+</style>

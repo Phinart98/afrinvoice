@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import { breadcrumbSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
+---
+
+<Base
+  title="Refund policy"
+  description={`${SITE.name} Pro can be refunded in full within 14 days of purchase, for any reason.`}
+  schema={breadcrumbSchema([{ name: SITE.name, url: abs('/') }, { name: 'Refund policy', url: abs('/refund-policy/') }])}
+>
+  <article class="legal container-narrow" aria-labelledby="refund-heading">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">Refund policy</span>
+    </nav>
+    <h1 id="refund-heading">Refund policy</h1>
+    <p class="legal-lead">If {SITE.name} Pro isn’t right for you, you can have your money back in full within 14 days of buying it. You don’t need to give a reason.</p>
+
+    <h2>How to ask for a refund</h2>
+    <p>Email <a href={`mailto:${SITE.email}?subject=${encodeURIComponent('Refund request')}`}>{SITE.email}</a> from the address you bought with, and include your order number from the Lemon Squeezy receipt. You can also reply to the receipt email itself.</p>
+
+    <h2>What happens next</h2>
+    <p>We refund the full {SITE.pro.price} through Lemon Squeezy, back to the card or account you paid with. Most banks show the money within 5 to 10 working days. Your licence key is switched off, so Pro stops on your devices the next time {SITE.name} checks the key, and you go back to the free version with all your invoices and clients intact.</p>
+
+    <h2>After 14 days</h2>
+    <p>If something is broken or Pro doesn’t work as described, write to us anyway. We would rather fix the problem or refund you than keep money for something that doesn’t work.</p>
+
+    <p class="legal-date">Last updated: 20 October 2026</p>
+  </article>
+</Base>
+
+<style>
+  .legal { padding: 3rem 1.5rem 5rem; }
+  .legal h1 { font-size: clamp(2rem, 4.5vw, 2.75rem); margin-bottom: 1rem; }
+  .legal-lead { font-size: 1.0625rem; color: var(--text-2); margin-bottom: 0.5rem; }
+  .legal h2 { font-size: 1.25rem; margin: 2.25rem 0 0.625rem; }
+  .legal p { color: var(--text-2); line-height: 1.75; margin-bottom: 0.75rem; }
+  .legal-date { font-size: 0.875rem; color: var(--text-3); margin-top: 2rem; }
+  @media (max-width: 559px) { .legal { padding: 2rem 1rem 4rem; } }
+</style>

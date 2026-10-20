@@ -68,7 +68,7 @@ async function remove() {
         <p v-if="error" class="pro-error" role="alert">{{ error }}</p>
       </form>
       <p v-if="removeNote" class="pro-error" role="status">{{ removeNote }}</p>
-      <p class="pro-soon">Coming to Pro: recurring invoices and payment reminders.</p>
+      <p class="pro-soon"><a href="/pro/">What Pro includes</a>, the <a href="/terms/">terms</a> and the <a href="/refund-policy/">14-day refund policy</a>.</p>
     </template>
   </section>
 </template>

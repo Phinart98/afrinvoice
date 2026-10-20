@@ -1,0 +1,121 @@
+---
+import Base from '../../layouts/Base.astro';
+import FaqSection from '../../components/FaqSection.astro';
+import type { FaqItem } from '../../components/FaqSection.astro';
+import ProPanel from '../../components/ProPanel.vue';
+import { breadcrumbSchema, faqSchema } from '../../utils/schema';
+import { SITE, abs } from '../../site';
+
+// What Pro is, in plain words, before and after the shop is switched on.
+// While SITE.pro.enabled is false the page explains Pro and says it isn't on sale yet.
+const rows: { what: string; free: string; pro: string }[] = [
+  { what: 'Country tax presets, required-field checklists, withholding', free: 'Yes', pro: 'Yes' },
+  { what: 'Invoices, quotes, receipts, proformas and credit notes', free: 'Yes', pro: 'Yes' },
+  { what: 'Any currency, 7 invoice languages, payment QR codes', free: 'Yes', pro: 'Yes' },
+  { what: 'Saved clients, invoice history and backups', free: 'Yes', pro: 'Yes' },
+  { what: 'Templates', free: 'Minimal, Modern and Classic', pro: 'Also Executive and Ledger, in your brand colour' },
+  { what: `The small “Made with ${SITE.name}” line on the PDF`, free: 'Shown', pro: 'Removed' },
+];
+
+const faqs: FaqItem[] = [
+  { q: 'Is Pro paid per invoice?',
+    a: `No. You pay ${SITE.pro.price} once and make as many invoices as you like, for as long as you like. There is no subscription.` },
+  { q: 'Do I need an account?',
+    a: `No. After buying you get a licence key by email. Paste it into ${SITE.name} and Pro is on. The key takes the place of an account.` },
+  { q: 'Can I use Pro on more than one device?',
+    a: 'Yes, on up to 3 devices or browsers at once. Your invoices and clients stay in each browser, so use <strong>Export backup</strong> and <strong>Import</strong> in the History panel to move them across.' },
+  { q: 'What if I change browser or clear my browser data?',
+    a: 'Enter your key again. If you have already used all 3 activations, choose <strong>Remove Pro from this device</strong> on a device you no longer use, or email us and we will free one up.' },
+  { q: 'Which free features will move to Pro?',
+    a: 'None. Everything that is free today stays free. Pro only adds things on top.' },
+  { q: 'Who handles the payment?',
+    a: 'Lemon Squeezy, which acts as the merchant of record. It takes the payment, charges any sales tax or VAT, and sends your receipt. We never see your card details.' },
+  { q: 'Can I get a refund?',
+    a: 'Yes. Within 14 days of buying, for any reason. See the <a href="/refund-policy/">refund policy</a>.' },
+];
+
+const url = abs('/pro/');
+---
+
+<Base
+  title={`${SITE.name} Pro: one payment, no subscription`}
+  description={`${SITE.name} Pro is a ${SITE.pro.price} one-time licence: it removes the "Made with" line from your invoices and adds two premium templates. Everything else stays free.`}
+  schema={[breadcrumbSchema([{ name: SITE.name, url: abs('/') }, { name: 'Pro', url }]), faqSchema(faqs)]}
+>
+  <section class="country-hero" aria-labelledby="pro-heading">
+    <div class="container">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">{SITE.name}</a><span aria-hidden="true">›</span><span aria-current="page">Pro</span>
+      </nav>
+      <h1 id="pro-heading" class="country-heading">{SITE.name} Pro</h1>
+      <p class="country-sub">
+        One payment of {SITE.pro.price} removes the small “Made with {SITE.name}” line from your invoices and adds
+        two more templates. Everything else is free and stays free.
+      </p>
+    </div>
+  </section>
+
+  <section class="container pro-body">
+    {SITE.pro.enabled ? (
+      <div class="pro-panel-wrap"><ProPanel client:visible /></div>
+    ) : (
+      <p class="pro-soon">
+        <strong>Pro isn’t on sale yet.</strong> This page describes what it will include. If you’d like to know when it
+        is, email <a href={`mailto:${SITE.email}?subject=${encodeURIComponent('Tell me when Pro is available')}`}>{SITE.email}</a>.
+      </p>
+    )}
+
+    <h2 class="pro-h2">Free and Pro side by side</h2>
+    <table class="compare pro-table">
+      <thead><tr><th scope="col">What you get</th><th scope="col">Free</th><th scope="col">Pro, {SITE.pro.price} once</th></tr></thead>
+      <tbody>
+        {rows.map(r => <tr><th scope="row">{r.what}</th><td data-label="Free">{r.free}</td><td data-label="Pro">{r.pro}</td></tr>)}
+      </tbody>
+    </table>
+
+    <h2 class="pro-h2">How buying works</h2>
+    <ol class="steps">
+      <li class="step"><b>1</b><span>Pay {SITE.pro.price} once through Lemon Squeezy.</span></li>
+      <li class="step"><b>2</b><span>Your licence key arrives by email.</span></li>
+      <li class="step"><b>3</b><span>Paste it into {SITE.name}. Pro works on up to 3 devices.</span></li>
+    </ol>
+    <p class="pro-legal">By buying you agree to the <a href="/terms/">terms</a>. Refunds within 14 days, no questions asked: see the <a href="/refund-policy/">refund policy</a>.</p>
+  </section>
+
+  <section class="section" aria-labelledby="pro-faq">
+    <div class="container">
+      <FaqSection items={faqs} heading="Questions about Pro" headingId="pro-faq" />
+    </div>
+  </section>
+</Base>
+
+<!-- Counts visits to this page so interest in Pro can be measured before the shop opens -->
+<script is:inline>window.gtag && window.gtag('event', 'pro_page_view');</script>
+
+<style>
+  .pro-body { padding-bottom: 1rem; }
+  .pro-soon {
+    max-width: 46rem; padding: 1rem 1.25rem; border-radius: var(--radius);
+    background: var(--surface-2); color: var(--text-2); margin-bottom: 2.5rem;
+  }
+  .pro-soon strong { color: var(--text); }
+  .pro-panel-wrap { max-width: 34rem; margin-bottom: 2.5rem; }
+  .pro-h2 { font-size: clamp(1.375rem, 3vw, 1.75rem); margin: 0 0 1rem; }
+  .pro-table { margin-bottom: 2.5rem; }
+  .pro-legal { font-size: 0.9375rem; color: var(--text-2); max-width: 46rem; }
+
+  .compare { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); font-size: 0.9375rem; }
+  .compare th, .compare td { text-align: left; vertical-align: top; padding: 0.875rem 1rem; border-bottom: 1px solid var(--border); }
+  .compare thead th { font-size: 0.8125rem; font-weight: 700; }
+  .compare tbody th { font-weight: 600; color: var(--text); }
+  .compare td { color: var(--text-2); }
+  @media (max-width: 760px) {
+    .compare, .compare tbody, .compare tr, .compare th, .compare td { display: block; }
+    .compare thead { display: none; }
+    .compare tr { padding: 0.875rem 1rem; border-bottom: 1px solid var(--border); }
+    .compare th, .compare td { padding: 0; border: none; }
+    .compare tbody th { margin-bottom: 0.375rem; }
+    .compare td { display: grid; grid-template-columns: 4rem 1fr; gap: 0.75rem; padding: 0.125rem 0; }
+    .compare td::before { content: attr(data-label); color: var(--text-4); font-size: 0.8125rem; }
+  }
+</style>
