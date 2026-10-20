@@ -83,7 +83,7 @@ const ogAlt   = `${SITE.name} — ${SITE.tagline}`;
       : <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   )}
 
-  <meta name="google-site-verification" content={SITE.gscVerification} />
+  {SITE.gscVerification && <meta name="google-site-verification" content={SITE.gscVerification} />}
 
   <!-- Consent Mode v2: denied by default in the EEA/UK/CH (banner asks there), granted elsewhere -->
   <script is:inline define:vars={{ gaId: SITE.gaId }}>

@@ -10,7 +10,7 @@ export const SITE = {
   email: 'hello@invoicepassport.com',
   tagline: 'The free invoice generator that knows your country\'s rules',
   gaId: 'G-36BE3M8J6V',
-  gscVerification: 'BmpMIWd7m9AgoWxqSC4UBoQZLtQvPa9CxQAFcrSYqVY',
+  gscVerification: '', // Search Console uses a Domain property verified by DNS; set a token here only for a URL-prefix property
   // Storage keys are namespaced so an old afrinvoice.app key can be migrated once. The prefix is
   // an invisible localStorage key: it stays 'invoicekit' after the rename so saved data isn't orphaned.
   storagePrefix: 'invoicekit',
