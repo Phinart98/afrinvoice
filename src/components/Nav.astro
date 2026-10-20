@@ -11,27 +11,26 @@ const countryLinks = [
   { href: '/invoice-requirements-by-country/', label: `All ${COUNTRIES.length} countries` },
 ];
 
-const toolLinks = [
-  { href: '/quote-generator/',     label: 'Quote / estimate' },
-  { href: '/receipt-generator/',   label: 'Receipt' },
-  { href: '/proforma-invoice/',    label: 'Proforma invoice' },
-  { href: '/credit-note/',         label: 'Credit note' },
-  { href: '/freelancer-invoice/',  label: 'Freelancer invoice' },
-  { href: '/invoice-templates/',   label: 'Invoice templates' },
+const docLinks = [
+  { href: '/',                   label: 'Invoice' },
+  { href: '/quote-generator/',   label: 'Quote / estimate' },
+  { href: '/receipt-generator/', label: 'Receipt' },
+  { href: '/proforma-invoice/',  label: 'Proforma invoice' },
+  { href: '/credit-note/',       label: 'Credit note' },
+  { href: '/invoice-templates/', label: 'Invoice templates' },
 ];
 
 const guideLinks = [
   { href: '/invoice-requirements-by-country/', label: 'Invoice rules by country' },
-  { href: '/invoice-number-format/',           label: 'Invoice number format' },
-  { href: '/how-to-invoice-nigeria/',          label: 'How to invoice in Nigeria' },
-  { href: '/how-to-invoice-south-africa/',     label: 'How to invoice in South Africa' },
+  { href: '/freelancer-invoice/',              label: 'Invoicing as a freelancer' },
+  { href: '/invoice-number-format/',           label: 'Invoice numbers' },
 ];
 
 const mobileLinks = [
   { divider: 'Countries' },
   ...countryLinks,
-  { divider: 'Tools' },
-  ...toolLinks,
+  { divider: 'Documents' },
+  ...docLinks,
   { divider: 'Guides' },
   ...guideLinks,
   { divider: 'More' },
@@ -41,9 +40,11 @@ const mobileLinks = [
 ];
 
 const pathname = Astro.url.pathname;
-const isCountriesActive = countryLinks.some(l => pathname.startsWith(l.href));
-const isGuidesActive = guideLinks.some(l => pathname.startsWith(l.href));
-const isToolsActive = toolLinks.some(l => pathname.startsWith(l.href));
+// '/' would prefix-match every page, so the home page only counts as current on itself
+const isCurrent = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
+const isCountriesActive = countryLinks.some(l => isCurrent(l.href));
+const isGuidesActive = guideLinks.some(l => isCurrent(l.href));
+const isDocsActive = docLinks.some(l => isCurrent(l.href));
 ---
 
 <header class="nav-header" role="banner">
@@ -88,21 +89,21 @@ const isToolsActive = toolLinks.some(l => pathname.startsWith(l.href));
         </div>
       </div>
 
-      <!-- Tools dropdown -->
-      <div class="nav-dropdown" id="nav-tools-dropdown">
+      <!-- Documents dropdown -->
+      <div class="nav-dropdown" id="nav-docs-dropdown">
         <button
-          class:list={['nav-link', 'nav-dropdown-trigger', { active: isToolsActive }]}
+          class:list={['nav-link', 'nav-dropdown-trigger', { active: isDocsActive }]}
           aria-expanded="false"
-          aria-controls="nav-tools-panel"
-          id="nav-tools-btn"
+          aria-controls="nav-docs-panel"
+          id="nav-docs-btn"
         >
-          Tools
+          Documents
           <svg class="nav-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
             <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="nav-dropdown-panel" id="nav-tools-panel" aria-hidden="true">
-          {toolLinks.map(link => (
+        <div class="nav-dropdown-panel" id="nav-docs-panel" aria-hidden="true">
+          {docLinks.map(link => (
             <a href={link.href} class:list={['nav-dropdown-item', { active: pathname === link.href }]}>
               {link.label}
             </a>
@@ -170,7 +171,7 @@ const isToolsActive = toolLinks.some(l => pathname.startsWith(l.href));
       ) : (
         <a
           href={item.href}
-          class:list={['nav-mobile-link', { active: pathname === item.href || pathname.startsWith(item.href) }]}
+          class:list={['nav-mobile-link', { active: isCurrent(item.href) }]}
         >
           {item.label}
         </a>
@@ -180,11 +181,9 @@ const isToolsActive = toolLinks.some(l => pathname.startsWith(l.href));
 </header>
 
 <script>
-  // Light / dark switch: flips away from whatever is showing now, and remembers it
+  // Light / dark switch: light is the default; dark only when picked here, and remembered
   const themeBtn = document.getElementById('theme-toggle');
-  const isDark = () => document.documentElement.dataset.theme
-    ? document.documentElement.dataset.theme === 'dark'
-    : matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = () => document.documentElement.dataset.theme === 'dark';
   const labelTheme = () => themeBtn?.setAttribute('aria-label', isDark() ? 'Switch to light mode' : 'Switch to dark mode');
   labelTheme();
   themeBtn?.addEventListener('click', () => {
@@ -232,7 +231,7 @@ const isToolsActive = toolLinks.some(l => pathname.startsWith(l.href));
 
   initDropdown('nav-countries-dropdown', 'nav-countries-btn', 'nav-countries-panel');
   initDropdown('nav-guides-dropdown',    'nav-guides-btn',    'nav-guides-panel');
-  initDropdown('nav-tools-dropdown',     'nav-tools-btn',     'nav-tools-panel');
+  initDropdown('nav-docs-dropdown',     'nav-docs-btn',     'nav-docs-panel');
 </script>
 
 <style>
@@ -372,10 +371,6 @@ const isToolsActive = toolLinks.some(l => pathname.startsWith(l.href));
   .icon-sun { display: none; }
   :global(:root[data-theme="dark"]) .icon-sun { display: block; }
   :global(:root[data-theme="dark"]) .icon-moon { display: none; }
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .icon-sun { display: block; }
-    :global(:root:not([data-theme="light"])) .icon-moon { display: none; }
-  }
   .nav-mobile-btn { color: var(--text-3); }
 
   /* ── Mobile menu ─────────────────────────────────── */

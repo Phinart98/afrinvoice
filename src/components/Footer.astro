@@ -6,14 +6,12 @@ import { SITE } from '../site';
 const [brandFirst, ...brandRestParts] = SITE.name.split(' ');
 const brandRest = brandRestParts.join(' ');
 
-const invoiceTools = [
+const documents = [
   { href: '/',                      label: 'Invoice generator' },
   { href: '/quote-generator/',      label: 'Quote generator' },
   { href: '/receipt-generator/',    label: 'Receipt generator' },
   { href: '/proforma-invoice/',     label: 'Proforma invoice' },
   { href: '/credit-note/',          label: 'Credit note' },
-  { href: '/freelancer-invoice/',   label: 'Freelancer invoice' },
-  { href: '/mobile-money-invoice/', label: 'Mobile money invoice' },
   { href: '/invoice-templates/',    label: 'Invoice templates' },
 ];
 
@@ -22,11 +20,11 @@ const countries = [
   { href: '/invoice-requirements-by-country/', label: `All ${COUNTRIES.length} countries` },
 ];
 
-const resources = [
+const guides = [
   { href: '/invoice-requirements-by-country/', label: 'Invoice rules by country' },
-  { href: '/invoice-number-format/',           label: 'Invoice number format' },
-  { href: '/how-to-invoice-nigeria/',          label: 'How to invoice in Nigeria' },
-  { href: '/how-to-invoice-south-africa/',     label: 'How to invoice in South Africa' },
+  { href: '/freelancer-invoice/',              label: 'Invoicing as a freelancer' },
+  { href: '/invoice-number-format/',           label: 'Invoice numbers' },
+  { href: '/mobile-money-invoice/',            label: 'Mobile money payments' },
 ];
 
 const site = [
@@ -63,9 +61,9 @@ const site = [
     <div class="footer-nav-groups">
 
       <div class="footer-nav-group">
-        <span class="footer-nav-heading">Invoice tools</span>
-        <nav aria-label="Invoice tools navigation">
-          {invoiceTools.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
+        <span class="footer-nav-heading">Documents</span>
+        <nav aria-label="Documents navigation">
+          {documents.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
         </nav>
       </div>
 
@@ -77,9 +75,9 @@ const site = [
       </div>
 
       <div class="footer-nav-group">
-        <span class="footer-nav-heading">Resources</span>
-        <nav aria-label="Resources navigation">
-          {resources.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
+        <span class="footer-nav-heading">Guides</span>
+        <nav aria-label="Guides navigation">
+          {guides.map(l => <a href={l.href} class="footer-nav-link">{l.label}</a>)}
         </nav>
       </div>
 

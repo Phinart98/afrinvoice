@@ -83,8 +83,9 @@ export const AFRICA: CountryConfig[] = [
     rules: [
       'Since 2024 KRA requires business expenses to be backed by eTIMS invoices to be tax-deductible, so business clients will usually ask for an eTIMS invoice. Use this invoice for quotes, proformas, foreign clients or as the commercial copy.',
       'VAT registration is required once turnover reaches KSh 5 million in 12 months.',
+      'Services exported to clients outside Kenya are zero-rated again from 1 July 2023 (Finance Act 2023), so you charge VAT at 0% as long as the service is used abroad.',
     ],
-    sources: [{ label: 'KRA — eTIMS', url: 'https://www.kra.go.ke/etims' }, PWC('Kenya')],
+    sources: [{ label: 'KRA — eTIMS', url: 'https://www.kra.go.ke/etims' }, { label: 'PwC Kenya — Finance Act 2023 VAT changes', url: 'https://www.pwc.com/ke/en/publications/finance-act-insights/value-added-tax.html' }, PWC('Kenya')],
     lastVerified: '2026-09',
   },
   {
@@ -110,6 +111,7 @@ export const AFRICA: CountryConfig[] = [
     rules: [
       'For supplies over R5,000 a full tax invoice is required, including the buyer’s details and VAT number; at R5,000 or less an abridged tax invoice is enough.',
       'Compulsory VAT registration applies once taxable supplies exceed R2.3 million in 12 months (threshold raised from R1 million with effect from 1 April 2026).',
+      'Services for a non-resident client who is outside South Africa when the work is done are usually zero-rated (section 11(2)(l) of the VAT Act): charge VAT at 0% and keep proof that the client is non-resident.',
     ],
     sources: [{ label: 'SARS — Tax invoices', url: 'https://www.sars.gov.za/types-of-tax/value-added-tax/' }, PWC('South Africa')],
     lastVerified: '2026-09',
