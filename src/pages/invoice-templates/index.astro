@@ -12,30 +12,30 @@ const schema    = webAppSchema(
 );
 const breadcrumb = breadcrumbSchema([
   { name: SITE.name, url: abs('/') },
-  { name: 'Invoice Templates', url: pageUrl },
+  { name: 'Invoice templates', url: pageUrl },
 ]);
 
 const templates = [
   {
     name: 'Minimal',
     tag: 'Default',
-    description: 'Ultra-clean. No color blocks, hairline rules only, maximum whitespace. Lets your figures speak. The professional\'s choice for high-value consulting invoices.',
-    features: ['No color fill rows', 'Hairline rules only', 'Maximum whitespace', 'Elegant large invoice number'],
-    best: 'Consultants & executives',
+    description: 'Black and white, with thin rules and plenty of space, so the numbers do the talking. It prints well on any printer and suits any client.',
+    features: ['No colour fills', 'Thin rules between sections', 'Large invoice number'],
+    best: 'Anyone, and consultants in particular',
   },
   {
     name: 'Modern',
-    tag: 'Bold',
-    description: 'Customisable header band with accent colour. Alternating row shading. Bold invoice number. Perfect for tech companies, agencies, and creative freelancers.',
-    features: ['Custom header + accent colours', 'Alternating row shading', 'Bold invoice number accent', 'Contemporary feel'],
-    best: 'Agencies & tech freelancers',
+    tag: '',
+    description: 'A solid colour band across the top and a coloured total, both in colours you choose. Rows are shaded alternately so long lists stay easy to read.',
+    features: ['Header and accent colours you pick', 'Alternate row shading', 'Coloured total bar'],
+    best: 'Agencies and creative freelancers',
   },
   {
     name: 'Classic',
-    tag: 'Corporate',
-    description: 'Formal, clean, professional. Dark header row, customisable total accent colour, clear section separators. Suits corporate clients, law firms, accountants.',
-    features: ['Dark table header row', 'Custom accent colour', 'Clean horizontal rules', 'Full business logo support'],
-    best: 'Formal B2B invoicing',
+    tag: '',
+    description: 'A dark table heading and a total in the colour of your choice, laid out the way large companies expect to receive an invoice.',
+    features: ['Dark table heading', 'Total colour you pick', 'Ruled sections'],
+    best: 'Corporate clients, law firms and accountants',
   },
 ];
 
@@ -54,7 +54,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   },
   {
     q: 'Can I add my business logo to the PDF?',
-    a: 'Yes. Upload your logo (any image format) in the Your Business section. It appears in the top-left of every template PDF at a consistent size.',
+    a: 'Yes. Upload your logo in the Your business section and it appears at the top left of every template, at the same size.',
   },
   {
     q: 'Which template should I use?',
@@ -75,7 +75,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       <nav class="breadcrumb" aria-label="Breadcrumb">
         <a href="/">{SITE.name}</a>
         <span aria-hidden="true">›</span>
-        <span aria-current="page">Invoice Templates</span>
+        <span aria-current="page">Invoice templates</span>
       </nav>
 
       <h1 id="tpl-heading" class="tpl-heading">
@@ -83,8 +83,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </h1>
 
       <p class="tpl-sub">
-        3 professional PDF invoice designs with the right taxes for your country,
-        branded with your logo. Choose your template, fill your details, download instantly.
+        Three free PDF designs, each with your logo and the right taxes for your country.
+        Pick one, fill in your details and download the PDF.
       </p>
     </div>
   </section>
@@ -171,7 +171,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
             <div class="tpl-info">
               <div class="tpl-name-row">
                 <h3 class="tpl-name">{t.name}</h3>
-                <span class:list={['tpl-tag', { 'tpl-tag--bold': t.tag === 'Bold', 'tpl-tag--corporate': t.tag === 'Corporate' }]}>{t.tag}</span>
+                {t.tag && <span class="tpl-tag">{t.tag}</span>}
               </div>
               <p class="tpl-desc">{t.description}</p>
               <ul class="tpl-features">
@@ -306,7 +306,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .mock-inv-amber {
     font-size: 11px;
     font-weight: 800;
-    color: #0F766E;
+    color: #1B1F2E;
     letter-spacing: -0.01em;
     font-family: sans-serif;
   }
@@ -354,7 +354,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .mock-row-alt { background: #F8FAFC; }
 
   .mock-total     { display: flex; justify-content: flex-end; padding-top: 4px; border-top: 1px solid #E2E8F0; margin-top: 2px; }
-  .mock-total-amt { width: 40px; height: 8px; background: #0F766E; border-radius: 2px; }
+  .mock-total-amt { width: 40px; height: 8px; background: #1B1F2E; border-radius: 2px; }
 
   /* Minimal total: hairline + bold text, no fill */
   .mock-total--minimal { flex-direction: column; align-items: flex-end; gap: 3px; border-top: 1.5px solid #475569; }

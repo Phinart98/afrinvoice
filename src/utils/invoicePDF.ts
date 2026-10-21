@@ -89,7 +89,7 @@ interface Style {
   grand: 'text' | 'strip' | 'plain';
 }
 
-const BRAND_FALLBACK: RGB = [15, 118, 110];
+const BRAND_FALLBACK: RGB = [46, 91, 218];
 
 function styleFor(s: InvoiceState, pro: boolean): Style {
   const tpl = effectiveTemplate(s.template, pro);
@@ -102,7 +102,7 @@ function styleFor(s: InvoiceState, pro: boolean): Style {
   }
   if (tpl === 'classic') {
     return { ...base, zebra: true, headerBand: null, headerText: C_DARK, headerMuted: C_MID, tableHead: 'fill',
-      tableFill: C_DARK, accent: hexToRgb(s.classicAccent, [180, 83, 9]), grand: 'text' };
+      tableFill: C_DARK, accent: hexToRgb(s.classicAccent, [27, 31, 46]), grand: 'text' };
   }
   if (tpl === 'executive') {
     // Restrained: a dark header band, ruled table with shaded rows, and the brand colour only on the total.
@@ -208,13 +208,12 @@ function render(doc: jsPDF, font: string, v: InvoiceView, s: InvoiceState, pro: 
   const xQty = M + COL_DESC + COL_QTY / 2;
   const xUnit = M + COL_DESC + COL_QTY + COL_UNIT - 2;
   const xAmt = R - 2;
-  const padL = st.tableHead === 'fill' && st.headerBand ? 6 : 2.5;
+  const padL = 2.5;
 
   const drawHead = () => {
     const h = 8;
     if (st.tableHead === 'fill') {
       color(st.tableFill, 'fill'); doc.rect(M, y, CW, h, 'F');
-      if (st.headerBand) { color(st.accent, 'fill'); doc.rect(M, y, 2.5, h, 'F'); }
       set(7.5, 'bold', C_WHITE);
     } else {
       rule(y, M, R, 0.4, C_DARK);

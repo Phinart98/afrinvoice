@@ -19,9 +19,9 @@ const qr = computed(() => (v.value.qr ? qrSvg(v.value.qr.payload, 92) : ''));
 // CSS custom properties driven by the colour pickers
 const themeStyle = computed(() => {
   const s = props.state;
-  if (tpl.value === 'classic') return { '--c-accent': s.classicAccent || '#115E59' };
+  if (tpl.value === 'classic') return { '--c-accent': s.classicAccent || '#1B1F2E' };
   if (tpl.value === 'modern') return { '--m-header': s.modernHeader || '#0F172A', '--m-accent': s.modernAccent || '#0EA5E9' };
-  if (tpl.value === 'executive' || tpl.value === 'ledger') return { '--brand': s.brandColor || '#0F766E' };
+  if (tpl.value === 'executive' || tpl.value === 'ledger') return { '--brand': s.brandColor || '#2E5BDA' };
   return {};
 });
 </script>
@@ -303,11 +303,11 @@ const themeStyle = computed(() => {
 .inv-grand-val {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #0F766E;                        /* Classic default */
+  color: #1B1F2E;                        /* Classic default */
 }
 
 /* Classic: user-customisable total colour */
-.tpl-classic .inv-grand-val { color: var(--c-accent, #0F766E); }
+.tpl-classic .inv-grand-val { color: var(--c-accent, #1B1F2E); }
 
 /* ── Payment ─────────────────────────────────────────────────────────── */
 .inv-payment { margin-bottom: 0.25rem; }
@@ -373,7 +373,7 @@ const themeStyle = computed(() => {
 .tpl-modern .inv-biz-name { color: #ffffff; }
 .tpl-modern .inv-sender .inv-dim { color: rgba(255,255,255,0.55); }
 
-.tpl-modern .inv-title { color: var(--m-accent, #0F766E); }
+.tpl-modern .inv-title { color: var(--m-accent, #0EA5E9); }
 
 .tpl-modern .inv-label-block .inv-dim  { color: rgba(255,255,255,0.55); }
 .tpl-modern .inv-label-block .inv-mono { color: #ffffff; }
@@ -381,17 +381,11 @@ const themeStyle = computed(() => {
 .tpl-modern .inv-logo { border-color: rgba(255,255,255,0.15); }
 
 /* Accent section labels */
-.tpl-modern .inv-section-label { color: var(--m-accent, #0F766E); }
-
-/* Accent left-bar on table header */
-.tpl-modern .inv-th:first-child {
-  border-left: 3px solid var(--m-accent, #0F766E);
-  padding-left: calc(0.625rem - 3px);
-}
+.tpl-modern .inv-section-label { color: var(--m-accent, #0EA5E9); }
 
 /* Accent total strip */
 .tpl-modern .inv-grand {
-  background: var(--m-accent, #0F766E);
+  background: var(--m-accent, #0EA5E9);
   margin: 0.25rem -0.5rem -0.25rem;
   padding: 0.5rem 0.5rem;
   border-radius: 4px;
@@ -429,17 +423,17 @@ const themeStyle = computed(() => {
   border-radius: 4px;
   border-top: none;
 }
-.tpl-executive .inv-grand { background: var(--brand, #0F766E); }
+.tpl-executive .inv-grand { background: var(--brand, #2E5BDA); }
 .tpl-executive .inv-grand-label, .tpl-executive .inv-grand-val,
 .tpl-ledger .inv-grand-label, .tpl-ledger .inv-grand-val { color: #ffffff; }
 
 /* ══════════════════════════════════════════════════════════════════════
    LEDGER (Pro) — brand top bar · brand title and table head · dark total
    ══════════════════════════════════════════════════════════════════════ */
-.tpl-ledger { border-top: 6px solid var(--brand, #0F766E); }
-.tpl-ledger .inv-title { color: var(--brand, #0F766E); }
+.tpl-ledger { border-top: 6px solid var(--brand, #2E5BDA); }
+.tpl-ledger .inv-title { color: var(--brand, #2E5BDA); }
 .tpl-ledger .inv-section-label { color: #475569; }
-.tpl-ledger .inv-th { background: var(--brand, #0F766E); }
+.tpl-ledger .inv-th { background: var(--brand, #2E5BDA); }
 .tpl-ledger .inv-grand { background: #0F172A; }
 
 .inv-pro-badge {

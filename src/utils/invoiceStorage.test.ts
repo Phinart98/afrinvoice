@@ -67,3 +67,40 @@ describe('saving a previewed premium template', () => {
     expect(loadProfile().template).toBe('ledger');
   });
 });
+
+describe('old default template colours', () => {
+  it('moves the untouched Classic teal to the new ink default', () => {
+    saveProfile({ ...defaultInvoiceState(), classicAccent: '#115E59' });
+    expect(loadProfile().classicAccent).toBe(defaultInvoiceState().classicAccent);
+    expect(defaultInvoiceState().classicAccent).toBe('#1B1F2E');
+  });
+
+  it('keeps a colour the user picked', () => {
+    saveProfile({ ...defaultInvoiceState(), classicAccent: '#AA3355' });
+    expect(loadProfile().classicAccent).toBe('#AA3355');
+  });
+});
+
+describe('old default Pro brand colour', () => {
+  it('moves the untouched teal brand colour to the new default', () => {
+    saveProfile({ ...defaultInvoiceState(), brandColor: '#0F766E' });
+    expect(loadProfile().brandColor).toBe('#2E5BDA');
+  });
+});
+
+describe('the colour swap runs once', () => {
+  it('keeps the teal swatch when the user picks it after the swap', () => {
+    saveProfile({ ...defaultInvoiceState(), brandColor: '#0F766E' });
+    expect(loadProfile().brandColor).toBe('#2E5BDA'); // first load swaps the old default
+    saveProfile({ ...defaultInvoiceState(), brandColor: '#0F766E' }); // then the user picks teal
+    expect(loadProfile().brandColor).toBe('#0F766E');
+  });
+});
+
+describe('a first-time visitor', () => {
+  it('keeps teal picked on their very first visit', () => {
+    loadProfile(); // first page load: nothing saved yet
+    saveProfile({ ...defaultInvoiceState(), brandColor: '#0F766E' });
+    expect(loadProfile().brandColor).toBe('#0F766E');
+  });
+});

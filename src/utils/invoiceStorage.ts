@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SITE } from '../site';
-import { PREMIUM_TEMPLATES, type InvoiceState } from '../types/invoice';
+import { PREMIUM_TEMPLATES, defaultInvoiceState, type InvoiceState } from '../types/invoice';
 import type { ProRecord } from './proLicense';
 
 const KEY = {
@@ -16,6 +16,7 @@ const KEY = {
   history:  `${SITE.storagePrefix}_history`,
   counters: `${SITE.storagePrefix}_counters`,
   pro:      `${SITE.storagePrefix}_pro`,
+  colours:  `${SITE.storagePrefix}_colours_v2`, // set once the old default colours have been replaced
 };
 const LEGACY_KEY = 'afrinvoice_business'; // Afrinvoice v1 (same origin only)
 const HISTORY_LIMIT = 30;
@@ -63,10 +64,25 @@ function write(key: string, value: unknown): boolean {
 }
 
 // ── Profile ──────────────────────────────────────────────────────────────────
+// Default colours replaced in Oct 2026. Swapped once per browser, so a user who later picks the
+// same colour from the swatches keeps it.
+const OLD_DEFAULTS: Partial<Record<keyof Profile, string>> = { classicAccent: '#115E59', brandColor: '#0F766E' };
+
 export function loadProfile(): Profile {
   const profile = read<Profile | null>(KEY.profile, null);
-  if (profile) return profile;
-  return migrateLegacy();
+  if (!profile) {
+    write(KEY.colours, true); // nothing saved yet, so there are no old defaults to swap
+    return migrateLegacy();
+  }
+  if (!read<boolean>(KEY.colours, false)) {
+    const fresh = defaultInvoiceState();
+    for (const [k, old] of Object.entries(OLD_DEFAULTS) as [keyof Profile, string][]) {
+      if (profile[k] === old) (profile as Record<string, unknown>)[k] = fresh[k];
+    }
+    write(KEY.profile, profile);
+    write(KEY.colours, true);
+  }
+  return profile;
 }
 
 /** `keep` overrides fields that must not be saved from this state (e.g. a country page's preset). */

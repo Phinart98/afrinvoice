@@ -143,10 +143,10 @@ export function defaultInvoiceState(): InvoiceState {
     momoProvider: '', momoNumber: '', momoName: '',
     upiId: '', paymentLink: '',
 
-    classicAccent: '#115E59',
+    classicAccent: '#1B1F2E',
     modernHeader: '#0F172A',
     modernAccent: '#0EA5E9',
-    brandColor: '#0F766E',
+    brandColor: '#2E5BDA',
 
     notes: '',
     footerNote: '',
