@@ -456,7 +456,7 @@ const correctionHref = computed(() =>
 </script>
 
 <template>
-  <div class="gen-wrap" :data-doc="state.docType">
+  <div class="gen-wrap">
 
     <!-- ── Mobile tab bar ─────────────────────────────────────────────── -->
     <div class="tab-bar" role="tablist" aria-label="Invoice generator views">
@@ -496,7 +496,7 @@ const correctionHref = computed(() =>
 
         <!-- ── Template colours ───────────────────────────────────── -->
         <div v-if="state.template !== 'minimal'" class="form-card modern-colors-card">
-          <h3 class="card-title">Template colours</h3>
+          <h2 class="card-title">Template colours</h2>
           <div v-for="key in (state.template === 'classic' ? ['classicAccent'] : isPremium(state.template) ? ['brandColor'] : ['modernHeader', 'modernAccent']) as ('classicAccent' | 'modernHeader' | 'modernAccent' | 'brandColor')[]"
             :key="key" class="color-row">
             <span class="field-label">{{ key === 'modernHeader' ? 'Header' : key === 'modernAccent' ? 'Accent' : key === 'brandColor' ? 'Brand colour' : 'Total amount' }}</span>
@@ -525,7 +525,7 @@ const correctionHref = computed(() =>
         <!-- ── Document ───────────────────────────────────────────── -->
         <div class="form-card">
           <div class="card-title-row">
-            <h3 class="card-title">Document</h3>
+            <h2 class="card-title">Document</h2>
             <button v-if="state.docType === 'quote'" type="button" class="link-btn" @click="convertToInvoice">Turn this quote into an invoice</button>
           </div>
           <div class="field-row">
@@ -593,7 +593,7 @@ const correctionHref = computed(() =>
         <!-- ── Your business ──────────────────────────────────────── -->
         <div class="form-card">
           <div class="card-title-row">
-            <h3 class="card-title">Your business</h3>
+            <h2 class="card-title">Your business</h2>
             <span v-if="showSaved" class="saved-badge" role="status">✓ Saved</span>
           </div>
           <p class="card-hint">Saved in this browser only. Nothing is uploaded.</p>
@@ -642,7 +642,7 @@ const correctionHref = computed(() =>
         <!-- ── Bill to ────────────────────────────────────────────── -->
         <div class="form-card">
           <div class="card-title-row">
-            <h3 class="card-title">Bill to</h3>
+            <h2 class="card-title">Bill to</h2>
             <select v-if="clients.length" v-model="clientPick" class="form-select client-pick" aria-label="Choose a saved client"
               @change="pickClient(clientPick)">
               <option value="">Saved clients…</option>
@@ -687,7 +687,7 @@ const correctionHref = computed(() =>
         <!-- ── Line items ─────────────────────────────────────────── -->
         <div class="form-card">
           <div class="card-title-row">
-            <h3 class="card-title">Items</h3>
+            <h2 class="card-title">Items</h2>
             <div class="item-label-row">
               <label class="field-label" for="item-label" style="white-space:nowrap">Column name:</label>
               <input id="item-label" v-model="state.itemLabel" class="form-input item-label-input" placeholder="Description" maxlength="24" />
@@ -718,7 +718,7 @@ const correctionHref = computed(() =>
         <!-- ── Tax & totals ───────────────────────────────────────── -->
         <div class="form-card">
           <div class="card-title-row">
-            <h3 class="card-title">{{ country.taxName === 'Tax' ? 'Tax' : country.taxName }} &amp; totals</h3>
+            <h2 class="card-title">{{ country.taxName === 'Tax' ? 'Tax' : country.taxName }} &amp; totals</h2>
             <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.tax }]" :aria-pressed="state.visible.tax"
               @click="state.visible.tax = !state.visible.tax">{{ state.visible.tax ? 'printed' : 'hidden' }}</button>
           </div>
@@ -797,7 +797,7 @@ const correctionHref = computed(() =>
         <!-- ── Payment ────────────────────────────────────────────── -->
         <div class="form-card">
           <div class="card-title-row">
-            <h3 class="card-title">How to pay you</h3>
+            <h2 class="card-title">How to pay you</h2>
             <button type="button" :class="['vis-toggle', { 'vis-off': !state.visible.payment }]" :aria-pressed="state.visible.payment"
               @click="state.visible.payment = !state.visible.payment">{{ state.visible.payment ? 'printed' : 'hidden' }}</button>
           </div>
@@ -879,7 +879,7 @@ const correctionHref = computed(() =>
 
         <!-- ── Notes + footer ─────────────────────────────────────── -->
         <div class="form-card">
-          <h3 class="card-title"><label for="notes">Notes <span class="field-optional">(optional)</span></label></h3>
+          <h2 class="card-title"><label for="notes">Notes <span class="field-optional">(optional)</span></label></h2>
           <textarea id="notes" v-model="state.notes" class="form-input form-textarea" rows="3" placeholder="Payment terms, thank-you note, late-fee policy…" />
           <label class="field-label" for="footer-note">Footer line <span class="field-optional">(optional)</span></label>
           <input id="footer-note" v-model="state.footerNote" class="form-input" placeholder="e.g. Registered in England No. 01234567" />

@@ -99,8 +99,17 @@ const ogAlt   = `${SITE.name} — ${SITE.tagline}`;
     gtag('consent', 'default', { analytics_storage: 'granted', ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
     gtag('js', new Date());
     gtag('config', gaId);
+    // Fetch gtag.js only once the page has loaded and the browser is idle, so 177 KB of analytics
+    // never competes with the page itself. Calls made before then wait in dataLayer and are sent on arrival.
+    addEventListener('load', function () {
+      (window.requestIdleCallback || setTimeout)(function () {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+        document.head.appendChild(s);
+      });
+    });
   </script>
-  <script async src={`https://www.googletagmanager.com/gtag/js?id=${SITE.gaId}`}></script>
 </head>
 <body>
   <Nav />

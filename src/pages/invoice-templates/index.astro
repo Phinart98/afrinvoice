@@ -1,7 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
 import FaqSection from '../../components/FaqSection.astro';
-import AffiliateCallout from '../../components/AffiliateCallout.astro';
 import { webAppSchema, breadcrumbSchema, faqSchema } from '../../utils/schema';
 import { SITE, abs } from '../../site';
 
@@ -189,10 +188,6 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
     </div>
   </section>
 
-  <!-- ── Affiliate callout ──────────────────────────────────────────── -->
-  <div class="container affiliate-wrap">
-    <AffiliateCallout affiliate="freshbooks" />
-  </div>
 
   <!-- ── FAQ ───────────────────────────────────────────────────────── -->
   <section class="section" aria-labelledby="tpl-faq-heading">
@@ -448,7 +443,6 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .tpl-use-btn:hover { background: var(--accent-hover); color: var(--on-accent); }
 
 
-  .affiliate-wrap { padding-top: 1rem; padding-bottom: 1rem; }
 
   .sr-only {
     position: absolute;

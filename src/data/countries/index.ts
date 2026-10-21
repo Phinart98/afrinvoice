@@ -5,7 +5,8 @@ import { EUROPE_MORE } from './europe-more';
 import { AMERICAS } from './americas';
 import { ASIA_PACIFIC } from './asia-pacific';
 import { ASIA_PACIFIC_MORE } from './asia-pacific-more';
-import { AMERICAS_MORE, MIDDLE_EAST_MORE } from './more-americas-mideast';
+import { AMERICAS_MORE } from './americas-more';
+import { MIDDLE_EAST } from './middle-east';
 
 export type { CountryConfig, TaxPreset, TaxLineDef, TaxKind, PaymentRail, MobileProvider, Region } from './types';
 
@@ -23,7 +24,7 @@ export const OTHER_COUNTRY: CountryConfig = {
 };
 
 export const COUNTRIES: CountryConfig[] = [
-  ...AMERICAS, ...AMERICAS_MORE, ...EUROPE, ...EUROPE_MORE, ...ASIA_PACIFIC, ...ASIA_PACIFIC_MORE, ...MIDDLE_EAST_MORE, ...AFRICA,
+  ...AMERICAS, ...AMERICAS_MORE, ...EUROPE, ...EUROPE_MORE, ...ASIA_PACIFIC, ...ASIA_PACIFIC_MORE, ...MIDDLE_EAST, ...AFRICA,
 ]
   .sort((a, b) => a.name.localeCompare(b.name));
 

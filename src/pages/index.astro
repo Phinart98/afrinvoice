@@ -2,7 +2,6 @@
 import Base from '../layouts/Base.astro';
 import AdUnit from '../components/AdUnit.astro';
 import FaqSection from '../components/FaqSection.astro';
-import AffiliateCallout from '../components/AffiliateCallout.astro';
 import InvoiceGenerator from '../components/InvoiceGenerator.vue';
 import { COUNTRIES, COUNTRY_BY_KEY, countryPath, type CountryConfig } from '../data/countries';
 import { checkedSpan } from '../utils/stamp';
@@ -129,9 +128,6 @@ const pageDescription = `A free invoice generator that knows your country’s ru
     </div>
   </section>
 
-  <div class="container affiliate-wrap">
-    <AffiliateCallout affiliate="freshbooks" />
-  </div>
 
   <section class="section" aria-labelledby="faq-heading">
     <div class="container">
@@ -211,8 +207,4 @@ const pageDescription = `A free invoice generator that knows your country’s ru
     .compare td::before { content: attr(data-label); color: var(--text-4); font-size: 0.8125rem; }
   }
 
-  .affiliate-wrap {
-    padding-top: 0.5rem;
-    padding-bottom: 1rem;
-  }
 </style>

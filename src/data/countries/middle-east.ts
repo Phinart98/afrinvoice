@@ -1,0 +1,126 @@
+import type { CountryConfig } from './types';
+
+export const MIDDLE_EAST: CountryConfig[] = [
+  {
+    key: 'saudi-arabia', name: 'Saudi Arabia', flag: '🇸🇦', region: 'middle-east',
+    currency: 'SAR', currencySymbol: 'SAR', locale: 'en-SA', paper: 'A4', labelsLang: 'en',
+    taxName: 'VAT', taxAuthority: 'ZATCA', taxAuthorityFull: 'Zakat, Tax and Customs Authority',
+    taxPresets: [
+      { label: 'VAT 15% (standard)', taxes: [{ label: 'VAT', rate: 15 }] },
+      { label: 'Exports and international services (0%)', taxes: [{ label: 'VAT', rate: 0 }] },
+      { label: 'Not VAT-registered', taxes: [] },
+    ],
+    taxIdLabel: 'VAT registration number', documentTitle: 'tax-invoice', rails: ['iban'],
+    invoicePrefix: 'INV-',
+    mandatoryFields: [
+      'The words “Tax Invoice” (“Simplified Tax Invoice” for sales to consumers)',
+      'Supplier’s name, address and VAT registration number',
+      'Customer’s name, address and VAT number (for standard B2B invoices)',
+      'Sequential invoice number, date of issue and date of supply',
+      'Description, quantity, unit price, discount, VAT rate and VAT amount in SAR',
+      'A QR code and the other data fields from the ZATCA e-invoice specification',
+    ],
+    rules: [
+      'VAT-registered businesses in Saudi Arabia must issue e-invoices through a ZATCA-compliant system (the FATOORA platform). A PDF made here does not meet that rule, and ZATCA expects invoices in Arabic. Use this tool for foreign clients, quotes and proformas.',
+      'Phase 1 (generation) has applied since December 2021. Phase 2, where invoices are integrated with ZATCA, is rolling out in waves by turnover, and ZATCA writes to each business at least six months before its date.',
+      'VAT registration is mandatory above SAR 375,000 of taxable supplies a year and voluntary from SAR 187,500.',
+      'Non-residents making taxable supplies in Saudi Arabia must register, generally through a tax representative.',
+    ],
+    sources: [
+      { label: 'ZATCA: E-invoicing roll-out phases', url: 'https://zatca.gov.sa/en/E-Invoicing/Introduction/Pages/Roll-out-phases.aspx' },
+      { label: 'PwC Tax Summaries: Saudi Arabia, other taxes', url: 'https://taxsummaries.pwc.com/saudi-arabia/corporate/other-taxes' },
+      { label: 'Kintsugi: Saudi Arabia VAT guide', url: 'https://trykintsugi.com/sales-tax-guides/middle-east/saudi-arabia.md' },
+    ],
+    lastVerified: '2026-10',
+  },
+  {
+    key: 'qatar', name: 'Qatar', flag: '🇶🇦', region: 'middle-east',
+    currency: 'QAR', currencySymbol: 'QAR', locale: 'en-QA', paper: 'A4', labelsLang: 'en',
+    taxName: 'VAT', taxAuthority: 'GTA', taxAuthorityFull: 'General Tax Authority',
+    taxPresets: [
+      { label: 'No VAT (Qatar has no VAT)', taxes: [] },
+    ],
+    taxIdLabel: 'Tax card / CR number', documentTitle: 'invoice', rails: ['iban'],
+    invoicePrefix: 'INV-',
+    mandatoryFields: [
+      'Your business name, address and commercial registration (CR) or tax card number',
+      'Your client’s name and address',
+      'Unique invoice number and date',
+      'Description, quantity, unit price and total in QAR (or the agreed currency)',
+      'Payment terms and bank details',
+    ],
+    rules: [
+      'Qatar has no VAT and no general sales tax in 2026, so invoices show no tax line. A GCC-wide 5% VAT has been agreed in principle, but no start date has been set.',
+      'The GTA lists withholding tax among the taxes it collects. A Qatari client paying a foreign company for some services may need to deduct it, so confirm with the client before you send the invoice.',
+    ],
+    sources: [
+      { label: 'GTA Qatar', url: 'https://www.gta.gov.qa/en' },
+      { label: 'PwC Tax Summaries: Qatar, other taxes', url: 'https://taxsummaries.pwc.com/qatar/corporate/other-taxes' },
+      { label: 'Kintsugi: Qatar VAT guide', url: 'https://trykintsugi.com/sales-tax-guides/middle-east/qatar.md' },
+    ],
+    lastVerified: '2026-10',
+  },
+  {
+    key: 'israel', name: 'Israel', flag: '🇮🇱', region: 'middle-east',
+    currency: 'ILS', currencySymbol: '₪', locale: 'en-IL', paper: 'A4', labelsLang: 'en',
+    taxName: 'VAT', taxAuthority: 'ITA', taxAuthorityFull: 'Israel Tax Authority',
+    taxPresets: [
+      { label: 'VAT 18% (standard)', taxes: [{ label: 'VAT', rate: 18 }] },
+      { label: 'Exempt dealer (osek patur): no VAT', taxes: [], note: 'Exempt dealer (osek patur): no VAT charged.' },
+      { label: 'Exports and services to non-residents (0%)', taxes: [{ label: 'VAT', rate: 0 }] },
+    ],
+    taxIdLabel: 'Dealer / company number', documentTitle: 'tax-invoice', rails: ['bank', 'iban'],
+    bankCodeLabel: 'Bank and branch no.',
+    invoicePrefix: 'INV-',
+    mandatoryFields: [
+      'The words “Tax Invoice” (for a licensed dealer)',
+      'Your name, address and dealer or company number',
+      'Your client’s name and address (and number, for business clients)',
+      'Sequential invoice number and date',
+      'Description, quantity, price, VAT rate and VAT amount in shekels',
+      'The allocation number from the Tax Authority, for business invoices above the current threshold',
+    ],
+    rules: [
+      'Tax invoices to Israeli clients must come from software approved by the Israel Tax Authority and, above the threshold, carry an allocation number obtained online. A PDF made here does not do that. Use this tool for foreign clients, quotes and proformas.',
+      'The allocation-number threshold for business invoices (before VAT) fell to NIS 10,000 on 1 January 2026 and to NIS 5,000 on 1 June 2026. Without a number, your client cannot deduct the VAT.',
+      'VAT is 18% since 1 January 2025. Exports and services to non-residents are generally zero-rated.',
+      'An exempt dealer (osek patur) charges no VAT; the turnover ceiling is about NIS 120,000 a year and is updated each year.',
+    ],
+    sources: [
+      { label: 'Kintsugi: Israel VAT guide', url: 'https://trykintsugi.com/sales-tax-guides/middle-east/israel.md' },
+      { label: 'PwC Tax Summaries: Israel, other taxes', url: 'https://taxsummaries.pwc.com/israel/corporate/other-taxes' },
+    ],
+    lastVerified: '2026-10',
+  },
+  {
+    key: 'oman', name: 'Oman', flag: '🇴🇲', region: 'middle-east',
+    currency: 'OMR', currencySymbol: 'OMR', locale: 'en-OM', paper: 'A4', labelsLang: 'en',
+    taxName: 'VAT', taxAuthority: 'OTA', taxAuthorityFull: 'Oman Tax Authority',
+    taxPresets: [
+      { label: 'VAT 5% (standard)', taxes: [{ label: 'VAT', rate: 5 }] },
+      { label: 'Exports and zero-rated supplies (0%)', taxes: [{ label: 'VAT', rate: 0 }] },
+      { label: 'Not VAT-registered', taxes: [] },
+    ],
+    taxIdLabel: 'VAT number (VATIN)', documentTitle: 'tax-invoice', rails: ['iban'],
+    invoicePrefix: 'INV-',
+    mandatoryFields: [
+      'The words “Tax Invoice”',
+      'Your name, address and VATIN',
+      'Your client’s name and address (and VATIN if registered)',
+      'Sequential invoice number and date of issue (and of supply, if different)',
+      'Description, quantity, unit price, VAT rate and VAT amount in OMR',
+      'Total payable',
+    ],
+    rules: [
+      'VAT is 5%. You must register once taxable supplies pass OMR 38,500 in a year, and you may register voluntarily from OMR 19,250. Non-residents making taxable supplies in Oman must register whatever their turnover.',
+      'Oman has announced mandatory e-invoicing through accredited providers, phased in by business size from 2027. Until your phase starts, a PDF invoice is accepted; check the Oman Tax Authority for your date.',
+      'Oman amounts have three decimal places (1 rial = 1,000 baisa).',
+    ],
+    sources: [
+      { label: 'PwC Tax Summaries: Oman, other taxes', url: 'https://taxsummaries.pwc.com/oman/corporate/other-taxes' },
+      { label: 'Oman Observer: phased e-invoicing', url: 'https://www.omanobserver.om/article/1194374' },
+      { label: 'Kintsugi: Oman VAT guide', url: 'https://trykintsugi.com/sales-tax-guides/middle-east/oman.md' },
+    ],
+    lastVerified: '2026-10',
+  },
+];
