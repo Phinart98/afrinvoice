@@ -43,8 +43,8 @@ export const AFRICA: CountryConfig[] = [
     taxName: 'VAT', taxAuthority: 'NRS', taxAuthorityFull: 'Nigeria Revenue Service (formerly FIRS)',
     taxPresets: [
       { label: 'VAT 7.5%', taxes: [{ label: 'VAT', rate: 7.5 }] },
-      { label: 'VAT 7.5% − WHT 5% (services to companies)', taxes: [{ label: 'VAT', rate: 7.5 }, { label: 'WHT', rate: 5, kind: 'withhold' }] },
-      { label: 'VAT 7.5% − WHT 10% (professional / consultancy)', taxes: [{ label: 'VAT', rate: 7.5 }, { label: 'WHT', rate: 10, kind: 'withhold' }] },
+      { label: 'VAT 7.5% − WHT 5% (professional, consultancy and other services)', taxes: [{ label: 'VAT', rate: 7.5 }, { label: 'WHT', rate: 5, kind: 'withhold' }] },
+      { label: 'No VAT − WHT 5% (not VAT-registered)', taxes: [{ label: 'WHT', rate: 5, kind: 'withhold' }] },
     ],
     taxIdLabel: 'TIN', documentTitle: 'invoice',
     rails: ['bank', 'mobile-money'],
@@ -58,11 +58,11 @@ export const AFRICA: CountryConfig[] = [
     mandatoryFields: vatParticulars('TIN', ['Bank name and 10-digit NUBAN account number for payment']),
     rules: [
       'VAT stays at 7.5% under the Nigeria Tax Act 2025, in force from 1 January 2026; the tax authority is now the Nigeria Revenue Service (NRS).',
-      'Companies paying you for services usually deduct withholding tax (commonly 5% or 10%) and give you a credit note. Show it on the invoice so the net payable is clear.',
-      'Small businesses below the WHT Regulations 2024 threshold with a valid TIN are not required to deduct WHT.',
+      'Companies paying you for professional, consultancy or other services deduct 5% withholding tax under the 2024 WHT Regulations (10% if you are not resident in Nigeria) and give you a credit note. Show it on the invoice so the net payable is clear.',
+      'Small companies with a valid TIN don’t have WHT deducted from their payments as long as the transactions with that client stay at or below ₦2 million in the month.',
     ],
-    sources: [{ label: 'EY: Nigeria Tax Act 2025 highlights', url: 'https://www.ey.com/en_gl/technical/tax-alerts/nigeria-tax-act-2025-has-been-signed-highlights' }, PWC('Nigeria')],
-    lastVerified: '2026-09',
+    sources: [{ label: 'EY: Nigeria Tax Act 2025 highlights', url: 'https://www.ey.com/en_gl/technical/tax-alerts/nigeria-tax-act-2025-has-been-signed-highlights' }, { label: 'PwC: Highlights of the WHT Regulations 2024', url: 'https://pwc.com/ng/en/assets/pdf/highlights-of-the-deduction-at-source-regulations-2024.pdf' }, PWC('Nigeria')],
+    lastVerified: '2026-10',
   },
   {
     key: 'kenya', name: 'Kenya', flag: '🇰🇪', region: 'africa',
