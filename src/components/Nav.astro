@@ -28,14 +28,13 @@ const guideLinks = [
   { href: '/invoice-number-format/',           label: 'Invoice numbers' },
 ];
 
-const mobileLinks = [
-  { divider: 'Countries' },
-  ...countryLinks,
-  { divider: 'Documents' },
-  ...docLinks,
-  { divider: 'Guides' },
-  ...guideLinks,
-  { divider: 'More' },
+// Phone menu: each group folds away, so the menu opens as four short rows
+const mobileGroups = [
+  { label: 'Countries', links: countryLinks },
+  { label: 'Documents', links: docLinks },
+  { label: 'Guides',    links: guideLinks },
+];
+const mobileMore = [
   { href: '/about/',   label: 'About' },
   { href: '/contact/', label: 'Contact' },
   { href: '/privacy/', label: 'Privacy' },
@@ -167,18 +166,27 @@ const isDocsActive = docLinks.some(l => isCurrent(l.href));
 
   <!-- Mobile menu -->
   <div class="nav-mobile-menu" id="nav-mobile-menu" aria-hidden="true">
-    {mobileLinks.map((item) =>
-      'divider' in item ? (
-        <span class="nav-mobile-divider">{item.divider}</span>
-      ) : (
-        <a
-          href={item.href}
-          class:list={['nav-mobile-link', { active: isCurrent(item.href) }]}
-        >
-          {item.label}
-        </a>
-      )
-    )}
+    {mobileGroups.map(g => (
+      <details class="nav-mobile-group" open={g.links.some(l => isCurrent(l.href))}>
+        <summary class="nav-mobile-summary">
+          <span>{g.label}</span>
+          <span class="nav-mobile-count">{g.links.length}</span>
+          <svg class="nav-mobile-chevron" width="12" height="12" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </summary>
+        <div class="nav-mobile-sub">
+          {g.links.map(l => (
+            <a href={l.href} class:list={['nav-mobile-link', { active: isCurrent(l.href) }]} aria-current={isCurrent(l.href) ? 'page' : undefined}>{l.label}</a>
+          ))}
+        </div>
+      </details>
+    ))}
+    <div class="nav-mobile-more">
+      {mobileMore.map(l => (
+        <a href={l.href} class:list={['nav-mobile-link', { active: isCurrent(l.href) }]}>{l.label}</a>
+      ))}
+    </div>
   </div>
 </header>
 
@@ -396,17 +404,30 @@ const isDocsActive = docLinks.some(l => isCurrent(l.href));
     transition: all 150ms;
   }
   .nav-mobile-link:hover  { color: var(--text); background: var(--surface-2); }
-  .nav-mobile-link.active { color: var(--accent); }
+  .nav-mobile-link.active { color: var(--accent); font-weight: 700; }
 
-  .nav-mobile-divider {
-    display: block;
-    padding: 0.625rem 0.75rem 0.25rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--text-4);
-    user-select: none;
-    pointer-events: none;
+  .nav-mobile-group { border-bottom: 1px solid var(--border); }
+  .nav-mobile-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 0.75rem;
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    font-weight: 800;
+    color: var(--text);
+    cursor: pointer;
+    list-style: none;
   }
+  .nav-mobile-summary::-webkit-details-marker { display: none; }
+  .nav-mobile-summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 6px; }
+  .nav-mobile-count { font-family: var(--font); font-size: 0.8125rem; font-weight: 500; color: var(--text-4); }
+  .nav-mobile-chevron { margin-left: auto; color: var(--text-3); transition: transform 180ms ease; }
+  .nav-mobile-group[open] .nav-mobile-chevron { transform: rotate(180deg); }
+  .nav-mobile-sub { display: flex; flex-direction: column; gap: 2px; padding: 0 0 0.625rem 0.5rem; }
+  .nav-mobile-more { display: flex; flex-wrap: wrap; gap: 0.25rem 0.5rem; padding-top: 0.75rem; }
+  .nav-mobile-more .nav-mobile-link { font-size: 0.875rem; color: var(--text-3); }
+  @media (prefers-reduced-motion: reduce) { .nav-mobile-chevron { transition: none; } }
 
   /* ── Hamburger → X animation ─────────────────────── */
   #burger-top, #burger-mid, #burger-bot {
