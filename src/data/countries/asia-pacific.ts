@@ -24,9 +24,9 @@ export const ASIA_PACIFIC: CountryConfig[] = [
     rules: [
       'Registration for GST is required once turnover reaches $75,000 a year.',
       'A tax invoice is required for sales over $82.50 (GST-inclusive) so your client can claim GST credits.',
-      'If you are not registered for GST, don’t call it a tax invoice — issue an “Invoice” and say no GST was charged.',
+      'If you are not registered for GST, don’t call it a tax invoice. Issue an “Invoice” and say no GST was charged.',
     ],
-    sources: [{ label: 'ATO — Tax invoices', url: 'https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/tax-invoices' }],
+    sources: [{ label: 'ATO: Tax invoices', url: 'https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/tax-invoices' }],
     lastVerified: '2026-09',
   },
   {
@@ -50,7 +50,7 @@ export const ASIA_PACIFIC: CountryConfig[] = [
       'Taxable supply information rules (since April 2023): under $200 needs no GST details for the buyer; $200–$1,000 needs your GST number; over $1,000 also needs the buyer’s details.',
       'GST registration is compulsory once turnover exceeds $60,000 in 12 months.',
     ],
-    sources: [{ label: 'IRD — Taxable supply information', url: 'https://www.ird.govt.nz/gst/tax-invoices-for-gst' }],
+    sources: [{ label: 'IRD: Taxable supply information', url: 'https://www.ird.govt.nz/gst/tax-invoices-for-gst' }],
     lastVerified: '2026-09',
   },
   {
@@ -58,10 +58,10 @@ export const ASIA_PACIFIC: CountryConfig[] = [
     currency: 'INR', currencySymbol: '₹', locale: 'en-IN', paper: 'A4', labelsLang: 'en',
     taxName: 'GST', taxAuthority: 'GSTN / CBIC', taxAuthorityFull: 'Central Board of Indirect Taxes and Customs',
     taxPresets: [
-      { label: 'Same state — CGST 9% + SGST 9%', taxes: [{ label: 'CGST', rate: 9 }, { label: 'SGST', rate: 9 }] },
-      { label: 'Other state — IGST 18%', taxes: [{ label: 'IGST', rate: 18 }] },
-      { label: 'Same state — CGST 2.5% + SGST 2.5%', taxes: [{ label: 'CGST', rate: 2.5 }, { label: 'SGST', rate: 2.5 }] },
-      { label: 'Other state — IGST 5%', taxes: [{ label: 'IGST', rate: 5 }] },
+      { label: 'Same state: CGST 9% + SGST 9%', taxes: [{ label: 'CGST', rate: 9 }, { label: 'SGST', rate: 9 }] },
+      { label: 'Other state: IGST 18%', taxes: [{ label: 'IGST', rate: 18 }] },
+      { label: 'Same state: CGST 2.5% + SGST 2.5%', taxes: [{ label: 'CGST', rate: 2.5 }, { label: 'SGST', rate: 2.5 }] },
+      { label: 'Other state: IGST 5%', taxes: [{ label: 'IGST', rate: 5 }] },
       { label: 'Export of services under LUT (no GST)', taxes: [], note: 'Supply meant for export under LUT without payment of IGST.' },
       { label: 'Not GST-registered', taxes: [] },
     ],
@@ -84,7 +84,7 @@ export const ASIA_PACIFIC: CountryConfig[] = [
       'Registration is required above ₹20 lakh turnover for services (₹10 lakh in special-category states) and ₹40 lakh for goods. E-invoicing (IRN) is mandatory above ₹5 crore turnover.',
       'Exporting services to foreign clients? File a Letter of Undertaking (LUT) and invoice without IGST.',
     ],
-    sources: [{ label: 'CBIC — GST', url: 'https://cbic-gst.gov.in/' }],
+    sources: [{ label: 'CBIC: GST', url: 'https://cbic-gst.gov.in/' }],
     lastVerified: '2026-09',
   },
   {
@@ -111,7 +111,7 @@ export const ASIA_PACIFIC: CountryConfig[] = [
       'Registration is compulsory once taxable turnover exceeds S$1 million a year.',
       'A simplified tax invoice is allowed for sales up to S$1,000 including GST.',
     ],
-    sources: [{ label: 'IRAS — Invoicing', url: 'https://www.iras.gov.sg/taxes/goods-services-tax-(gst)/basics-of-gst/invoicing-price-display-and-record-keeping/invoicing-customers' }],
+    sources: [{ label: 'IRAS: Invoicing', url: 'https://www.iras.gov.sg/taxes/goods-services-tax-(gst)/basics-of-gst/invoicing-price-display-and-record-keeping/invoicing-customers' }],
     lastVerified: '2026-09',
   },
   {
@@ -137,11 +137,11 @@ export const ASIA_PACIFIC: CountryConfig[] = [
       'VAT shown separately, or the words “VAT-exempt” / “zero-rated” where they apply',
     ],
     rules: [
-      'Under the EOPT Act the invoice is now the primary document for both goods and services — official receipts are only supplementary proof of payment.',
+      'Under the EOPT Act the invoice is now the primary document for both goods and services, and official receipts are only supplementary proof of payment.',
       'For BIR purposes invoices must be printed with an Authority to Print or issued from registered software; use this tool for quotes, proformas and foreign clients.',
       'Large taxpayers and e-commerce sellers must issue e-invoices by 31 December 2026.',
     ],
-    sources: [{ label: 'BIR — EOPT Act', url: 'https://www.bir.gov.ph/eopt' }],
+    sources: [{ label: 'BIR: EOPT Act', url: 'https://www.bir.gov.ph/eopt' }],
     lastVerified: '2026-09',
   },
   {
@@ -166,7 +166,7 @@ export const ASIA_PACIFIC: CountryConfig[] = [
       'If you invoice in another currency, the VAT amount must also be shown in AED.',
       'E-invoicing becomes mandatory from 1 January 2027 for businesses with revenue of AED 50 million or more, and from 1 July 2027 for all other businesses.',
     ],
-    sources: [{ label: 'FTA — VAT', url: 'https://tax.gov.ae/en/taxes/Vat/vat.topics/tax.invoices.aspx' }],
+    sources: [{ label: 'FTA: VAT', url: 'https://tax.gov.ae/en/taxes/Vat/vat.topics/tax.invoices.aspx' }],
     lastVerified: '2026-09',
   },
 ];

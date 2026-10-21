@@ -28,7 +28,7 @@ const {
 } = Astro.props;
 
 const ogImg   = ogImage ?? `${SITE.url}/og.png`;
-const ogTitle = title.includes(SITE.name) ? title : `${title} — ${SITE.name}`;
+const ogTitle = title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
 const ogAlt   = `${SITE.name} — ${SITE.tagline}`;
 ---
 

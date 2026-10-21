@@ -11,7 +11,7 @@ const breadcrumb = breadcrumbSchema([
 ---
 
 <Base
-  title={`Contact ${SITE.name} — Report Errors or Request a Country`}
+  title={`Contact ${SITE.name}: Report an Error or Request a Country`}
   description={`Get in touch with the ${SITE.name} team. Report a wrong VAT rate, request a new country, or ask a question about the invoice generator.`}
   schema={breadcrumb}
 >
@@ -26,7 +26,7 @@ const breadcrumb = breadcrumbSchema([
 
       <header class="contact-header">
         <h1 class="contact-heading">Contact {SITE.name}</h1>
-        <p class="contact-lead">Questions, corrections, or country requests — we read everything.</p>
+        <p class="contact-lead">Questions, corrections and country requests all come to one inbox, and we read everything.</p>
       </header>
 
       <div class="contact-options">
@@ -36,7 +36,7 @@ const breadcrumb = breadcrumbSchema([
           <h2>Report a data error</h2>
           <p>
             VAT rates change. Payment providers rebrand. If something looks wrong for your
-            country — wrong rate, wrong provider name, missing provider — use the
+            country, such as a rate, a provider name or a missing provider, use the
             <strong>"Something wrong? Tell us"</strong> link in the tool directly.
             It's the fastest way to get it fixed.
           </p>
@@ -56,7 +56,7 @@ const breadcrumb = breadcrumbSchema([
           <div class="cc-icon" aria-hidden="true">◆</div>
           <h2>Everything else</h2>
           <p>
-            Bugs, feature ideas, partnership enquiries, press — email
+            For bugs, feature ideas, partnerships or press, email
             <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
             We aim to respond within 2 business days.
           </p>

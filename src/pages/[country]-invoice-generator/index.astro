@@ -40,7 +40,7 @@ const sameRegion = COUNTRIES.filter(x => x.region === c.region && x.key !== c.ke
 const faqs: FaqItem[] = [
   {
     q: `Is this ${c.name} invoice generator really free?`,
-    a: `Yes. There is no sign-up, no watermark and no limit. Invoices are created in your browser, and your details are saved on your own device, not on our servers.`,
+    a: `Yes. There is no sign-up and no limit on invoices. The free PDF carries one small “Made with ${SITE.name}” line at the bottom, which Pro removes. Invoices are created in your browser, and your details are saved on your own device, not on our servers.`,
   },
   {
     q: `What ${c.taxName} should I put on an invoice in ${c.name}?`,
@@ -61,15 +61,15 @@ const faqs: FaqItem[] = [
   ...(eInvoiceRule ? [{ q: `Is a PDF invoice valid in ${c.name}?`, a: eInvoiceRule }] : []),
 ];
 
-const title = `${c.name} Invoice Generator — Free, with ${c.taxName} Built In`;
-const description = `Free ${c.name} invoice generator: ${c.taxPresets[0] ? presetLine(c.taxPresets[0].taxes) : c.taxName} pre-filled, ${c.currency} amounts, ${c.taxIdLabel} fields and a legal-requirements checklist. Download a PDF in seconds — no sign-up.`;
+const title = `Free ${c.name} Invoice Generator with ${c.taxName}`;
+const description = `Invoice in ${c.name} with ${c.taxPresets[0] ? presetLine(c.taxPresets[0].taxes) : c.taxName} filled in, ${c.currency} amounts, your ${c.taxIdLabel} and a checklist of what the law requires. Free PDF, no sign-up.`;
 ---
 
 <Base
   title={title}
   description={description}
   schema={[
-    webAppSchema(`${c.name} Invoice Generator`, url, description, c.name),
+    webAppSchema(`${c.name} invoice generator`, url, description, c.name),
     breadcrumbSchema([
       { name: SITE.name, url: abs('/') },
       { name: 'Invoice rules by country', url: abs('/invoice-requirements-by-country/') },
@@ -87,7 +87,7 @@ const description = `Free ${c.name} invoice generator: ${c.taxPresets[0] ? prese
       </nav>
       <div class="hero-row">
         <div class="hero-text">
-          <h1 id="c-heading" class="country-heading">{c.name} Invoice Generator</h1>
+          <h1 id="c-heading" class="country-heading">{c.name} invoice generator</h1>
           <p class="country-sub">
             Pick {c.name} and the invoice sets itself up: <strong>{c.taxPresets[0] ? presetLine(c.taxPresets[0].taxes) : c.taxName}</strong>,
             <strong>{c.currency}</strong> amounts, your <strong>{c.taxIdLabel}</strong> and {c.rails.map(r => railNames[r].split(' (')[0]).join(' or ')} details.

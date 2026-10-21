@@ -15,7 +15,7 @@ export const AFRICA: CountryConfig[] = [
     currency: 'GHS', currencySymbol: 'GH₵', locale: 'en-GH', paper: 'A4', labelsLang: 'en',
     taxName: 'VAT', taxAuthority: 'GRA', taxAuthorityFull: 'Ghana Revenue Authority',
     taxPresets: [
-      { label: 'VAT-registered — VAT 15% + NHIL 2.5% + GETFund 2.5%', taxes: [
+      { label: 'VAT-registered: VAT 15% + NHIL 2.5% + GETFund 2.5%', taxes: [
         { label: 'VAT', rate: 15 }, { label: 'NHIL', rate: 2.5 }, { label: 'GETFund', rate: 2.5 },
       ] },
       { label: 'Combined 20% (single line)', taxes: [{ label: 'VAT + Levies', rate: 20 }] },
@@ -34,7 +34,7 @@ export const AFRICA: CountryConfig[] = [
       'VAT-registered businesses are being moved onto GRA’s E-VAT system in phases; if GRA has onboarded you, issue VAT invoices through E-VAT and use this invoice as a commercial copy.',
       'NHIL and GETFund are now input-deductible levies but are still charged on top of the 15% VAT.',
     ],
-    sources: [{ label: 'Ghana Revenue Authority — VAT', url: 'https://gra.gov.gh/domestic-tax/tax-types/vat/' }, PWC('Ghana')],
+    sources: [{ label: 'Ghana Revenue Authority: VAT', url: 'https://gra.gov.gh/domestic-tax/tax-types/vat/' }, PWC('Ghana')],
     lastVerified: '2026-09',
   },
   {
@@ -58,10 +58,10 @@ export const AFRICA: CountryConfig[] = [
     mandatoryFields: vatParticulars('TIN', ['Bank name and 10-digit NUBAN account number for payment']),
     rules: [
       'VAT stays at 7.5% under the Nigeria Tax Act 2025, in force from 1 January 2026; the tax authority is now the Nigeria Revenue Service (NRS).',
-      'Companies paying you for services usually deduct withholding tax (commonly 5% or 10%) and give you a credit note — show it on the invoice so the net payable is clear.',
+      'Companies paying you for services usually deduct withholding tax (commonly 5% or 10%) and give you a credit note. Show it on the invoice so the net payable is clear.',
       'Small businesses below the WHT Regulations 2024 threshold with a valid TIN are not required to deduct WHT.',
     ],
-    sources: [{ label: 'EY — Nigeria Tax Act 2025 highlights', url: 'https://www.ey.com/en_gl/technical/tax-alerts/nigeria-tax-act-2025-has-been-signed-highlights' }, PWC('Nigeria')],
+    sources: [{ label: 'EY: Nigeria Tax Act 2025 highlights', url: 'https://www.ey.com/en_gl/technical/tax-alerts/nigeria-tax-act-2025-has-been-signed-highlights' }, PWC('Nigeria')],
     lastVerified: '2026-09',
   },
   {
@@ -85,7 +85,7 @@ export const AFRICA: CountryConfig[] = [
       'VAT registration is required once turnover reaches KSh 5 million in 12 months.',
       'Services exported to clients outside Kenya are zero-rated again from 1 July 2023 (Finance Act 2023), so you charge VAT at 0% as long as the service is used abroad.',
     ],
-    sources: [{ label: 'KRA — eTIMS', url: 'https://www.kra.go.ke/etims' }, { label: 'PwC Kenya — Finance Act 2023 VAT changes', url: 'https://www.pwc.com/ke/en/publications/finance-act-insights/value-added-tax.html' }, PWC('Kenya')],
+    sources: [{ label: 'KRA: eTIMS', url: 'https://www.kra.go.ke/etims' }, { label: 'PwC Kenya: Finance Act 2023 VAT changes', url: 'https://www.pwc.com/ke/en/publications/finance-act-insights/value-added-tax.html' }, PWC('Kenya')],
     lastVerified: '2026-09',
   },
   {
@@ -113,7 +113,7 @@ export const AFRICA: CountryConfig[] = [
       'Compulsory VAT registration applies once taxable supplies exceed R2.3 million in 12 months (threshold raised from R1 million with effect from 1 April 2026).',
       'Services for a non-resident client who is outside South Africa when the work is done are usually zero-rated (section 11(2)(l) of the VAT Act): charge VAT at 0% and keep proof that the client is non-resident.',
     ],
-    sources: [{ label: 'SARS — Tax invoices', url: 'https://www.sars.gov.za/types-of-tax/value-added-tax/' }, PWC('South Africa')],
+    sources: [{ label: 'SARS: Tax invoices', url: 'https://www.sars.gov.za/types-of-tax/value-added-tax/' }, PWC('South Africa')],
     lastVerified: '2026-09',
   },
   {
@@ -131,10 +131,10 @@ export const AFRICA: CountryConfig[] = [
     mandatoryFields: vatParticulars('BP number and VAT number', ['Currency of the transaction (ZWG or USD)']),
     rules: [
       'VAT rose from 15% to 15.5% on 1 January 2026 (2026 National Budget).',
-      'VAT-registered operators must issue fiscalised tax invoices through ZIMRA’s Fiscalisation Data Management System — use this invoice for quotes, proformas or foreign clients.',
+      'VAT-registered operators must issue fiscalised tax invoices through ZIMRA’s Fiscalisation Data Management System. Use this invoice for quotes, proformas or foreign clients.',
       'Many businesses invoice in USD; pick USD in the currency menu if that is what you charge.',
     ],
-    sources: [{ label: 'ZIMRA — VAT', url: 'https://www.zimra.co.zw/domestic-taxes/value-added-tax' }, PWC('Zimbabwe')],
+    sources: [{ label: 'ZIMRA: VAT', url: 'https://www.zimra.co.zw/domestic-taxes/value-added-tax' }, PWC('Zimbabwe')],
     lastVerified: '2026-09',
   },
 
@@ -171,7 +171,7 @@ export const AFRICA: CountryConfig[] = [
     ],
     invoicePrefix: 'TZ-',
     mandatoryFields: vatParticulars('TIN and VRN'),
-    rules: ['TRA requires sales to be recorded on Electronic Fiscal Devices (EFD / VFD) — use this invoice for quotes, proformas or foreign clients.'],
+    rules: ['TRA requires sales to be recorded on Electronic Fiscal Devices (EFD / VFD). Use this invoice for quotes, proformas or foreign clients.'],
     sources: [PWC('Tanzania')], lastVerified: '2026-09',
   },
   {
@@ -259,8 +259,8 @@ export const AFRICA: CountryConfig[] = [
       { name: 'Moov Money',   accountLabel: 'Moov Money Number',   accountFormat: '01XXXXXXXX' },
     ],
     invoicePrefix: 'CI-', mandatoryFields: vatParticulars('NCC (compte contribuable)'),
-    rules: ['Since 1 December 2025 every business established in Côte d’Ivoire must issue standardised electronic invoices (FNE) through the DGI platform — a non-FNE invoice can cost your client its VAT deduction. Use this invoice for quotes, proformas or clients abroad.'],
-    sources: [{ label: 'DGI — Facture Normalisée Électronique', url: 'https://www.fne.dgi.gouv.ci/index.php' }], lastVerified: '2026-09',
+    rules: ['Since 1 December 2025 every business established in Côte d’Ivoire must issue standardised electronic invoices (FNE) through the DGI platform, and a non-FNE invoice can cost your client its VAT deduction. Use this invoice for quotes, proformas or clients abroad.'],
+    sources: [{ label: 'DGI: Facture Normalisée Électronique', url: 'https://www.fne.dgi.gouv.ci/index.php' }], lastVerified: '2026-09',
   },
   {
     key: 'senegal', name: 'Senegal', flag: '🇸🇳', region: 'africa',

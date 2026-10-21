@@ -36,7 +36,7 @@ export const EUROPE: CountryConfig[] = [
       'Retailers can issue a simplified VAT invoice for sales up to £250 including VAT.',
       'If you invoice in another currency, the VAT amount must still be shown in pounds sterling.',
     ],
-    sources: [{ label: 'GOV.UK — VAT invoices', url: 'https://www.gov.uk/guidance/vat-guide-notice-700#section16' }],
+    sources: [{ label: 'GOV.UK: VAT invoices', url: 'https://www.gov.uk/guidance/vat-guide-notice-700#section16' }],
     lastVerified: '2026-09',
   },
   {
@@ -62,7 +62,7 @@ export const EUROPE: CountryConfig[] = [
       'VAT registration thresholds are €42,500 for services and €85,000 for goods (from 1 January 2025).',
       EU_REVERSE_CHARGE,
     ],
-    sources: [{ label: 'Revenue — VAT invoices', url: 'https://www.revenue.ie/en/vat/vat-records-invoices-and-credit-notes/index.aspx' }],
+    sources: [{ label: 'Revenue: VAT invoices', url: 'https://www.revenue.ie/en/vat/vat-records-invoices-and-credit-notes/index.aspx' }],
     lastVerified: '2026-09',
   },
   {
@@ -72,7 +72,7 @@ export const EUROPE: CountryConfig[] = [
     taxPresets: [
       { label: 'USt. 19% (Regelsteuersatz)', taxes: [{ label: 'USt.', rate: 19 }] },
       { label: 'USt. 7% (ermäßigt)', taxes: [{ label: 'USt.', rate: 7 }] },
-      { label: 'Kleinunternehmer (§ 19 UStG — no VAT)', taxes: [], note: 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).' },
+      { label: 'Kleinunternehmer (§ 19 UStG: no VAT)', taxes: [], note: 'Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).' },
       reverseCharge('Steuerschuldnerschaft des Leistungsempfängers'),
     ],
     taxIdLabel: 'USt-IdNr. / Steuernummer', documentTitle: 'invoice', rails: ['iban'],
@@ -82,16 +82,16 @@ export const EUROPE: CountryConfig[] = [
       'Steuernummer or USt-IdNr. of the supplier',
       'Invoice date and a unique invoice number',
       'Quantity and type of goods or scope of services',
-      'Date of supply (Leistungsdatum) — even if it matches the invoice date',
+      'Date of supply (Leistungsdatum): even if it matches the invoice date',
       'Net amount by tax rate, the tax rate and the tax amount',
       'Any agreed discounts, and a note on tax exemptions (e.g. § 19 UStG)',
     ],
     rules: [
       'Kleinunternehmer (§ 19 UStG): prior-year turnover up to €25,000 and current year up to €100,000 (since 2025). The exemption note on the invoice is compulsory.',
-      'Every business must be able to receive structured e-invoices (XRechnung / ZUGFeRD) since 1 January 2025. Issuing them becomes mandatory from 2027 for turnover over €800,000 and from 2028 for everyone — Kleinunternehmer are exempt from issuing.',
+      'Every business must be able to receive structured e-invoices (XRechnung / ZUGFeRD) since 1 January 2025. Issuing them becomes mandatory from 2027 for turnover over €800,000 and from 2028 for everyone, though Kleinunternehmer are exempt from issuing them.',
       EU_REVERSE_CHARGE,
     ],
-    sources: [{ label: 'BMF — E-Rechnung FAQ', url: 'https://www.bundesfinanzministerium.de/Content/DE/FAQ/e-rechnung.html' }],
+    sources: [{ label: 'BMF: E-Rechnung FAQ', url: 'https://www.bundesfinanzministerium.de/Content/DE/FAQ/e-rechnung.html' }],
     lastVerified: '2026-09',
   },
   {
@@ -121,7 +121,7 @@ export const EUROPE: CountryConfig[] = [
       'Micro-entrepreneurs under the VAT franchise must print “TVA non applicable, art. 293 B du CGI”.',
       EU_REVERSE_CHARGE,
     ],
-    sources: [{ label: 'economie.gouv.fr — Facturation électronique', url: 'https://www.economie.gouv.fr/tout-savoir-sur-la-facturation-electronique-pour-les-entreprises' }],
+    sources: [{ label: 'economie.gouv.fr: Facturation électronique', url: 'https://www.economie.gouv.fr/tout-savoir-sur-la-facturation-electronique-pour-les-entreprises' }],
     lastVerified: '2026-09',
   },
   {
@@ -131,7 +131,7 @@ export const EUROPE: CountryConfig[] = [
     taxPresets: [
       { label: 'btw 21% (hoog tarief)', taxes: [{ label: 'btw', rate: 21 }] },
       { label: 'btw 9% (laag tarief)', taxes: [{ label: 'btw', rate: 9 }] },
-      { label: 'KOR — small business scheme (no VAT)', taxes: [], note: 'Vrijgesteld van btw op grond van de kleineondernemersregeling (KOR).' },
+      { label: 'KOR: small business scheme (no VAT)', taxes: [], note: 'Vrijgesteld van btw op grond van de kleineondernemersregeling (KOR).' },
       reverseCharge('Btw verlegd'),
     ],
     taxIdLabel: 'Btw-id / KvK', documentTitle: 'invoice', rails: ['iban'],
@@ -147,7 +147,7 @@ export const EUROPE: CountryConfig[] = [
       'The KOR small business scheme exempts businesses with turnover up to €20,000 a year from charging VAT.',
       EU_REVERSE_CHARGE,
     ],
-    sources: [{ label: 'Belastingdienst — factuureisen', url: 'https://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/factuureisen' }],
+    sources: [{ label: 'Belastingdienst: factuureisen', url: 'https://www.belastingdienst.nl/wps/wcm/connect/nl/btw/content/factuureisen' }],
     lastVerified: '2026-09',
   },
   {
@@ -155,8 +155,8 @@ export const EUROPE: CountryConfig[] = [
     currency: 'EUR', currencySymbol: '€', locale: 'es-ES', paper: 'A4', labelsLang: 'es',
     taxName: 'IVA', taxAuthority: 'AEAT', taxAuthorityFull: 'Agencia Tributaria',
     taxPresets: [
-      { label: 'Autónomo to business — IVA 21% − IRPF 15%', taxes: [{ label: 'IVA', rate: 21 }, { label: 'IRPF', rate: 15, kind: 'withhold' }] },
-      { label: 'New autónomo — IVA 21% − IRPF 7%', taxes: [{ label: 'IVA', rate: 21 }, { label: 'IRPF', rate: 7, kind: 'withhold' }] },
+      { label: 'Autónomo to business: IVA 21% − IRPF 15%', taxes: [{ label: 'IVA', rate: 21 }, { label: 'IRPF', rate: 15, kind: 'withhold' }] },
+      { label: 'New autónomo: IVA 21% − IRPF 7%', taxes: [{ label: 'IVA', rate: 21 }, { label: 'IRPF', rate: 7, kind: 'withhold' }] },
       { label: 'IVA 21% only (companies, or sales to consumers)', taxes: [{ label: 'IVA', rate: 21 }] },
       { label: 'IVA 10% (reducido)', taxes: [{ label: 'IVA', rate: 10 }] },
       reverseCharge('Inversión del sujeto pasivo'),
@@ -176,7 +176,7 @@ export const EUROPE: CountryConfig[] = [
       'No IRPF withholding applies when invoicing private individuals.',
       'VeriFactu invoicing-software rules are scheduled to apply from 2027; a PDF invoice remains valid until then.',
     ],
-    sources: [{ label: 'Agencia Tributaria — Facturación', url: 'https://sede.agenciatributaria.gob.es/Sede/iva/facturacion-registro.html' }],
+    sources: [{ label: 'Agencia Tributaria: Facturación', url: 'https://sede.agenciatributaria.gob.es/Sede/iva/facturacion-registro.html' }],
     lastVerified: '2026-09',
   },
   {
@@ -185,8 +185,8 @@ export const EUROPE: CountryConfig[] = [
     taxName: 'IVA', taxAuthority: 'Agenzia delle Entrate', taxAuthorityFull: 'Agenzia delle Entrate',
     taxPresets: [
       { label: 'IVA 22% (ordinaria)', taxes: [{ label: 'IVA', rate: 22 }] },
-      { label: 'Professional — IVA 22% − ritenuta d’acconto 20%', taxes: [{ label: 'IVA', rate: 22 }, { label: 'Ritenuta d’acconto', rate: 20, kind: 'withhold' }] },
-      { label: 'Regime forfettario (no IVA)', taxes: [], note: 'Operazione effettuata ai sensi dell’art. 1, commi 54–89, L. 190/2014 — regime forfettario.' },
+      { label: 'Professional: IVA 22% − ritenuta d’acconto 20%', taxes: [{ label: 'IVA', rate: 22 }, { label: 'Ritenuta d’acconto', rate: 20, kind: 'withhold' }] },
+      { label: 'Regime forfettario (no IVA)', taxes: [], note: 'Operazione effettuata ai sensi dell’art. 1, commi 54–89, L. 190/2014 (regime forfettario).' },
       reverseCharge('Inversione contabile'),
     ],
     taxIdLabel: 'Partita IVA', documentTitle: 'invoice', rails: ['iban'],
@@ -198,10 +198,10 @@ export const EUROPE: CountryConfig[] = [
       'Taxable amount, IVA rate and IVA amount',
     ],
     rules: [
-      'Domestic invoices in Italy must be sent as FatturaPA XML through the SdI exchange system (including forfettari since 2024). A PDF is only a courtesy copy for Italian clients — use this tool for foreign clients, quotes and proformas.',
+      'Domestic invoices in Italy must be sent as FatturaPA XML through the SdI exchange system (including forfettari since 2024). A PDF is only a courtesy copy for Italian clients. Use this tool for foreign clients, quotes and proformas.',
       EU_REVERSE_CHARGE,
     ],
-    sources: [{ label: 'Agenzia delle Entrate — Fatturazione elettronica', url: 'https://www.agenziaentrate.gov.it/portale/aree-tematiche/fatturazione-elettronica' }],
+    sources: [{ label: 'Agenzia delle Entrate: Fatturazione elettronica', url: 'https://www.agenziaentrate.gov.it/portale/aree-tematiche/fatturazione-elettronica' }],
     lastVerified: '2026-09',
   },
 ];

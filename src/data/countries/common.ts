@@ -16,6 +16,6 @@ export function vatParticulars(taxIdLabel: string, extra: string[] = []): string
 }
 
 export const PWC = (country: string) => ({
-  label: `PwC Worldwide Tax Summaries — ${country}`,
+  label: `PwC Worldwide Tax Summaries: ${country}`,
   url: `https://taxsummaries.pwc.com/${country.toLowerCase().replace(/[^a-z]+/g, '-')}/corporate/other-taxes`,
 });

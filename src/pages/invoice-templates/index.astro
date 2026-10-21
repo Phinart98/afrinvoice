@@ -7,7 +7,7 @@ import { SITE, abs } from '../../site';
 
 const pageUrl   = abs('/invoice-templates/');
 const schema    = webAppSchema(
-  'Free Invoice Templates — 3 PDF Designs',
+  'Free invoice templates in three PDF designs',
   pageUrl,
   'Free invoice templates you fill in online: Minimal, Modern and Classic PDF designs with your logo, country tax presets and payment QR codes. No sign-up.',
 );
@@ -43,7 +43,7 @@ const templates = [
 const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   {
     q: 'Are these invoice templates free to download?',
-    a: 'Yes — all three templates are completely free. No account, no watermark, no hidden fees. Generate your invoice, pick a template, and download the PDF instantly.',
+    a: 'Yes. Minimal, Modern and Classic are free with no account and no hidden fees, and the PDF has no watermark across it, only one small credit line at the bottom. Two extra designs, Executive and Ledger, come with Pro.',
   },
   {
     q: 'Do the templates work for my country?',
@@ -51,7 +51,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   },
   {
     q: 'Can I customise the template colours?',
-    a: 'Yes. The Modern template lets you pick your header band colour and accent colour. The Classic template lets you customise the total amount accent colour. Minimal keeps its clean look without colour options — that\'s the point.',
+    a: 'Yes. The Modern template lets you pick your header band colour and accent colour. The Classic template lets you customise the total amount accent colour. Minimal stays black and white on purpose.',
   },
   {
     q: 'Can I add my business logo to the PDF?',
@@ -59,14 +59,14 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   },
   {
     q: 'Which template should I use?',
-    a: 'All three work everywhere. <strong>Minimal</strong> is the default — clean and universally trusted. <strong>Classic</strong> suits formal B2B and corporate clients. <strong>Modern</strong> works well for agencies and tech freelancers who want a branded feel.',
+    a: 'All three work everywhere. <strong>Minimal</strong> is the default, plain and accepted everywhere. <strong>Classic</strong> suits formal B2B and corporate clients. <strong>Modern</strong> works well for agencies and tech freelancers who want a branded feel.',
   },
 ];
 ---
 
 <Base
-  title="Free Invoice Templates — Fill Online, Download PDF"
-  description="Free invoice templates you fill in online: Minimal, Modern and Classic PDF designs with your logo, country tax presets, any currency and payment QR codes. No sign-up, no watermark."
+  title="Free Invoice Templates to Fill In Online and Download as PDF"
+  description="Free invoice templates you fill in online: Minimal, Modern and Classic PDF designs with your logo, country tax presets, any currency and payment QR codes. No sign-up needed."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 

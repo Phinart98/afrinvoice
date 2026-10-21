@@ -135,11 +135,11 @@ const selectedProvider = computed(() => providers.value.find(p => p.name === sta
 const qrStatus = computed(() => {
   const s = state.value;
   const q = paymentQr({ ...s, visible: { ...s.visible, qr: true, payment: true } }, totals.value.balanceDue);
-  if (q?.kind === 'sepa') return 'SEPA QR — any European banking app can pay it with the amount filled in.';
-  if (q?.kind === 'upi') return 'UPI QR — GPay, PhonePe, Paytm and BHIM open it pre-filled.';
+  if (q?.kind === 'sepa') return 'SEPA QR: any European banking app can pay it with the amount filled in.';
+  if (q?.kind === 'upi') return 'UPI QR: GPay, PhonePe, Paytm and BHIM open it pre-filled.';
   if (q?.kind === 'link') return 'QR of your payment link.';
-  if (s.paymentRail === 'iban') return 'Add an IBAN, account name and a EUR total to print a SEPA QR — or add a payment link.';
-  if (s.paymentRail === 'upi') return 'Add your UPI ID with an INR total to print a UPI QR — or add a payment link.';
+  if (s.paymentRail === 'iban') return 'Add an IBAN, account name and a EUR total to print a SEPA QR, or add a payment link.';
+  if (s.paymentRail === 'upi') return 'Add your UPI ID with an INR total to print a UPI QR, or add a payment link.';
   return 'Add a payment link (PayPal.me, Stripe, Wise) to print a QR code.';
 });
 
@@ -596,7 +596,7 @@ const correctionHref = computed(() =>
             <h3 class="card-title">Your business</h3>
             <span v-if="showSaved" class="saved-badge" role="status">✓ Saved</span>
           </div>
-          <p class="card-hint">Saved in this browser only — nothing is uploaded.</p>
+          <p class="card-hint">Saved in this browser only. Nothing is uploaded.</p>
           <div class="logo-row">
             <img v-if="state.businessLogo" :src="state.businessLogo" class="logo-thumb" alt="Your logo" />
             <label class="logo-btn">
@@ -749,11 +749,11 @@ const correctionHref = computed(() =>
             <label class="check"><input v-model="state.pricesIncludeTax" type="checkbox" /> Prices already include tax</label>
           </div>
           <p v-if="!state.visible.tax && state.taxes.some(t => t.rate > 0)" class="vis-tax-warn">
-            Tax hidden — the client sees a lower total. Only do this if you are not registered.
+            Tax hidden, so the client sees a lower total. Only do this if you are not registered.
           </p>
           <div class="field">
             <label class="field-label" for="tax-note">Tax note printed on the invoice <span class="field-optional">(exemptions, reverse charge)</span></label>
-            <input id="tax-note" v-model="state.taxNote" class="form-input" placeholder="e.g. Reverse charge — Article 196, Directive 2006/112/EC" />
+            <input id="tax-note" v-model="state.taxNote" class="form-input" placeholder="e.g. Reverse charge (Article 196, Directive 2006/112/EC)" />
           </div>
 
           <div class="field-row">

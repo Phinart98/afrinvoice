@@ -12,7 +12,7 @@ import { SITE } from '../site';
 import type { FaqItem } from '../components/FaqSection.astro';
 
 const schema = webAppSchema(
-  `${SITE.name} — Free Invoice Generator`,
+  `${SITE.name}: free invoice generator`,
   SITE.url,
   'Free invoice, quote and receipt generator with country tax presets (VAT, GST, sales tax, withholding), any currency, payment QR codes and 7 invoice languages. No sign-up, instant PDF.',
 );
@@ -36,7 +36,7 @@ const checked = checkedSpan(COUNTRIES.map(c => c.lastVerified));
 
 const faqs: FaqItem[] = [
   { q: `Is ${SITE.name} really free?`,
-    a: 'Yes. No account, no watermark, no limits and no trial. The PDF is created in your browser, so your invoices never touch our servers.' },
+    a: `Yes. There is no account, no limit and no trial. The free PDF has one small “Made with ${SITE.name}” line at the bottom, which the optional Pro removes. The PDF is created in your browser, so your invoices never touch our servers.` },
   { q: 'Which countries are supported?',
     a: `${COUNTRIES.length} countries have tax presets, required-field checklists and local payment methods built in, including the US, UK, Canada, Australia, India, Germany, France, Spain, Italy, the UAE, Nigeria, Ghana, Kenya and South Africa. Anywhere else, choose Other country and set your own tax.` },
   { q: 'Can I charge more than one tax, or withhold tax?',
@@ -49,8 +49,8 @@ const faqs: FaqItem[] = [
     a: 'Only in your browser. Clearing your browser data removes it, so use Export backup in the History panel to keep a copy or move to another device.' },
 ];
 
-const pageTitle = `Free Invoice Generator with VAT, GST & Sales Tax Built In — ${SITE.name}`;
-const pageDescription = `Free invoice generator that knows your country’s rules: VAT, GST, sales tax and withholding presets for ${COUNTRIES.length} countries, any currency, payment QR codes, quotes and receipts. No sign-up, instant PDF.`;
+const pageTitle = `Free Invoice Generator with VAT, GST and Sales Tax Built In | ${SITE.name}`;
+const pageDescription = `A free invoice generator that knows your country’s rules: VAT, GST, sales tax and withholding for ${COUNTRIES.length} countries, any currency and payment QR codes. PDF in seconds, no sign-up.`;
 ---
 
 <Base title={pageTitle} description={pageDescription} schema={[schema, faqSchema(faqs)]}>

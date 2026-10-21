@@ -9,9 +9,9 @@ import { SITE, abs } from '../../site';
 
 const pageUrl   = abs('/mobile-money-invoice/');
 const schema    = webAppSchema(
-  'Invoice with Mobile Money Payment Instructions — Africa',
+  'Invoice with mobile money payment details',
   pageUrl,
-  'Create invoices with MTN MoMo, M-Pesa, EcoCash, OPay payment instructions. Select your country — correct providers auto-fill. Free PDF, no sign-up.',
+  'Add MTN MoMo, M-Pesa, EcoCash or OPay payment details to your invoice. Pick your country and the right providers appear. Free PDF with no sign-up.',
 );
 const breadcrumb = breadcrumbSchema([
   { name: SITE.name, url: abs('/') },
@@ -29,11 +29,11 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   },
   {
     q: 'Can I add M-Pesa payment instructions to a Kenya invoice?',
-    a: 'Yes. Select Kenya — the tool defaults to Mobile Money with M-Pesa pre-selected. Enter your Safaricom number (07XXXXXXXX) and the name on your M-Pesa account. Airtel Money is also available.',
+    a: 'Yes. Select Kenya and the tool switches to mobile money with M-Pesa selected. Enter your Safaricom number (07XXXXXXXX) and the name on your M-Pesa account. Airtel Money is also available.',
   },
   {
     q: 'Should I use mobile money or bank transfer for B2B invoices?',
-    a: 'It depends on the country and client type. In <strong>Ghana</strong> and <strong>Kenya</strong>, mobile money is widely accepted for B2B payments under ~$500. In <strong>Nigeria</strong>, bank transfer (NEFT/NIBSS) is the B2B standard — most businesses prefer account numbers. In <strong>South Africa</strong>, bank EFT is standard for all B2B. This tool defaults correctly per country.',
+    a: 'It depends on the country and client type. In <strong>Ghana</strong> and <strong>Kenya</strong>, mobile money is widely used for smaller business payments. In <strong>Nigeria</strong>, bank transfer to a 10-digit account number is the business standard. In <strong>South Africa</strong>, bank EFT is standard for all B2B. This tool defaults correctly per country.',
   },
   {
     q: 'Can I include both bank and mobile money details on the same invoice?',
@@ -41,14 +41,14 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   },
   {
     q: 'Does EcoCash work for international payments in Zimbabwe?',
-    a: 'EcoCash is primarily for ZWG (Zimbabwe Gold) domestic payments. For USD payments — common in Zimbabwe — use a bank USD account and note it in the payment section. Many Zimbabwean businesses operate dual ZWG/USD accounts.',
+    a: 'EcoCash is primarily for ZWG (Zimbabwe Gold) domestic payments. For USD payments, which are common in Zimbabwe, use a USD bank account and note it in the payment section. Many Zimbabwean businesses operate dual ZWG/USD accounts.',
   },
 ];
 ---
 
 <Base
-  title="Invoice with Mobile Money Payment Fields"
-  description="Create invoices with MTN MoMo, M-Pesa, EcoCash, OPay payment instructions. Select your African country — correct providers auto-fill. Free PDF, no sign-up."
+  title="Invoice with Mobile Money Payment Details"
+  description="Add MTN MoMo, M-Pesa, EcoCash or OPay payment details to your invoice. Pick your country and the right providers appear. Free PDF with no sign-up."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
