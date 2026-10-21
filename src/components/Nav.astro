@@ -208,12 +208,20 @@ const isDocsActive = docLinks.some(l => isCurrent(l.href));
   const menu   = document.getElementById('nav-mobile-menu');
   let isOpen   = false;
 
-  toggle?.addEventListener('click', () => {
-    isOpen = !isOpen;
-    toggle.setAttribute('aria-expanded', String(isOpen));
-    menu?.setAttribute('aria-hidden', String(!isOpen));
-    menu?.classList.toggle('open', isOpen);
-  });
+  // The open menu is a sheet over the page: it fills the screen below the header and the page
+  // behind it can't scroll, so the two never blur together.
+  const header = document.querySelector('.nav-header');
+  const setMenu = (open: boolean) => {
+    isOpen = open;
+    toggle?.setAttribute('aria-expanded', String(open));
+    menu?.setAttribute('aria-hidden', String(!open));
+    menu?.classList.toggle('open', open);
+    if (menu && header) menu.style.top = open ? `${header.getBoundingClientRect().bottom}px` : '';
+    document.documentElement.classList.toggle('menu-open', open);
+  };
+  toggle?.addEventListener('click', () => setMenu(!isOpen));
+  addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen) { setMenu(false); toggle?.focus(); } });
+  addEventListener('resize', () => { if (isOpen && window.innerWidth >= 768) setMenu(false); });
 
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 768 && isOpen) {
@@ -386,12 +394,20 @@ const isDocsActive = docLinks.some(l => isCurrent(l.href));
   /* ── Mobile menu ─────────────────────────────────── */
   .nav-mobile-menu {
     display: none;
+    position: fixed;
+    top: 0;      /* set to the header's bottom edge when opened */
+    bottom: 0;   /* pinned to the screen, so a phone's collapsing address bar never shows the page */
+    left: 0;
+    right: 0;
     flex-direction: column;
     gap: 2px;
-    padding: 0.75rem 1rem 1rem;
-    border-top: 1px solid var(--border);
-    background: var(--bg);
+    padding: 0.75rem 1rem 2rem;
+    background: var(--surface);
+    border-top: 2px solid var(--text);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
+  :global(html.menu-open) { overflow: hidden; }
   .nav-mobile-menu.open { display: flex; }
 
   .nav-mobile-link {
