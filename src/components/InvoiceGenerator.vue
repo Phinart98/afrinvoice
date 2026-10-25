@@ -436,7 +436,8 @@ onMounted(() => {
 
   if (props.docPreset) state.value.docType = props.docPreset;
   if (props.docPreset === 'receipt') state.value.visible.dueDate = false;
-  const urlTemplate = new URLSearchParams(window.location.search).get('template');
+  // Template links use the hash (#template=…) so Google never sees duplicate URLs; ?template= still works for old links
+  const urlTemplate = new URLSearchParams(window.location.hash.slice(1)).get('template') ?? new URLSearchParams(window.location.search).get('template');
   if (urlTemplate === 'classic' || urlTemplate === 'modern' || urlTemplate === 'minimal') state.value.template = urlTemplate;
 
   clients.value = loadClients();

@@ -178,7 +178,7 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
                 {t.features.map(f => <li>{f}</li>)}
               </ul>
               <p class="tpl-best">Best for: <strong>{t.best}</strong></p>
-              <a href={`/?template=${t.name.toLowerCase()}`} class="tpl-use-btn">
+              <a href={`/#template=${t.name.toLowerCase()}`} class="tpl-use-btn">
                 Use {t.name} template
               </a>
             </div>
