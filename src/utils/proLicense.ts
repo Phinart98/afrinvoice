@@ -8,6 +8,8 @@
 // a rate limit or a proxy. Only a definitive answer from Lemon Squeezy removes Pro.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { SITE } from '../site';
+
 const API = 'https://api.lemonsqueezy.com/v1/licenses';
 const DAY = 86_400_000;
 /** Re-check the key with Lemon Squeezy about once a week. */
@@ -36,6 +38,9 @@ interface LSResponse {
 }
 
 const OFFLINE = 'Could not reach the license server. Check your connection and try again.';
+// The key is meant for one person in every browser they use; the cap only stops a key shared in public.
+// Reaching it is support, not a dead end: Philip frees slots under Licenses in Lemon Squeezy.
+const AT_LIMIT = `This key is already active in as many browsers as it allows. Email ${SITE.email} and we'll reset it for you.`;
 const WRONG_PRODUCT = 'This key is for a different product.';
 const TEST_KEY = 'This is a test-mode key.';
 
@@ -69,6 +74,7 @@ export async function activate(
   const { body } = reply;
   if (!body) return { ok: false, error: OFFLINE };
   if (!body.activated || !body.instance?.id) {
+    if (body.error && /activation limit/i.test(body.error)) return { ok: false, error: AT_LIMIT };
     return { ok: false, error: body.error || 'That license key could not be activated.' };
   }
   const refuse = !ours(body, opts.productIds) ? WRONG_PRODUCT
@@ -116,7 +122,7 @@ export async function revalidate(
   return { ...rec, lastValidated: opts.now };
 }
 
-/** Free this device's activation slot (3 per key). Best effort: false when it couldn't be released. */
+/** Free this browser's activation slot (10 per key). Best effort: false when it couldn't be released. */
 export async function deactivate(rec: ProRecord, opts: { fetchFn: FetchFn }): Promise<boolean> {
   try {
     const { body } = await post(opts.fetchFn, 'deactivate', { license_key: rec.key, instance_id: rec.instanceId });

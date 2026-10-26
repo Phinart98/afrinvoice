@@ -35,18 +35,18 @@ async function remove() {
   const released = await removeFromDevice();
   working.value = false;
   confirmRemove.value = false;
-  removeNote.value = released ? '' : `Pro is off on this device, but its activation couldn't be released (no connection?). If you need it on another device, email ${SITE.email}.`;
+  removeNote.value = released ? '' : `Pro is off in this browser, but its activation couldn't be released (no connection?). If your key stops working elsewhere, email ${SITE.email}.`;
 }
 </script>
 
 <template>
   <section id="pro" class="pro" aria-labelledby="pro-title">
     <template v-if="pro">
-      <h3 id="pro-title" class="pro-title">Pro is on for this device</h3>
-      <p class="pro-text">No "Made with" line, plus the Executive and Ledger templates. Thank you for supporting {{ SITE.name }}.</p>
-      <button v-if="!confirmRemove" type="button" class="pro-link" @click="confirmRemove = true">Remove Pro from this device</button>
+      <h3 id="pro-title" class="pro-title">Pro is on in this browser</h3>
+      <p class="pro-text">No "Made with" line, plus the Pro templates. Thank you for supporting {{ SITE.name }}.</p>
+      <button v-if="!confirmRemove" type="button" class="pro-link" @click="confirmRemove = true">Remove Pro from this browser</button>
       <p v-else class="pro-confirm">
-        Remove Pro here? You can activate this key again on any device.
+        Remove Pro here? You can activate your key again in any browser.
         <button type="button" class="pro-link" :disabled="working" @click="remove">Yes, remove it</button>
         <button type="button" class="pro-link" @click="confirmRemove = false">Keep Pro</button>
       </p>
@@ -54,7 +54,7 @@ async function remove() {
 
     <template v-else>
       <h3 id="pro-title" class="pro-title">{{ SITE.name }} Pro, {{ SITE.pro.price }} once</h3>
-      <p class="pro-text">Removes the small "Made with {{ SITE.name }}" line from your invoices and unlocks the Executive and Ledger templates in your brand colour. One payment, no subscription, works on up to 3 devices.</p>
+      <p class="pro-text">Removes the small "Made with {{ SITE.name }}" line from your invoices and unlocks the Pro templates in your brand colour. One payment, no subscription, and the key works in every browser you use.</p>
       <div class="pro-actions">
         <a :href="SITE.pro.checkoutUrl" class="pro-buy" target="_blank" rel="noopener" @click="track('pro_checkout_click')">Buy Pro, {{ SITE.pro.price }}</a>
         <button type="button" class="pro-link" :aria-expanded="showKey" @click="showKey = !showKey">I have a license key</button>

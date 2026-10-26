@@ -21,11 +21,13 @@ const faqs: FaqItem[] = [
   { q: 'Is Pro paid per invoice?',
     a: `No. You pay ${SITE.pro.price} once and make as many invoices as you like, for as long as you like. There is no subscription.` },
   { q: 'Do I need an account?',
-    a: `No. After buying you get a licence key by email. Paste it into ${SITE.name} and Pro is on. The key takes the place of an account.` },
+    a: `No. After buying you get a license key by email. Paste it into ${SITE.name} and Pro is on. The key takes the place of an account.` },
   { q: 'Can I use Pro on more than one device?',
-    a: 'Yes, on up to 3 devices or browsers at once. Your invoices and clients stay in each browser, so use <strong>Export backup</strong> and <strong>Import</strong> in the History panel to move them across.' },
+    a: 'Yes. The key is yours: use it in every browser on every device you work on, up to 10 browsers at once. Your invoices and clients stay in each browser, so use <strong>Export backup</strong> and <strong>Import</strong> in the History panel to move them across.' },
   { q: 'What if I change browser or clear my browser data?',
-    a: 'Enter your key again. If you have already used all 3 activations, choose <strong>Remove Pro from this device</strong> on a device you no longer use, or email us and we will free one up.' },
+    a: 'Enter your key again. Each browser you use counts once, so clearing data or switching browser can use up a slot. If the key ever says it has reached its limit, email us and we will reset it.' },
+  { q: 'Can I share my key?',
+    a: 'Please don’t. A key is for one person or one business. Keys that turn up in public get switched off, which also switches off Pro for the person who bought it.' },
   { q: 'Which free features will move to Pro?',
     a: 'None. Everything that is free today stays free. Pro only adds things on top.' },
   { q: 'Who handles the payment?',
@@ -39,7 +41,7 @@ const url = abs('/pro/');
 
 <Base
   title={`${SITE.name} Pro: one payment, no subscription`}
-  description={`${SITE.name} Pro is a ${SITE.pro.price} one-time licence: it removes the "Made with" line from your invoices and adds two premium templates. Everything else stays free.`}
+  description={`${SITE.name} Pro is a ${SITE.pro.price} one-time license: it removes the "Made with" line from your invoices and adds two premium templates. Everything else stays free.`}
   schema={[breadcrumbSchema([{ name: SITE.name, url: abs('/') }, { name: 'Pro', url }]), faqSchema(faqs)]}
 >
   <section class="country-hero" aria-labelledby="pro-heading">
@@ -76,8 +78,8 @@ const url = abs('/pro/');
     <h2 class="pro-h2">How buying works</h2>
     <ol class="steps">
       <li class="step"><b>1</b><span>Pay {SITE.pro.price} once through Lemon Squeezy.</span></li>
-      <li class="step"><b>2</b><span>Your licence key arrives by email.</span></li>
-      <li class="step"><b>3</b><span>Paste it into {SITE.name}. Pro works on up to 3 devices.</span></li>
+      <li class="step"><b>2</b><span>Your license key arrives by email.</span></li>
+      <li class="step"><b>3</b><span>Paste it into {SITE.name}. Pro works in every browser you use.</span></li>
     </ol>
     <p class="pro-legal">By buying you agree to the <a href="/terms/">terms</a>. Refunds within 14 days, no questions asked: see the <a href="/refund-policy/">refund policy</a>.</p>
   </section>

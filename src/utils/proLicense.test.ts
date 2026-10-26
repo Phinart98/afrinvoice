@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { activate, deactivate, revalidate, proStatus, needsRevalidation, GRACE_MS, REVALIDATE_MS, type ProRecord } from './proLicense';
+import { SITE } from '../site';
 
 const PRODUCT = 424242;
 const DAY = 86_400_000;
@@ -51,10 +52,16 @@ describe('activate', () => {
     expect(test.ok).toBe(true);
   });
 
-  it('passes on Lemon Squeezy\'s own error, e.g. the activation limit', async () => {
+  it('turns the activation limit into a way out: email us and we reset the key', async () => {
     const ls = fakeLS({ activated: false, error: 'This license key has reached the activation limit.' }, { status: 400 });
     const r = await activate('KEY', { productIds: [PRODUCT], instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
-    expect(r).toEqual({ ok: false, error: 'This license key has reached the activation limit.' });
+    expect(r).toEqual({ ok: false, error: `This key is already active in as many browsers as it allows. Email ${SITE.email} and we'll reset it for you.` });
+  });
+
+  it('passes on any other Lemon Squeezy error as it is', async () => {
+    const ls = fakeLS({ activated: false, error: 'license_key not found.' }, { status: 404 });
+    const r = await activate('KEY', { productIds: [PRODUCT], instanceName: 'x', now: T0, fetchFn: ls.fetchFn });
+    expect(r).toEqual({ ok: false, error: 'license_key not found.' });
   });
 
   it('says so plainly when there is no connection', async () => {
