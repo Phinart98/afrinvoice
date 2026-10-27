@@ -69,11 +69,11 @@ async function save() {
 <template>
   <div class="sig-type">
     <label class="sig-label" for="sig-text">Your name or initials</label>
-    <input id="sig-text" v-model="text" class="sig-input" maxlength="40" placeholder="Ama Mensah" autocomplete="name" />
+    <input id="sig-text" v-model="text" class="sig-input" maxlength="40" placeholder="Jane Smith" autocomplete="name" />
     <div class="sig-styles" role="radiogroup" aria-label="Handwriting style">
       <button v-for="s in STYLES" :key="s.id" type="button" role="radio" :aria-checked="style === s.id"
         :class="['sig-style', { active: style === s.id }]" @click="style = s.id">
-        <span class="sig-sample" :style="{ fontFamily: `'${s.family}'` }">{{ text.trim() || 'Ama Mensah' }}</span>
+        <span class="sig-sample" :style="{ fontFamily: `'${s.family}'` }">{{ text.trim() || 'Jane Smith' }}</span>
         <span class="sig-style-name">{{ s.label }}</span>
       </button>
     </div>

@@ -60,7 +60,7 @@ const LONG: Partial<InvoiceState> = {
   businessName: 'Nordlicht Architektur und Innenraumgestaltung GmbH & Co. KG', businessEmail: 'buchhaltung@nordlicht-architektur.de',
   businessPhone: '+49 30 5555 01234', businessAddress: 'Kastanienallee 12, Hinterhaus, 3. Obergeschoss\n10435 Berlin', businessTaxId: 'DE 312 456 789',
   clientName: 'Fjord Media und Kommunikation Aktiengesellschaft Norwegen', clientEmail: 'accounts-payable@fjord-media.no',
-  clientAddress: 'Plot 12 Independence Avenue, Ridge, Accra, Greater Accra Region, Ghana, West Africa, PMB 1234\n0159 Oslo, Norway',
+  clientAddress: 'Unit 4, Riverside Business Park, 1200 Harbour Boulevard West, Suite 300, Attn. Accounts Payable, PO Box 1234\n0159 Oslo, Norway',
   items: [{ description: 'Entwurfsplanung Leistungsphase 3 nach HOAI', quantity: 1, unitPrice: 12800 }, { description: 'Bauleitung', quantity: 14, unitPrice: 95 }],
   taxes: [{ label: 'USt', rate: 19, kind: 'add' }],
   paymentRail: 'iban', accountName: 'Nordlicht Architektur GmbH & Co. KG', iban: 'DE89370400440532013000', bic: 'COBADEFFXXX',
@@ -96,7 +96,7 @@ describe.each(TEMPLATES)('%s with long German details', (template) => {
   it('cuts nothing short: the whole reference and client address are there', async () => {
     const all = (await draw(LONG, template)).map(t => t.text).join(' ');
     expect(all).toContain('Hamburg');
-    expect(all).toContain('PMB 1234');
+    expect(all).toContain('PO Box 1234');
   });
 });
 

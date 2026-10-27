@@ -15,8 +15,8 @@ beforeEach(() => {
 
 describe('legacy Afrinvoice migration', () => {
   it('carries the old shared counter over so numbers are never reissued', () => {
-    localStorage.setItem('afrinvoice_business', JSON.stringify({ businessName: 'Kofi Ltd', invoiceCounter: 42 }));
-    expect(loadProfile().businessName).toBe('Kofi Ltd');
+    localStorage.setItem('afrinvoice_business', JSON.stringify({ businessName: 'Acme Trading Ltd', invoiceCounter: 42 }));
+    expect(loadProfile().businessName).toBe('Acme Trading Ltd');
     expect(peekNextNumber('GH-')).toBe('GH-0043');
     expect(peekNextNumber('KE-')).toBe('KE-0043');
     expect(takeNextNumber('GH-')).toEqual({ number: 'GH-0043', saved: true });

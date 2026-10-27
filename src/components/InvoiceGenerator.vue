@@ -618,7 +618,7 @@ const correctionHref = computed(() =>
           </div>
           <div v-if="state.signature" class="field">
             <label class="field-label" for="sig-name">Name under the signature <span class="field-optional">(optional)</span></label>
-            <input id="sig-name" v-model="state.signatureName" class="form-input" placeholder="Ama Mensah, Director" />
+            <input id="sig-name" v-model="state.signatureName" class="form-input" placeholder="Jane Smith, Director" />
           </div>
         </div>
 

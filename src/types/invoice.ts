@@ -134,7 +134,7 @@ export interface InvoiceState {
   // ── Pro extras ─────────────────────────────────────────────────────────
   fontChoice: FontChoice;
   signature: string;           // base64 PNG data URL, or ''
-  signatureName: string;       // printed under the signature, e.g. "Ama Mensah, Director"
+  signatureName: string;       // printed under the signature, e.g. "Jane Smith, Director"
   stamp: StampChoice;          // per document: never saved with the business profile
   paidDate: string;            // YYYY-MM-DD printed on the Paid stamp; '' = no date
 

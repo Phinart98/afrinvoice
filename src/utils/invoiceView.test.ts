@@ -100,10 +100,10 @@ describe('Pro extras on the view (signature, stamp, font)', () => {
   });
 
   it('keeps the signature and font choice for Pro, or when previewing Pro features', () => {
-    const s = { ...defaultInvoiceState(), signature: 'data:image/png;base64,AAAA', signatureName: 'Ama Mensah', fontChoice: 'serif' as const };
+    const s = { ...defaultInvoiceState(), signature: 'data:image/png;base64,AAAA', signatureName: 'Jane Smith', fontChoice: 'serif' as const };
     expect(buildInvoiceView(s).signature).toBeNull();
     expect(buildInvoiceView(s).font).toBe('auto');
-    expect(buildInvoiceView(s, { pro: true }).signature).toEqual({ image: 'data:image/png;base64,AAAA', name: 'Ama Mensah', label: 'Authorised signature' });
+    expect(buildInvoiceView(s, { pro: true }).signature).toEqual({ image: 'data:image/png;base64,AAAA', name: 'Jane Smith', label: 'Authorised signature' });
     expect(buildInvoiceView(s, { preview: true }).font).toBe('serif');
   });
 
