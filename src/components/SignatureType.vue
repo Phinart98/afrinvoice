@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Type your name or initials and pick a hand: rendered to transparent ink, so the PDF only ever needs
 // the image. The two handwriting fonts load when this panel opens, never on a normal page view.
-import { computed, ref } from 'vue';
-import { cropToInk } from '../utils/signature';
+import { computed, ref, watch } from 'vue';
+import { cropToInk, inkToPng } from '../utils/signature';
 
 const props = defineProps<{ initial?: string }>();
 const emit = defineEmits<{ save: [dataUrl: string]; cancel: [] }>();
@@ -15,12 +15,42 @@ const text = ref(props.initial ?? '');
 const style = ref<(typeof STYLES)[number]['id']>('casual');
 const chosen = computed(() => STYLES.find(s => s.id === style.value)!);
 const INK = '#1B2A6B';
+const error = ref('');
+watch([text, style], () => { error.value = ''; });
+
+/**
+ * Letters the handwriting font doesn't have (Caveat has no Ɔ or Ɛ, Great Vibes no ɔ or ɛ). The canvas
+ * would quietly draw them in a system font, so test each one: a letter the font lacks comes from the
+ * fallback, and then measures differently against two different fallbacks.
+ */
+function missingLetters(t: string, family: string, size: number): string[] {
+  const g = document.createElement('canvas').getContext('2d')!;
+  const width = (ch: string, fallback: string) => { g.font = `${size}px "${family}", ${fallback}`; return g.measureText(ch).width; };
+  return [...new Set([...t].filter(ch => ch.trim() && width(ch, 'monospace') !== width(ch, 'serif')))];
+}
 
 async function save() {
   const t = text.value.trim();
   if (!t) return;
   const s = chosen.value;
-  await document.fonts.load(`${s.size}px "${s.family}"`, t);
+  try {
+    await document.fonts.load(`${s.size}px "${s.family}"`, t);
+  } catch {
+    error.value = 'The handwriting style didn’t load. Check your connection and try again, or draw your signature instead.';
+    return;
+  }
+  if (!document.fonts.check(`${s.size}px "${s.family}"`, t)) {
+    error.value = 'The handwriting style didn’t load. Check your connection and try again, or draw your signature instead.';
+    return;
+  }
+  const missing = missingLetters(t, s.family, s.size);
+  if (missing.length) {
+    const other = STYLES.find(x => x.id !== s.id)!;
+    error.value = missingLetters(t, other.family, other.size).length
+      ? `Neither handwriting style has ${missing.join(' ')}. Draw your signature instead, so every letter is yours.`
+      : `${s.label} has no ${missing.join(' ')}. Pick ${other.label}, or draw your signature instead.`;
+    return;
+  }
   const c = document.createElement('canvas');
   const g = c.getContext('2d')!;
   g.font = `${s.size}px "${s.family}"`;
@@ -32,15 +62,7 @@ async function save() {
   g.fillText(t, s.size / 2, c.height / 2);
   const img = g.getImageData(0, 0, c.width, c.height);
   const crop = cropToInk({ data: img.data, width: img.width, height: img.height }, 6);
-  if (!crop) return;
-  const scale = Math.min(1, 600 / crop.width);
-  const src = document.createElement('canvas');
-  src.width = crop.width; src.height = crop.height;
-  src.getContext('2d')!.putImageData(new ImageData(crop.data, crop.width, crop.height), 0, 0);
-  const out = document.createElement('canvas');
-  out.width = Math.round(crop.width * scale); out.height = Math.round(crop.height * scale);
-  out.getContext('2d')!.drawImage(src, 0, 0, out.width, out.height);
-  emit('save', out.toDataURL('image/png'));
+  if (crop) emit('save', inkToPng(crop));
 }
 </script>
 
@@ -55,6 +77,7 @@ async function save() {
         <span class="sig-style-name">{{ s.label }}</span>
       </button>
     </div>
+    <p v-if="error" class="sig-error" role="alert">{{ error }}</p>
     <div class="sig-actions">
       <button type="button" class="pad-btn pad-btn--main" :disabled="!text.trim()" @click="save">Use this signature</button>
       <button type="button" class="pad-btn" @click="emit('cancel')">Cancel</button>
@@ -77,6 +100,7 @@ async function save() {
 .sig-style:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .sig-sample { font-size: 1.75rem; color: #1B2A6B; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .sig-style-name { font: 600 0.6875rem var(--font); color: #5B6475; }
+.sig-error { font: 0.75rem/1.5 var(--font); color: var(--error); margin: 0; }
 .sig-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .pad-btn { font: 600 0.75rem var(--font); padding: 0.375rem 0.75rem; border-radius: 6px; cursor: pointer;
   border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); }

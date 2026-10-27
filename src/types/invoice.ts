@@ -47,12 +47,25 @@ export type FontChoice = 'auto' | 'sans' | 'serif';
 /** 'auto' stamps Paid once "Amount paid" covers the total; 'paid' and 'draft' are chosen by hand (Pro). */
 export type StampChoice = 'auto' | 'paid' | 'draft' | 'none';
 
-/** A real template id (own key only: "toString" from a crafted link or old data must not pass). */
-export const isTemplate = (t: unknown): t is Template => typeof t === 'string' && Object.hasOwn(TEMPLATE_NAMES, t);
+/** A real template id (own key only: "toString" from a crafted link or old data must not pass).
+ *  hasOwnProperty.call, not Object.hasOwn: that one throws on Safari before 15.4 and old Android WebViews. */
+export const isTemplate = (t: unknown): t is Template =>
+  typeof t === 'string' && Object.prototype.hasOwnProperty.call(TEMPLATE_NAMES, t);
 
 /** What actually gets drawn: unknown ids fall back to Minimal, and so do Pro templates without Pro. */
 export const effectiveTemplate = (t: Template, pro: boolean): Template =>
   !isTemplate(t) || (!pro && PREMIUM_TEMPLATES.includes(t)) ? 'minimal' : t;
+
+export const DEFAULT_BRAND = '#2E5BDA';
+
+/**
+ * Pro options in use that a free download can't include. The preview's "Pro preview" badge and the
+ * download gate both ask this one question, so they can't disagree.
+ */
+export function usesProExtras(s: InvoiceState): boolean {
+  return s.fontChoice !== 'auto' || !!s.signature || s.stamp === 'draft' || s.stamp === 'paid'
+    || (s.template === 'minimal' && s.brandColor.toLowerCase() !== DEFAULT_BRAND.toLowerCase());
+}
 
 export interface InvoiceState {
   // ── Template, country, document ─────────────────────────────────────────
@@ -116,13 +129,14 @@ export interface InvoiceState {
   classicAccent: string;
   modernHeader: string;
   modernAccent: string;
-  brandColor: string;          // Pro: Sidebar, Accounts, Studio, and the accent on Minimal
+  brandColor: string;          // Pro: Sidebar, Accounts, Studio, Swiss, Monogram, and the accent on Minimal
 
   // ── Pro extras ─────────────────────────────────────────────────────────
   fontChoice: FontChoice;
   signature: string;           // base64 PNG data URL, or ''
   signatureName: string;       // printed under the signature, e.g. "Ama Mensah, Director"
-  stamp: StampChoice;
+  stamp: StampChoice;          // per document: never saved with the business profile
+  paidDate: string;            // YYYY-MM-DD printed on the Paid stamp; '' = no date
 
   notes: string;
   footerNote: string;
@@ -167,12 +181,13 @@ export function defaultInvoiceState(): InvoiceState {
     classicAccent: '#1B1F2E',
     modernHeader: '#0F172A',
     modernAccent: '#0EA5E9',
-    brandColor: '#2E5BDA',
+    brandColor: DEFAULT_BRAND,
 
     fontChoice: 'auto',
     signature: '',
     signatureName: '',
     stamp: 'auto',
+    paidDate: '',
 
     notes: '',
     footerNote: '',

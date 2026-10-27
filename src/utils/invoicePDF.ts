@@ -2,13 +2,15 @@
 // Invoice PDF — jsPDF, fully client-side.
 //
 // Renders an InvoiceView (see invoiceView.ts), so it prints exactly what the
-// preview shows. Six templates, each a different document rather than a recolour:
+// preview shows. Eight templates, each a different document rather than a recolour:
 //   minimal   — quiet; the amount due is the largest figure on the page
 //   classic   — "Letterhead": centred serif letterhead, double rule, ruled rows
 //   modern    — "Band": a colour band that carries the amount due and due date
 //   executive — "Sidebar" (Pro): a tinted panel for who, and how to pay
 //   ledger    — "Accounts" (Pro): summary boxes, numbered rows, double-ruled total
 //   studio    — "Studio" (Pro): the amount due as the headline, items as a list
+//   swiss     — "Swiss" (Pro): a label column on the left, everything else on one edge
+//   monogram  — "Monogram" (Pro): a framed page, a medallion, a centred serif letterhead
 // They share the blocks below (bill-to, items, totals, payment, notes, signature,
 // stamp, footer); each layout only decides what goes where and how it looks.
 // Text uses embedded Noto Sans / Noto Serif subsets (fetched on first use) so every
@@ -17,7 +19,7 @@
 
 import jsPDF from 'jspdf';
 import { effectiveTemplate, type InvoiceState, type Template } from '../types/invoice';
-import { buildInvoiceView, type InvoiceView } from './invoiceView';
+import { buildInvoiceView, metaBesideSummary, metaWithoutDue, summaryCells, type InvoiceView } from './invoiceView';
 import { qrMatrix } from './paymentQr';
 import { SITE } from '../site';
 import { C_INK, C_WHITE, hexToRgb, mutedOn, onFill, readable, textOn, type RGB } from './colour';
@@ -58,8 +60,9 @@ function loadFamily(f: Family) {
 async function newDoc(paper: InvoiceView['paper'], families: Family[]): Promise<{ doc: jsPDF; fonts: Record<Family, string> }> {
   const doc = new jsPDF({ unit: 'mm', format: paper === 'Letter' ? 'letter' : 'a4' });
   const fonts: Record<Family, string> = { sans: 'helvetica', serif: 'times' };
-  for (const f of families) {
-    const data = await loadFamily(f);
+  const loaded = await Promise.all(families.map(loadFamily)); // both families at once, not one after the other
+  for (const [i, f] of families.entries()) {
+    const data = loaded[i];
     if (!data) continue;
     const name = f === 'serif' ? 'NotoSerif' : 'NotoSans';
     doc.addFileToVFS(`${name}-Regular.ttf`, data.regular);
@@ -108,12 +111,16 @@ interface Ctx {
   topY: number;
   /** The signature is drawn once, wherever it first fits. */
   signed: boolean;
+  /** Where the footer note and credit line go (a layout with a side panel keeps them in its main column). */
+  footX: number; footW: number;
+  /** Baseline of the credit line and page numbers. */
+  footY: number;
 }
 
 function makeCtx(doc: jsPDF, v: InvoiceView, fonts: Record<Family, string>, fam: { head: Family; body: Family }): Ctx {
   const [W, H] = PAPER[v.paper];
   const ctx: Ctx = {
-    doc, v, W, H, y: 0, bottom: H - 16, topY: 18, signed: false,
+    doc, v, W, H, y: 0, bottom: H - 16, topY: 18, signed: false, footX: M, footW: W - 2 * M, footY: H - 6,
     set(size, weight = 'normal', c = C_INK, role = 'body') {
       doc.setFont(fonts[role === 'head' ? fam.head : fam.body], weight); doc.setFontSize(size); doc.setTextColor(...c);
     },
@@ -127,11 +134,26 @@ function makeCtx(doc: jsPDF, v: InvoiceView, fonts: Record<Family, string>, fam:
     },
     onNewPage: () => {},
   };
-  // Reserve room for a footer that wraps: it grows upward from H-11, so the body must stop above it.
-  ctx.set(8);
-  const footerExtra = v.footer ? (ctx.wrap(v.footer, W - 2 * M).length - 1) * 3.4 : 0;
-  ctx.bottom = H - 16 - footerExtra;
+  footArea(ctx, M, W - 2 * M);
   return ctx;
+}
+
+/**
+ * Where the footer sits. The footer note grows upward from 5 mm above the credit line, so the body
+ * must stop above a footer that wraps; this keeps `bottom` in step with wherever a layout puts it.
+ */
+function footArea(c: Ctx, x: number, w: number, footY = c.H - 6) {
+  c.footX = x; c.footW = w; c.footY = footY;
+  c.set(8);
+  const extra = c.v.footer ? (c.wrap(c.v.footer, w).length - 1) * 3.4 : 0;
+  c.bottom = footY - 10 - extra;
+}
+
+/** The largest size, down to `min`, at which `text` fits `width` on one line (headlines that mustn't wrap). */
+function fitSize(c: Ctx, text: string, width: number, size: number, min: number, weight: 'normal' | 'bold' = 'bold', role: 'head' | 'body' = 'head'): number {
+  c.set(size, weight, C_INK, role);
+  while (size > min && c.doc.getTextWidth(text) > width) { size -= 0.5; c.set(size, weight, C_INK, role); }
+  return size;
 }
 
 // ── Shared blocks ────────────────────────────────────────────────────────────
@@ -154,12 +176,18 @@ function label(c: Ctx, text: string, x: number, y: number, col: RGB = C_MID, ali
 }
 
 function billTo(c: Ctx, b: Box, col: RGB = C_MID, ink: RGB = C_INK, muted: RGB = C_MID) {
-  label(c, c.v.L.billTo, b.x, c.y, col); c.y += 5;
   c.set(10, 'bold', ink, 'head');
   const name = c.wrap(c.v.client.name || '—', b.w);
+  c.ensure(5 + name.length * 4.9);
+  label(c, c.v.L.billTo, b.x, c.y, col); c.y += 5;
+  c.set(10, 'bold', ink, 'head');
   c.doc.text(name, b.x, c.y); c.y += name.length * 4.9;
   c.set(8.5, 'normal', muted);
-  for (const line of c.v.client.lines) { const l = c.wrap(line, b.w); c.doc.text(l, b.x, c.y); c.y += l.length * LINE; }
+  for (const line of c.v.client.lines) {
+    const l = c.wrap(line, b.w);
+    if (c.ensure(l.length * LINE)) c.set(8.5, 'normal', muted);
+    c.doc.text(l, b.x, c.y); c.y += l.length * LINE;
+  }
 }
 
 interface ItemsOpts {
@@ -390,14 +418,17 @@ function paymentRows(c: Ctx, b: Box, labelCol: RGB, qrSize: number) {
 function paymentStacked(c: Ctx, b: Box, labelCol: RGB, ink: RGB = C_INK, muted: RGB = C_MID, onColour = false) {
   const { v, doc } = c;
   if (!v.payment.length && !v.qr) return;
+  c.ensure(12);
   label(c, v.L.paymentDetails, b.x, c.y, labelCol); c.y += 5.5;
   for (const [lbl, value] of v.payment) {
-    c.set(7, 'normal', muted); doc.text(lbl, b.x, c.y); c.y += 3.6;
     c.set(8.5, 'normal', ink);
     const val = c.wrap(value, b.w);
+    c.ensure(3.6 + val.length * LINE);
+    c.set(7, 'normal', muted); doc.text(lbl, b.x, c.y); c.y += 3.6;
+    c.set(8.5, 'normal', ink);
     doc.text(val, b.x, c.y); c.y += val.length * LINE + 1.6;
   }
-  if (v.qr) { c.y += 4; drawQr(c, b.x + 2.5, c.y, 28, muted, onColour); c.y += 38; }
+  if (v.qr) { c.ensure(42); c.y += 4; drawQr(c, b.x + 2.5, c.y, 28, muted, onColour); c.y += 38; }
 }
 
 function notes(c: Ctx, b: Box, labelCol: RGB = C_MID) {
@@ -476,67 +507,86 @@ function stamp(c: Ctx, cx: number, cy: number) {
 }
 
 function footer(c: Ctx) {
-  const { v, doc, W, H } = c;
+  const { v, doc, W } = c;
   const pages = doc.getNumberOfPages();
   for (let p = 1; p <= pages; p++) {
     doc.setPage(p);
     if (v.footer && p === pages) {
       c.set(8, 'normal', C_LIGHT);
       // Long footers grow upward, so they never run into the credit line / page numbers below.
-      const lines = c.wrap(v.footer, W - 2 * M);
-      doc.text(lines, W / 2, H - 11 - (lines.length - 1) * 3.4, { align: 'center' });
+      const lines = c.wrap(v.footer, c.footW);
+      doc.text(lines, c.footX + c.footW / 2, c.footY - 5 - (lines.length - 1) * 3.4, { align: 'center' });
     }
     // The free version's credit: small, bottom-left of the last page, a real link to the site.
     if (v.madeWith && p === pages) {
       c.set(6.5, 'normal', C_LIGHT);
-      doc.textWithLink(v.madeWith, M, H - 6, { url: SITE.url + '/' });
+      doc.textWithLink(v.madeWith, c.footX, c.footY, { url: SITE.url + '/' });
     }
     if (pages > 1) {
       c.set(7, 'normal', C_LIGHT);
-      doc.text(`${v.number || ''}  ${p}/${pages}`.trim(), W - M, H - 6, { align: 'right' });
+      doc.text(`${v.number || ''}  ${p}/${pages}`.trim(), W - M, c.footY, { align: 'right' });
     }
   }
 }
 
 /** Sender block: optional logo above or beside the name, then the contact lines. Returns the bottom y. */
-function senderBlock(c: Ctx, b: Box, o: { y: number; nameSize: number; text: RGB; muted: RGB; logoBeside?: boolean; align?: 'left' | 'center' }): number {
+function senderBlock(c: Ctx, b: Box, o: { y: number; nameSize: number; text: RGB; muted: RGB; logoBeside?: boolean; align?: 'left' | 'center'; dry?: boolean }): number {
   const { v, doc } = c;
   let y = o.y;
   let x = b.x;
   let w = b.w;
+  // dry: measure only, so a layout can size a colour band before painting it behind the text
+  const draw = !o.dry;
   const logo = logoBox(c, o.logoBeside ? 20 : 40, o.logoBeside ? 20 : 16);
   if (logo) {
     if (o.logoBeside) {
-      doc.addImage(v.sender.logo, logo.fmt, b.x, y - 4, logo.w, logo.h);
+      if (draw) doc.addImage(v.sender.logo, logo.fmt, b.x, y - 4, logo.w, logo.h);
       x = b.x + logo.w + 4; w = b.w - logo.w - 4;
     } else {
       const lx = o.align === 'center' ? b.x + (b.w - logo.w) / 2 : b.x;
-      doc.addImage(v.sender.logo, logo.fmt, lx, y - 4, logo.w, logo.h);
+      if (draw) doc.addImage(v.sender.logo, logo.fmt, lx, y - 4, logo.w, logo.h);
       y += logo.h + 3;
     }
   }
   const ax = o.align === 'center' ? b.x + b.w / 2 : x;
   c.set(o.nameSize, 'bold', o.text, 'head');
   const name = c.wrap(v.sender.name || 'Your Business', w);
-  doc.text(name, ax, y + 1, { align: o.align ?? 'left' });
+  if (draw) doc.text(name, ax, y + 1, { align: o.align ?? 'left' });
   y += 1 + name.length * (o.nameSize * 0.44);
   c.set(8, 'normal', o.muted);
   for (const line of v.sender.lines) {
     const l = c.wrap(line, w);
-    doc.text(l, ax, y, { align: o.align ?? 'left' });
+    if (draw) doc.text(l, ax, y, { align: o.align ?? 'left' });
     y += l.length * 4;
   }
   return Math.max(y, logo && o.logoBeside ? o.y - 4 + logo.h : 0);
 }
 
-/** "Date: 1 Oct 2026" lines, right-aligned. Returns the bottom y. */
-function metaLines(c: Ctx, x: number, y: number, col: RGB, align: 'left' | 'right' = 'right', skipDue = false): number {
+/** "Date: 1 Oct 2026" lines, right-aligned and wrapped to `maxW`, so a long reference can't run into the
+ *  column beside it. Returns the bottom y. */
+function metaLines(c: Ctx, x: number, y: number, col: RGB, maxW: number, list: [string, string][] = c.v.meta, align: 'left' | 'right' = 'right'): number {
   c.set(8, 'normal', col);
-  for (const [lbl, value] of c.v.meta) {
-    if (skipDue && (lbl === c.v.L.due || lbl === c.v.L.validUntil)) continue;
-    c.doc.text(`${lbl}: ${value}`, x, y, { align }); y += 4.3;
+  for (const [lbl, value] of list) {
+    const l = c.wrap(`${lbl}: ${value}`, maxW);
+    c.doc.text(l, x, y, { align }); y += l.length * 4.3;
   }
   return y;
+}
+
+/** Dates and reference side by side, label over value, each value wrapped to its column. Returns the bottom y. */
+function metaColumns(c: Ctx, x: number, w: number, y: number): number {
+  const list = c.v.meta.slice(0, 3);
+  const cols = Math.max(1, list.length);
+  let lines = 1;
+  list.forEach(([lbl, value], i) => {
+    const cx = x + (w / cols) * i;
+    c.set(7, 'normal', C_MID); c.doc.text(lbl, cx, y);
+    c.set(9, 'bold', C_INK);
+    const val = c.wrap(value, w / cols - 4);
+    c.doc.text(val, cx, y + 4.5);
+    lines = Math.max(lines, val.length);
+  });
+  return y + 4.5 + (lines - 1) * 4.1;
 }
 
 // ── Layouts ──────────────────────────────────────────────────────────────────
@@ -548,8 +598,10 @@ function layoutMinimal(c: Ctx, k: Colours) {
   c.y = 20;
   const leftEnd = senderBlock(c, { x: M, w: CW * 0.55 }, { y: c.y, nameSize: 12.5, text: C_INK, muted: C_MID, logoBeside: true });
   c.set(8.5, 'normal', C_MID); doc.text(v.titleText, R, c.y + 1, { align: 'right' });
-  c.set(22, 'bold', C_INK, 'head'); doc.text(v.number || '—', R, c.y + 10, { align: 'right' });
-  const rightEnd = metaLines(c, R, c.y + 16, C_MID);
+  // The number is one of the page's two big figures; a long one shrinks rather than run into the sender
+  fitSize(c, v.number || '—', CW * 0.4, 22, 12);
+  doc.text(v.number || '—', R, c.y + 10, { align: 'right' });
+  const rightEnd = metaLines(c, R, c.y + 16, C_MID, CW * 0.4);
   c.y = Math.max(leftEnd, rightEnd) + 5;
   c.rule(c.y, M, R, 0.5, C_INK); c.y += 8;
   const billTop = c.y;
@@ -574,23 +626,36 @@ function layoutLetterhead(c: Ctx, k: Colours) {
   const logo = logoBox(c, 40, 16);
   if (logo) { doc.addImage(v.sender.logo, logo.fmt, (W - logo.w) / 2, c.y - 4, logo.w, logo.h); c.y += logo.h + 4; }
   c.set(17, 'bold', C_INK, 'head');
-  doc.text(c.wrap(v.sender.name || 'Your Business', CW), W / 2, c.y + 2, { align: 'center' });
-  c.y += 8;
+  const name = c.wrap(v.sender.name || 'Your Business', CW);
+  doc.text(name, W / 2, c.y + 2, { align: 'center' });
+  c.y += 8 + (name.length - 1) * 7.2;
   c.set(8, 'normal', C_MID);
   const contact = c.wrap(v.sender.lines.join('     '), CW);
   doc.text(contact, W / 2, c.y, { align: 'center' }); c.y += contact.length * 4 + 2;
   c.rule(c.y, M, R, 0.8, accent); c.rule(c.y + 1.3, M, R, 0.2, accent);
   c.y += 12;
-  // Title and number on the left; dates in a two-column grid on the right
-  c.set(21, 'bold', C_INK, 'head'); doc.text(v.titleText, M, c.y + 2);
-  c.set(9, 'normal', C_MID); doc.text(`${v.L.number} ${v.number || '—'}`, M, c.y + 8);
+  // Dates in a grid on the right: labels in one column, values right-aligned; a long value wraps
+  c.set(8, 'normal', C_MID);
+  const lw = Math.max(0, ...v.meta.map(([l]) => doc.getTextWidth(l)));
+  c.set(8.5, 'normal', C_INK);
+  const vw = Math.min(Math.max(0, ...v.meta.map(([, val]) => doc.getTextWidth(val))), CW * 0.45 - lw - 5);
+  const lx = R - vw - 5 - lw;
   let my = c.y - 1;
   for (const [lbl, value] of v.meta) {
-    c.set(8, 'normal', C_MID); doc.text(lbl, R - 42, my);
-    c.set(8.5, 'normal', C_INK); doc.text(value, R, my, { align: 'right' });
-    my += 4.6;
+    c.set(8, 'normal', C_MID); doc.text(lbl, lx, my);
+    c.set(8.5, 'normal', C_INK);
+    const val = c.wrap(value, vw);
+    doc.text(val, R, my, { align: 'right' });
+    my += 4.6 + (val.length - 1) * 4;
   }
-  c.y = Math.max(c.y + 16, my + 6);
+  // Title and number on the left, in the room the grid leaves
+  const tw = lx - M - 6;
+  const ts = fitSize(c, v.titleText, tw, 21, 14);
+  const title = c.wrap(v.titleText, tw);
+  doc.text(title, M, c.y + 2);
+  const tExtra = (title.length - 1) * ts * 0.42;
+  c.set(9, 'normal', C_MID); doc.text(`${v.L.number} ${v.number || '—'}`, M, c.y + 8 + tExtra);
+  c.y = Math.max(c.y + 16 + tExtra, my + 6);
   const billTop = c.y;
   billTo(c, { x: M, w: CW * 0.6 });
   stamp(c, R - 26, billTop + 6);
@@ -610,28 +675,25 @@ function layoutBand(c: Ctx, k: Colours) {
   const band = k.bandFill, txt = onFill(band);
   const muted = mutedOn(band, 0.25);
   const hi = textOn(band, k.bandAccent); // the accent on the band, unless it wouldn't be readable there
-  // Measure, then paint the band behind the header so light text never lands on paper
   const top = 16;
-  const probe = () => {
-    let left = top + 1;
-    c.set(13, 'bold'); left += c.wrap(v.sender.name || 'Your Business', CW * 0.5).length * 5.8;
-    c.set(8); left += v.sender.lines.reduce((s, l) => s + c.wrap(l, CW * 0.5).length * 4, 0);
-    return Math.max(left + (logoBox(c, 20, 20) ? 4 : 0), top + 34) + 7;
-  };
-  const bandH = probe();
+  const sender = { y: top, nameSize: 13, text: txt, muted, logoBeside: true };
+  const senderBox = { x: M, w: CW * 0.5 };
+  // Measure the sender exactly as it will be drawn, then paint the band behind it: light text never lands on paper
+  const bandH = Math.max(senderBlock(c, senderBox, { ...sender, dry: true }), top + 34) + 7;
   c.fill(band); doc.rect(0, 0, W, bandH, 'F');
-  senderBlock(c, { x: M, w: CW * 0.5 }, { y: top, nameSize: 13, text: txt, muted, logoBeside: true });
+  senderBlock(c, senderBox, sender);
   // Right: the title, then the amount due as the band's headline, then when it's due
   c.set(8.5, 'bold', muted); doc.text(`${v.title}  ${v.number || ''}`.trim(), R, top + 1, { align: 'right' });
   c.set(8, 'normal', muted); doc.text(v.amountDue.label, R, top + 9, { align: 'right' });
-  c.set(22, 'bold', hi, 'head'); doc.text(v.amountDue.value, R, top + 18, { align: 'right' });
+  fitSize(c, v.amountDue.value, CW * 0.45, 22, 13); doc.setTextColor(...hi);
+  doc.text(v.amountDue.value, R, top + 18, { align: 'right' });
   c.set(8.5, 'normal', txt);
   if (v.amountDue.due) doc.text(`${v.L.due}: ${v.amountDue.due}`, R, top + 24.5, { align: 'right' });
   c.y = bandH + 9;
   // Under the band: bill-to on the left, the dates on the right
   const billTop = c.y;
   billTo(c, { x: M, w: CW * 0.55 }, readable(k.bandAccent));
-  const metaEnd = metaLines(c, R, billTop, C_MID, 'right', !!v.amountDue.due);
+  const metaEnd = metaLines(c, R, billTop, C_MID, CW * 0.4, metaWithoutDue(v));
   c.y = Math.max(c.y, metaEnd);
   stamp(c, R - 26, metaEnd + 9);
   c.y += v.stamp ? 18 : 8;
@@ -658,34 +720,20 @@ function layoutSidebar(c: Ctx, k: Colours) {
   paint();
   c.onNewPage = paint;
   c.topY = 18;
-
-  // ── The panel: who it's from, who it's for, how to pay ──────────────────
-  c.y = 20;
-  const logo = logoBox(c, P.w, 18);
-  if (logo) { doc.addImage(v.sender.logo, logo.fmt, P.x, c.y - 4, logo.w, logo.h); c.y += logo.h + 3; }
-  c.set(12, 'bold', txt, 'head');
-  const name = c.wrap(v.sender.name || 'Your Business', P.w);
-  doc.text(name, P.x, c.y + 1); c.y += 1 + name.length * 5.4;
-  c.set(7.8, 'normal', muted);
-  for (const line of v.sender.lines) { const l = c.wrap(line, P.w); doc.text(l, P.x, c.y); c.y += l.length * 3.8; }
-  c.y += 10;
-  billTo(c, P, labelCol, txt, muted);
-  c.y += 10;
-  paymentStacked(c, P, labelCol, txt, muted, true);
+  footArea(c, X, MW);                       // the footer note and credit line stay off the coloured panel
 
   // ── The main column: what, how much, by when ────────────────────────────
   c.y = 22;
-  c.set(26, 'bold', C_INK, 'head'); doc.text(v.titleText, X, c.y + 2);
+  // A long title shrinks, then wraps, and keeps clear of the stamp beside it
+  const titleW = MW - (v.stamp ? 52 : 0);
+  const ts = fitSize(c, v.titleText, titleW, 26, 16);
+  const title = c.wrap(v.titleText, titleW);
+  doc.text(title, X, c.y + 2);
+  c.y += (title.length - 1) * ts * 0.42;
   c.set(9, 'normal', C_MID); doc.text(`${v.L.number} ${v.number || '—'}`, X, c.y + 9.5);
   c.y += 19;
-  // Dates side by side, label over value
-  const cols = v.meta.length ? Math.min(v.meta.length, 3) : 1;
-  v.meta.slice(0, 3).forEach(([lbl, value], i) => {
-    const x = X + (MW / cols) * i;
-    c.set(7, 'normal', C_MID); doc.text(lbl, x, c.y);
-    c.set(9, 'bold', C_INK); doc.text(value, x, c.y + 4.6);
-  });
-  c.y += 14;
+  if (v.stamp) c.y = Math.max(c.y, 45);     // the dates start below the stamp
+  c.y = metaColumns(c, X, MW, c.y) + 9.5;
   stamp(c, R - 22, 26);
   itemsTable(c, { x: X, w: MW }, { head: 'rule', rows: 'hair', ruleColor: brandText });
   totals(c, { x: X + MW * 0.38, w: MW * 0.62 }, 'strip', k.brand);
@@ -693,6 +741,39 @@ function layoutSidebar(c: Ctx, k: Colours) {
   c.y += 4;
   notes(c, { x: X, w: MW }, brandText);
   signature(c, { x: X, w: MW });
+
+  // ── The panel: who it's from, who it's for, how to pay ──────────────────
+  // Drawn after the main column, so a long panel (bank details, a QR code, a long address) carries on
+  // down the next page's panel instead of running off this one.
+  let page = 1;
+  doc.setPage(page);
+  c.ensure = (needed) => {
+    if (c.y + needed <= H - 12) return false;
+    page++;
+    if (page > doc.getNumberOfPages()) { doc.addPage(); paint(); } else doc.setPage(page);
+    c.y = 20;
+    return true;
+  };
+  c.y = 20;
+  const logo = logoBox(c, P.w, 18);
+  if (logo) { doc.addImage(v.sender.logo, logo.fmt, P.x, c.y - 4, logo.w, logo.h); c.y += logo.h + 3; }
+  // The panel is narrow: a long word ("Innenraumgestaltung") shrinks the name rather than break mid-word
+  const longest = (v.sender.name || 'Your Business').split(/\s+/).reduce((a, w) => (w.length > a.length ? w : a), '');
+  const ns = fitSize(c, longest, P.w, 12, 9);
+  c.set(ns, 'bold', txt, 'head');
+  const name = c.wrap(v.sender.name || 'Your Business', P.w);
+  doc.text(name, P.x, c.y + 1); c.y += 1 + name.length * ns * 0.45;
+  for (const line of v.sender.lines) {
+    c.set(7.8, 'normal', muted);
+    const l = c.wrap(line, P.w);
+    if (c.ensure(l.length * 3.8)) c.set(7.8, 'normal', muted);
+    doc.text(l, P.x, c.y); c.y += l.length * 3.8;
+  }
+  c.y += 10;
+  billTo(c, P, labelCol, txt, muted);
+  c.y += 10;
+  paymentStacked(c, P, labelCol, txt, muted, true);
+  doc.setPage(doc.getNumberOfPages());
 }
 
 function layoutAccounts(c: Ctx, k: Colours) {
@@ -701,28 +782,38 @@ function layoutAccounts(c: Ctx, k: Colours) {
   const brand = k.brand;
   c.y = 20;
   const leftEnd = senderBlock(c, { x: M, w: CW * 0.55 }, { y: c.y, nameSize: 13, text: C_INK, muted: C_MID, logoBeside: true });
-  c.set(18, 'bold', readable(brand), 'head'); doc.text(v.title, R, c.y + 3, { align: 'right' });
+  fitSize(c, v.title, CW * 0.4, 18, 11); doc.setTextColor(...readable(brand));
+  doc.text(v.title, R, c.y + 3, { align: 'right' });
   c.y = Math.max(leftEnd, c.y + 12) + 6;
-  // Summary boxes: the four facts a bookkeeper looks for first
-  const cells: [string, string][] = [[v.L.number, v.number || '—'], [v.L.date, v.meta[0]?.[1] ?? '']];
-  if (v.amountDue.due) cells.push([v.L.due, v.amountDue.due]);
-  cells.push([v.amountDue.label, v.amountDue.value]);
-  const cw = CW / cells.length, headH = 7, valH = 10;
+  // Summary boxes: the four facts a bookkeeper looks for first. A long figure shrinks, then wraps;
+  // it's never cut, because a cut-off amount is a wrong amount.
+  const cells = summaryCells(v);
+  const cw = CW / cells.length, headH = 7;
+  const fitted = cells.map(([, value], i) => {
+    let size = i === cells.length - 1 ? 10.5 : 9.5;
+    c.set(size, 'bold', C_INK);
+    while (size > 7 && doc.getTextWidth(value) > cw - 6) { size -= 0.5; c.set(size, 'bold', C_INK); }
+    return { size, lines: c.wrap(value, cw - 6) };
+  });
+  const valH = 10 + (Math.max(...fitted.map(f => f.lines.length)) - 1) * 3.6;
   c.fill(brand); doc.rect(M, c.y, CW, headH, 'F');
   doc.setLineWidth(0.3); doc.setDrawColor(...C_INK); doc.rect(M, c.y, CW, headH + valH, 'S');
-  cells.forEach(([lbl, value], i) => {
+  cells.forEach(([lbl], i) => {
     const x = M + cw * i;
     if (i > 0) { doc.setLineWidth(0.2); doc.setDrawColor(...C_RULE); doc.line(x, c.y + headH, x, c.y + headH + valH); }
     c.set(6.6, 'bold', onFill(brand)); doc.text(lbl.toLocaleUpperCase(v.locale), x + 3, c.y + 4.7);
-    c.set(i === cells.length - 1 ? 10.5 : 9.5, 'bold', C_INK);
-    doc.text(c.wrap(value, cw - 6)[0], x + 3, c.y + headH + 6.5);
+    c.set(fitted[i].size, 'bold', C_INK);
+    doc.text(fitted[i].lines, x + 3, c.y + headH + 6.5);
   });
   c.y += headH + valH + 10;
   const billTop = c.y;
   billTo(c, { x: M, w: CW * 0.55 });
-  if (v.meta.length > 2) metaLines(c, R, billTop, C_MID); // a reference, if any
-  stamp(c, R - 26, billTop + (v.meta.length > 2 ? 16 : 6));
-  c.y += 9;
+  // Whatever isn't in the boxes: a quote's "Valid until", a reference or PO number
+  const extra = metaBesideSummary(v);
+  const metaEnd = metaLines(c, R, billTop, C_MID, CW * 0.4, extra);
+  const stampY = extra.length ? metaEnd + 8 : billTop + 6;
+  stamp(c, R - 26, stampY);
+  c.y = Math.max(c.y, metaEnd, v.stamp ? stampY + 12 : 0) + 9;
   itemsTable(c, { x: M, w: CW }, { head: 'caps', rows: 'hair', numbered: true, grid: true });
   totals(c, { x: M + CW * 0.52, w: CW * 0.48 }, 'double', C_INK);
   taxNote(c, { x: M, w: CW });
@@ -737,18 +828,29 @@ function layoutStudio(c: Ctx, k: Colours) {
   const R = W - M, CW = W - 2 * M;
   const block = k.brand, txt = onFill(block);
   const muted = mutedOn(block, 0.18);
-  const BH = 96;                            // the colour block: the page's headline
+  // Quiet top lines inside the block: who it's from on the left, which document on the right.
+  // Both are measured first, so a long address or reference pushes the headline down instead of under it.
+  const sender = { y: 18, nameSize: 10, text: txt, muted, logoBeside: true };
+  const senderBox = { x: M, w: CW * 0.5 };
+  const senderEnd = senderBlock(c, senderBox, { ...sender, dry: true });
+  c.set(8.5);
+  const titleLine = c.wrap(`${v.titleText} ${v.number || ''}`.trim(), CW * 0.45);
+  const metaTop = 23.5 + (titleLine.length - 1) * 4.3;
+  c.set(8);
+  const meta = metaWithoutDue(v);
+  const metaH = meta.reduce((h, [l, val]) => h + c.wrap(`${l}: ${val}`, CW * 0.45).length * 4.3, 0);
+  const head = Math.max(60, senderEnd + 8, metaTop + metaH + 6);
+  const BH = head + 36;                     // the colour block: the page's headline
   c.fill(block); doc.rect(0, 0, W, BH, 'F');
-  // Quiet top line inside the block: who it's from, and which document this is
-  senderBlock(c, { x: M, w: CW * 0.5 }, { y: 18, nameSize: 10, text: txt, muted, logoBeside: true });
-  c.set(8.5, 'normal', muted);
-  doc.text(`${v.titleText} ${v.number || ''}`.trim(), R, 19, { align: 'right' });
-  metaLines(c, R, 23.5, muted, 'right', !!v.amountDue.due);
+  senderBlock(c, senderBox, sender);
+  c.set(8.5, 'normal', muted); doc.text(titleLine, R, 19, { align: 'right' });
+  metaLines(c, R, metaTop, muted, CW * 0.45, meta);
   // The headline: what is owed, and by when
-  c.set(9.5, 'normal', muted); doc.text(v.amountDue.label, M, 60);
-  c.set(40, 'bold', txt, 'head'); doc.text(v.amountDue.value, M - 0.6, 76);
+  c.set(9.5, 'normal', muted); doc.text(v.amountDue.label, M, head);
+  fitSize(c, v.amountDue.value, CW, 40, 20); doc.setTextColor(...txt);
+  doc.text(v.amountDue.value, M - 0.6, head + 16);
   c.set(10.5, 'normal', txt);
-  if (v.amountDue.due) doc.text(`${v.L.due} ${v.amountDue.due}`, M, 85);
+  if (v.amountDue.due) doc.text(`${v.L.due} ${v.amountDue.due}`, M, head + 25);
   c.y = BH + 12;
   const billTop = c.y;
   billTo(c, { x: M, w: CW * 0.6 });
@@ -779,33 +881,38 @@ function layoutSwiss(c: Ctx, k: Colours) {
   c.rule(16, M, R, 1.6, C_INK);
   c.y = 28;
   // Header: the document in the label column, the sender's name in the content column, amount due on the right
-  c.set(9, 'bold', C_INK); doc.text(v.titleText, LX, c.y);
-  c.set(8, 'normal', C_MID); doc.text(v.number || '—', LX, c.y + 4.5);
+  c.set(9, 'bold', C_INK);
+  const title = c.wrap(v.titleText, X - LX - 4);
+  doc.text(title, LX, c.y);
+  const numY = c.y + 4.5 + (title.length - 1) * 4;
+  c.set(8, 'normal', C_MID); doc.text(v.number || '—', LX, numY);
   const logo = logoBox(c, 18, 14);
   let nx = X;
   if (logo) { doc.addImage(v.sender.logo, logo.fmt, X, c.y - 5, logo.w, logo.h); nx = X + logo.w + 4; }
-  c.set(15, 'bold', C_INK, 'head'); doc.text(c.wrap(v.sender.name || 'Your Business', CW * 0.55), nx, c.y + 1);
+  // The amount keeps its corner: the name wraps short of it instead of running underneath
+  fitSize(c, v.amountDue.value, CW * 0.4, 17, 11);
+  const amountW = doc.getTextWidth(v.amountDue.value);
+  doc.setTextColor(...brand); doc.text(v.amountDue.value, R, c.y + 5, { align: 'right' });
   c.set(8, 'normal', C_MID); doc.text(v.amountDue.label, R, c.y - 3, { align: 'right' });
-  c.set(17, 'bold', brand, 'head'); doc.text(v.amountDue.value, R, c.y + 5, { align: 'right' });
-  c.y += 16;
-  row('From');
+  const labelW = doc.getTextWidth(v.amountDue.label);
+  c.set(15, 'bold', C_INK, 'head');
+  const name = c.wrap(v.sender.name || 'Your Business', Math.min(CW * 0.6, R - Math.max(amountW, labelW) - 6 - nx));
+  doc.text(name, nx, c.y + 1);
+  c.y = Math.max(c.y + 16, c.y + 10 + (name.length - 1) * 6.2, logo ? c.y - 5 + logo.h + 6 : 0, numY + 8);
+  row(v.L.from);
   c.set(8.5, 'normal', C_INK);
   for (const l of v.sender.lines.length ? v.sender.lines : ['—']) { const w = c.wrap(l, CW * 0.6); doc.text(w, X, c.y); c.y += w.length * LINE; }
   c.y += 4;
-  row('Details');
-  const y0 = c.y;
-  const cols = Math.max(1, Math.min(v.meta.length, 3));
-  v.meta.slice(0, 3).forEach(([lbl, value], i) => {
-    const x = X + (CW / cols) * i;
-    c.set(7, 'normal', C_MID); doc.text(lbl, x, y0);
-    c.set(9, 'bold', C_INK); doc.text(value, x, y0 + 4.5);
-  });
-  c.y = y0 + 11;
+  row(v.L.details);
+  c.y = metaColumns(c, X, CW, c.y) + 6.5;
   row(v.L.billTo);
   const billTop = c.y;
-  c.set(10, 'bold', C_INK, 'head'); doc.text(v.client.name || '—', X, c.y); c.y += 4.9;
+  // The client in the left 60% of the column, every line in full; the stamp has the rest
+  c.set(10, 'bold', C_INK, 'head');
+  const client = c.wrap(v.client.name || '—', CW * 0.6);
+  doc.text(client, X, c.y); c.y += client.length * 4.9;
   c.set(8.5, 'normal', C_MID);
-  for (const l of v.client.lines) { doc.text(c.wrap(l, CW * 0.6)[0], X, c.y); c.y += LINE; }
+  for (const l of v.client.lines) { const w = c.wrap(l, CW * 0.6); doc.text(w, X, c.y); c.y += w.length * LINE; }
   stamp(c, R - 24, billTop + 5);
   c.y = Math.max(c.y, billTop + (v.stamp ? 18 : 0)) + 4;
   c.rule(c.y, M, R, 0.2, C_RULE); c.y += 6;
@@ -814,14 +921,18 @@ function layoutSwiss(c: Ctx, k: Colours) {
   taxNote(c, { x: X, w: CW });
   c.y += 2;
   if (v.payment.length || v.qr) {
-    c.ensure(30);
+    const qr = v.qr ? 26 : 0;
+    const valueW = CW - 34 - qr - 6;
+    // Measure the block, QR code included, so it moves to the next page whole rather than into the footer
+    c.set(8.5);
+    const rowsH = v.payment.reduce((h, [, value]) => h + c.wrap(value, valueW).length * LINE + 0.6, 0);
+    c.ensure(Math.max(rowsH, qr ? qr + 3 : 0) + 12);
     row(v.L.paymentDetails);
     const top = c.y;
-    const qr = v.qr ? 26 : 0;
     for (const [lbl, value] of v.payment) {
       c.set(8.5, 'normal', C_MID); doc.text(lbl, X, c.y);
       c.set(8.5, 'normal', C_INK);
-      const val = c.wrap(value, CW - 34 - qr - 6);
+      const val = c.wrap(value, valueW);
       doc.text(val, X + 34, c.y); c.y += val.length * LINE + 0.6;
     }
     if (v.qr) { drawQr(c, R - qr, top - 3, qr); c.y = Math.max(c.y, top - 3 + qr + 6); }
@@ -855,6 +966,7 @@ function layoutMonogram(c: Ctx, k: Colours) {
   frame();
   c.onNewPage = frame;
   c.topY = 20;
+  footArea(c, M, CW, H - 12);              // page numbers and the footer sit inside the frame, clear of it
   c.y = 22;
   // The medallion: the logo if there is one, else the initials on a brand-colour disc
   const logo = logoBox(c, 30, 20);
@@ -862,33 +974,39 @@ function layoutMonogram(c: Ctx, k: Colours) {
     doc.addImage(v.sender.logo, logo.fmt, (W - logo.w) / 2, c.y - 2, logo.w, logo.h);
     c.y += logo.h + 5;
   } else {
-    const r = 10;
-    c.fill(k.brand); doc.circle(W / 2, c.y + r - 2, r, 'F');
-    doc.setDrawColor(...k.brand); doc.setLineWidth(0.25); doc.circle(W / 2, c.y + r - 2, r + 1.6, 'S');
-    c.set(v.sender.initials.length > 1 ? 15 : 18, 'bold', onFill(k.brand), 'head');
-    doc.text(v.sender.initials || '·', W / 2, c.y + r + 3.2, { align: 'center' });
+    const r = 10, cy = c.y + r - 2;
+    c.fill(k.brand); doc.circle(W / 2, cy, r, 'F');
+    doc.setDrawColor(...k.brand); doc.setLineWidth(0.25); doc.circle(W / 2, cy, r + 1.6, 'S');
+    const size = v.sender.initials.length > 1 ? 15 : 18;
+    c.set(size, 'bold', onFill(k.brand), 'head');
+    // Centred on the disc: the baseline sits half a capital's height (0.36 em) below the centre
+    doc.text(v.sender.initials || '·', W / 2, cy + size * 0.3528 * 0.36, { align: 'center' });
     c.y += 2 * r + 7;
   }
   c.set(16, 'bold', C_INK, 'head');
-  doc.text(c.wrap(v.sender.name || 'Your Business', CW), W / 2, c.y, { align: 'center' });
-  c.y += 5.5;
+  const name = c.wrap(v.sender.name || 'Your Business', CW);
+  doc.text(name, W / 2, c.y, { align: 'center' });
+  c.y += 5.5 + (name.length - 1) * 6.8;
   c.set(7.8, 'normal', C_MID);
   const contact = c.wrap(v.sender.lines.join('     '), CW - 10);
   doc.text(contact, W / 2, c.y, { align: 'center' }); c.y += contact.length * 3.8 + 4;
   c.rule(c.y, W / 2 - 15, W / 2 + 15, 0.4, k.brand);
   c.y += 10;
-  // The document, centred: title, then number and dates on one line
-  c.set(19, 'bold', C_INK, 'head'); doc.text(v.titleText, W / 2, c.y, { align: 'center' });
-  c.y += 6;
+  // The document, centred: title, then number and dates (on more lines when they don't fit one)
+  c.set(19, 'bold', C_INK, 'head');
+  const title = c.wrap(v.titleText, CW);
+  doc.text(title, W / 2, c.y, { align: 'center' });
+  c.y += 6 + (title.length - 1) * 8;
   c.set(8.5, 'normal', C_MID);
-  const facts = [`${v.L.number} ${v.number || '—'}`, ...v.meta.map(([l, val]) => `${l} ${val}`)];
-  doc.text(c.wrap(facts.join('      '), CW)[0], W / 2, c.y, { align: 'center' });
-  c.y += 12;
+  const facts = c.wrap([`${v.L.number} ${v.number || '—'}`, ...v.meta.map(([l, val]) => `${l} ${val}`)].join('      '), CW);
+  doc.text(facts, W / 2, c.y, { align: 'center' });
+  c.y += 12 + (facts.length - 1) * 4.3;
   // The client on the left; what is owed on the right
   const billTop = c.y;
   billTo(c, { x: M, w: CW * 0.55 }, brand);
   c.set(8, 'normal', C_MID); doc.text(v.amountDue.label, R, billTop, { align: 'right' });
-  c.set(20, 'bold', brand, 'head'); doc.text(v.amountDue.value, R, billTop + 9, { align: 'right' });
+  fitSize(c, v.amountDue.value, CW * 0.4, 20, 12); doc.setTextColor(...brand);
+  doc.text(v.amountDue.value, R, billTop + 9, { align: 'right' });
   if (v.amountDue.due) { c.set(8.5, 'normal', C_INK); doc.text(`${v.L.due} ${v.amountDue.due}`, R, billTop + 15, { align: 'right' }); }
   stamp(c, R - 26, billTop + 30);
   c.y = Math.max(c.y, billTop + (v.stamp ? 44 : 18)) + 6;

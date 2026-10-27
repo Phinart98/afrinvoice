@@ -29,6 +29,8 @@ export interface Labels {
   payOnline: string; scanToPay: string; notes: string;
   /** What the client still has to pay: the hero figure on Band and Studio, a cell on Accounts. */
   amountDue: string;
+  /** Swiss's row label for the number, dates and reference. */
+  details: string;
   /** Under the Pro signature block. */
   signature: string;
   /** The Pro status stamp. */
@@ -45,7 +47,7 @@ const en: Labels = {
   paymentDetails: 'Payment details', bank: 'Bank', accountName: 'Account name', accountNumber: 'Account number',
   iban: 'IBAN', bic: 'BIC / SWIFT', provider: 'Provider', mobileNumber: 'Number', upiId: 'UPI ID',
   payOnline: 'Pay online', scanToPay: 'Scan to pay', notes: 'Notes',
-  amountDue: 'Amount due', signature: 'Authorised signature', paid: 'Paid', draft: 'Draft',
+  amountDue: 'Amount due', signature: 'Authorised signature', paid: 'Paid', draft: 'Draft', details: 'Details',
 };
 
 const fr: Labels = {
@@ -58,7 +60,7 @@ const fr: Labels = {
   paymentDetails: 'Coordonnées de paiement', bank: 'Banque', accountName: 'Titulaire', accountNumber: 'N° de compte',
   iban: 'IBAN', bic: 'BIC', provider: 'Opérateur', mobileNumber: 'Numéro', upiId: 'UPI ID',
   payOnline: 'Payer en ligne', scanToPay: 'Scanner pour payer', notes: 'Notes',
-  amountDue: 'Montant dû', signature: 'Signature autorisée', paid: 'Payé', draft: 'Brouillon',
+  amountDue: 'Montant dû', signature: 'Signature autorisée', paid: 'Payé', draft: 'Brouillon', details: 'Détails',
 };
 
 const de: Labels = {
@@ -71,7 +73,7 @@ const de: Labels = {
   paymentDetails: 'Bankverbindung', bank: 'Bank', accountName: 'Kontoinhaber', accountNumber: 'Kontonummer',
   iban: 'IBAN', bic: 'BIC', provider: 'Anbieter', mobileNumber: 'Nummer', upiId: 'UPI ID',
   payOnline: 'Online bezahlen', scanToPay: 'Zum Bezahlen scannen', notes: 'Hinweise',
-  amountDue: 'Fälliger Betrag', signature: 'Unterschrift', paid: 'Bezahlt', draft: 'Entwurf',
+  amountDue: 'Fälliger Betrag', signature: 'Unterschrift', paid: 'Bezahlt', draft: 'Entwurf', details: 'Angaben',
 };
 
 const es: Labels = {
@@ -84,7 +86,7 @@ const es: Labels = {
   paymentDetails: 'Datos de pago', bank: 'Banco', accountName: 'Titular', accountNumber: 'N.º de cuenta',
   iban: 'IBAN', bic: 'BIC', provider: 'Proveedor', mobileNumber: 'Número', upiId: 'UPI ID',
   payOnline: 'Pagar en línea', scanToPay: 'Escanear para pagar', notes: 'Notas',
-  amountDue: 'Importe a pagar', signature: 'Firma autorizada', paid: 'Pagado', draft: 'Borrador',
+  amountDue: 'Importe a pagar', signature: 'Firma autorizada', paid: 'Pagado', draft: 'Borrador', details: 'Detalles',
 };
 
 const pt: Labels = {
@@ -97,7 +99,7 @@ const pt: Labels = {
   paymentDetails: 'Dados de pagamento', bank: 'Banco', accountName: 'Titular', accountNumber: 'N.º da conta',
   iban: 'IBAN', bic: 'BIC', provider: 'Operador', mobileNumber: 'Número', upiId: 'UPI ID',
   payOnline: 'Pagar online', scanToPay: 'Digitalize para pagar', notes: 'Notas',
-  amountDue: 'Valor a pagar', signature: 'Assinatura autorizada', paid: 'Pago', draft: 'Rascunho',
+  amountDue: 'Valor a pagar', signature: 'Assinatura autorizada', paid: 'Pago', draft: 'Rascunho', details: 'Detalhes',
 };
 
 const it: Labels = {
@@ -110,7 +112,7 @@ const it: Labels = {
   paymentDetails: 'Coordinate di pagamento', bank: 'Banca', accountName: 'Intestatario', accountNumber: 'N. conto',
   iban: 'IBAN', bic: 'BIC', provider: 'Operatore', mobileNumber: 'Numero', upiId: 'UPI ID',
   payOnline: 'Paga online', scanToPay: 'Scansiona per pagare', notes: 'Note',
-  amountDue: 'Importo dovuto', signature: 'Firma autorizzata', paid: 'Pagato', draft: 'Bozza',
+  amountDue: 'Importo dovuto', signature: 'Firma autorizzata', paid: 'Pagato', draft: 'Bozza', details: 'Dettagli',
 };
 
 const nl: Labels = {
@@ -123,7 +125,7 @@ const nl: Labels = {
   paymentDetails: 'Betaalgegevens', bank: 'Bank', accountName: 'Rekeninghouder', accountNumber: 'Rekeningnummer',
   iban: 'IBAN', bic: 'BIC', provider: 'Aanbieder', mobileNumber: 'Nummer', upiId: 'UPI ID',
   payOnline: 'Online betalen', scanToPay: 'Scan om te betalen', notes: 'Opmerkingen',
-  amountDue: 'Te betalen', signature: 'Handtekening', paid: 'Betaald', draft: 'Concept',
+  amountDue: 'Te betalen', signature: 'Handtekening', paid: 'Betaald', draft: 'Concept', details: 'Gegevens',
 };
 
 export const LABELS: Record<LabelLang, Labels> = { en, fr, de, es, pt, it, nl };

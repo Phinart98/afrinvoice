@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { PREMIUM_TEMPLATES, effectiveTemplate, type InvoiceState } from '../types/invoice';
+import { DEFAULT_BRAND, PREMIUM_TEMPLATES, effectiveTemplate, usesProExtras, type InvoiceState } from '../types/invoice';
 import { SITE } from '../site';
-import { buildInvoiceView } from '../utils/invoiceView';
+import { buildInvoiceView, metaBesideSummary, metaWithoutDue, summaryCells } from '../utils/invoiceView';
 import { qrSvg } from '../utils/paymentQr';
 import { C_INK, hexToRgb, mutedOn, onFill, readable, rgbCss, textOn } from '../utils/colour';
 
@@ -12,8 +12,7 @@ const props = defineProps<{ state: InvoiceState; pro?: boolean }>();
 // what's gated. Before Pro exists, a stored premium template simply shows as Minimal, like the PDF.
 const onSale = SITE.pro.enabled;
 const tpl = computed(() => effectiveTemplate(props.state.template, onSale || !!props.pro));
-const proPreview = computed(() => !props.pro && (PREMIUM_TEMPLATES.includes(tpl.value)
-  || props.state.fontChoice !== 'auto' || !!props.state.signature || props.state.stamp === 'draft' || props.state.stamp === 'paid'));
+const proPreview = computed(() => onSale && !props.pro && (PREMIUM_TEMPLATES.includes(tpl.value) || usesProExtras(props.state)));
 
 // Same view model the PDF renders, so the preview can't drift from the download.
 const v = computed(() => buildInvoiceView(props.state, { pro: props.pro, preview: onSale }));
@@ -48,19 +47,15 @@ const themeStyle = computed(() => {
     '--on-brand': rgbCss(onFill(brand)),
     '--brand-muted': rgbCss(mutedOn(brand, 0.22)),
     '--brand-text': rgbCss(readable(brand)),
-    '--min-accent': rgbCss(props.pro || (onSale && s.brandColor.toLowerCase() !== '#2e5bda') ? readable(brand) : C_INK),
+    '--min-accent': rgbCss(props.pro || (onSale && s.brandColor.toLowerCase() !== DEFAULT_BRAND.toLowerCase()) ? readable(brand) : C_INK),
   };
 });
 
 const exec = computed(() => tpl.value === 'executive');
-const metaNoDue = computed(() => v.value.meta.filter(([l]) => !(v.value.amountDue.due && (l === v.value.L.due || l === v.value.L.validUntil))));
-const accountsCells = computed(() => {
-  const x = v.value;
-  const cells: [string, string][] = [[x.L.number, x.number || '—'], [x.L.date, x.meta[0]?.[1] ?? '']];
-  if (x.amountDue.due) cells.push([x.L.due, x.amountDue.due]);
-  cells.push([x.amountDue.label, x.amountDue.value]);
-  return cells;
-});
+// The same selections the PDF makes (invoiceView.ts), so the two can't drift apart
+const metaNoDue = computed(() => metaWithoutDue(v.value));
+const accountsCells = computed(() => summaryCells(v.value));
+const accountsMeta = computed(() => metaBesideSummary(v.value));
 // The emphasised money row is the one the client acts on: the balance when payments exist, else the total.
 const keyRow = computed(() => {
   const kinds = v.value.totals.map(r => r.kind);
@@ -180,11 +175,11 @@ const keyRow = computed(() => {
               <p class="sw-due"><span class="inv-dim">{{ v.amountDue.label }}</span><b>{{ v.amountDue.value }}</b></p>
             </div>
             <div class="sw-row">
-              <p class="inv-section-label">From</p>
-              <div><p v-for="(line, i) in v.sender.lines" :key="i" class="sw-line">{{ line }}</p></div>
+              <p class="inv-section-label">{{ v.L.from }}</p>
+              <div><p v-for="(line, i) in (v.sender.lines.length ? v.sender.lines : ['—'])" :key="i" class="sw-line">{{ line }}</p></div>
             </div>
             <div class="sw-row">
-              <p class="inv-section-label">Details</p>
+              <p class="inv-section-label">{{ v.L.details }}</p>
               <div class="sw-meta"><div v-for="[label, value] in v.meta.slice(0, 3)" :key="label"><span class="inv-dim">{{ label }}</span><b>{{ value }}</b></div></div>
             </div>
           </header>
@@ -235,7 +230,7 @@ const keyRow = computed(() => {
                 <p v-if="v.amountDue.due" class="inv-dim">{{ v.L.due }} {{ v.amountDue.due }}</p>
               </template>
               <template v-else-if="tpl === 'ledger'">
-                <p v-for="[label, value] in v.meta.slice(2)" :key="label" class="inv-dim">{{ label }}: {{ value }}</p>
+                <p v-for="[label, value] in accountsMeta" :key="label" class="inv-dim">{{ label }}: {{ value }}</p>
               </template>
               <!-- Beside the client, as on the PDF -->
               <div v-if="v.stamp" :class="['inv-stamp', 'stamp-' + v.stamp.kind]" aria-hidden="true">
@@ -360,7 +355,7 @@ const keyRow = computed(() => {
 .inv-logo { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
 .hd { margin-bottom: 1.25rem; }
 .hd-row, .hd-minimal, .hd-band { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
-.hd-right { text-align: right; flex-shrink: 0; }
+.hd-right { text-align: right; flex-shrink: 0; max-width: 48%; overflow-wrap: anywhere; } /* a long reference wraps, as on the PDF */
 
 .inv-bill-to { display: flex; justify-content: space-between; gap: 1rem; margin: 0 0 1.25rem; }
 
@@ -472,8 +467,10 @@ const keyRow = computed(() => {
 .sb-qr :deep(svg) { background: #fff; padding: 6px; border-radius: 4px; box-sizing: content-box; }
 .tpl-executive .inv-main { padding: 2rem 1.5rem 1.5rem; min-width: 0; }
 .sb-title { font-size: 1.75rem; font-weight: 800; line-height: 1.1; }
-.sb-meta { display: flex; gap: 1.5rem; margin-top: 0.9rem; }
-.sb-meta div { display: flex; flex-direction: column; font-size: 0.75rem; }
+.sb-meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; margin-top: 0.9rem; }
+.sb-meta div { display: flex; flex-direction: column; font-size: 0.75rem; min-width: 0; overflow-wrap: anywhere; }
+.sb-title { overflow-wrap: anywhere; }
+.hd-sidebar:has(.sb-stamp) .sb-title { padding-right: 8.5rem; }
 .tpl-executive .inv-th, .tpl-executive .inv-tr:last-child { border-color: var(--brand-text); }
 .tpl-executive .inv-totals { width: 70%; }
 .tpl-executive .inv-grand { background: var(--brand); border: none; padding: 0.45rem 0.5rem; margin: 0.25rem 0 0 -0.5rem; }
@@ -520,8 +517,8 @@ const keyRow = computed(() => {
 .sw-row .inv-section-label, .tpl-swiss .inv-bill-to .inv-section-label, .tpl-swiss .inv-payment .inv-section-label,
 .tpl-swiss .inv-notes-section .inv-section-label { position: absolute; left: 0; top: 0.8rem; color: var(--brand-text); }
 .sw-line { font-size: 0.75rem; }
-.sw-meta { display: flex; gap: 1.5rem; }
-.sw-meta div { display: flex; flex-direction: column; font-size: 0.75rem; }
+.sw-meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
+.sw-meta div { display: flex; flex-direction: column; font-size: 0.75rem; min-width: 0; overflow-wrap: anywhere; }
 .tpl-swiss .inv-table { margin-left: var(--lc); width: calc(100% - var(--lc)); margin-top: 1rem; }
 .tpl-swiss .inv-grand .inv-total-val { color: var(--brand-text); }
 .tpl-swiss .inv-taxnote { margin-left: var(--lc) !important; }

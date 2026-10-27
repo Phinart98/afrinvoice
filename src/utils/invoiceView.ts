@@ -54,10 +54,36 @@ const groupIban = (iban: string) => iban.replace(/\s+/g, '').toUpperCase().repla
 /** "USt-IdNr. / Steuernummer" → "USt-IdNr." — one label is enough on the page. */
 const shortLabel = (label: string) => label.split(' / ')[0];
 
+// Company-form words, dropped only from the END of a name: "SA Fuel Logistics" keeps its SA,
+// "Müller AG", "Rossi S.p.A.", "Kaveri Pvt Ltd" and "Acme (Pty) Ltd" lose theirs.
+const COMPANY_FORMS = new Set(['ltd', 'limited', 'llc', 'llp', 'inc', 'incorporated', 'corp', 'corporation', 'co', 'company',
+  'gmbh', 'ag', 'kg', 'ug', 'ohg', 'ev', 'sarl', 'sas', 'sa', 'sasu', 'eurl', 'srl', 'spa', 'snc', 'sl', 'slu', 'bv', 'nv', 'vof',
+  'lda', 'ltda', 'eireli', 'plc', 'pty', 'pvt', 'private', 'pte', 'bhd', 'sdn', 'cc', 'lp', '&', 'and', 'und', 'et']);
+
 /** "Brightside Consulting Ltd" → "BC"; one word → its first letter. Letters only, any script. */
 export function initials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(w => /\p{L}/u.test(w) && !/^(ltd|llc|inc|gmbh|sarl|sa|bv|plc|pty|co)\.?$/i.test(w));
-  return words.slice(0, 2).map(w => (w.match(/\p{L}/u) ?? [''])[0].toLocaleUpperCase()).join('');
+  // "S.A." → "SA", "(Pty)" → "Pty", so the company form is recognised however it's punctuated
+  const words = name.replace(/[.()[\],]/g, '').trim().split(/\s+/).filter(Boolean);
+  while (words.length > 1 && COMPANY_FORMS.has(words[words.length - 1].toLowerCase())) words.pop();
+  return words.filter(w => /\p{L}/u.test(w)).slice(0, 2).map(w => (w.match(/\p{L}/u) ?? [''])[0].toLocaleUpperCase()).join('');
+}
+
+/** Accounts' summary boxes: number, date, due date (only when it's the headline's), and the amount. */
+export function summaryCells(v: InvoiceView): [string, string][] {
+  const cells: [string, string][] = [[v.L.number, v.number || '—'], [v.L.date, v.meta[0]?.[1] ?? '']];
+  if (v.amountDue.due) cells.push([v.L.due, v.amountDue.due]);
+  cells.push([v.amountDue.label, v.amountDue.value]);
+  return cells;
+}
+
+/** The meta lines a layout still has to print once the headline shows the due date. */
+export function metaWithoutDue(v: InvoiceView): [string, string][] {
+  return v.meta.filter(([l]) => !(v.amountDue.due && l === v.L.due));
+}
+
+/** Meta lines that aren't in Accounts' summary boxes: a quote's "Valid until", a reference. */
+export function metaBesideSummary(v: InvoiceView): [string, string][] {
+  return metaWithoutDue(v).slice(1);
 }
 
 /** "PROFORMA INVOICE" → "Proforma invoice"; German capitalises every noun, so every word. */
@@ -74,7 +100,15 @@ export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean; preview
   const L = LABELS[s.labelsLang] ?? LABELS.en;
   const locale = docLocale(country.locale, s.labelsLang);
   const money = (n: number) => formatMoney(n, s.currency, locale);
-  const t = computeTotals(s, { taxVisible: s.visible.tax });
+  const t0 = computeTotals(s, { taxVisible: s.visible.tax });
+  // A Paid stamp chosen by hand means the money is in: the whole document says so (amount paid,
+  // balance 0, no "Scan to pay"), not just the stamp beside a QR code asking for the full amount.
+  const paidByHand = extras && s.stamp === 'paid' && t0.total > 0 && t0.amountPaid < t0.total;
+  const t: Totals = paidByHand ? { ...t0, amountPaid: t0.total, balanceDue: 0 } : t0;
+  const settled = t.total > 0 && t.amountPaid >= t.total;
+  // Only invoices ask for money: a receipt records a payment, a quote and a credit note owe nothing yet
+  const asksForMoney = s.docType === 'invoice' || s.docType === 'tax-invoice' || s.docType === 'proforma';
+  const paidOn = s.paidDate ? formatDate(s.paidDate, locale) : s.docType === 'receipt' ? formatDate(s.invoiceDate, locale) : '';
 
   // ── Header meta ───────────────────────────────────────────────────────────
   const meta: [string, string][] = [[L.date, formatDate(s.invoiceDate, locale)]];
@@ -166,26 +200,27 @@ export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean; preview
     totals,
     taxNote: s.taxNote.trim(),
     payment: payment.filter(([, v]) => v && v.trim()),
-    qr: paymentQr(s, t.balanceDue),
+    qr: (asksForMoney || s.docType === 'quote') && t.balanceDue > 0 ? paymentQr(s, t.balanceDue) : null,
     notes: s.notes.trim(),
     footer: s.footerNote.trim(),
     madeWith: opts.pro ? null : `Made with ${SITE.name}, ${SITE.domain}`,
     // Once fully paid, the headline shows the total (the Paid stamp says the rest), not "Amount due 0.00".
-    // A Paid stamp chosen by hand is the user saying it's settled, so the headline agrees with it.
-    amountDue: t.total > 0 && (t.amountPaid >= t.total || (extras && s.stamp === 'paid'))
-      ? { label: L.total, value: money(t.total), due: '', settled: true }
+    // Receipts, quotes and credit notes headline their total too: none of them is a request to pay by a date.
+    amountDue: settled || !asksForMoney
+      ? { label: L.total, value: money(t.total), due: '', settled: settled || s.docType === 'receipt' }
       : {
         label: L.amountDue,
         value: money(t.amountPaid > 0 ? t.balanceDue : t.total),
-        due: s.dueDate && s.visible.dueDate && s.docType !== 'receipt' ? formatDate(s.dueDate, locale) : '',
+        due: s.dueDate && s.visible.dueDate ? formatDate(s.dueDate, locale) : '',
         settled: false,
       },
     signature: extras && s.signature ? { image: s.signature, name: s.signatureName.trim(), label: L.signature } : null,
     stamp: !extras || s.stamp === 'none' ? null
       : s.stamp === 'draft' ? { kind: 'draft', text: L.draft, date: '' }
-      : s.stamp === 'paid' ? { kind: 'paid', text: L.paid, date: formatDate(s.invoiceDate, locale) }
+      // Dated with the day it was paid (the issue date would misstate it); no date rather than a wrong one
+      : s.stamp === 'paid' ? { kind: 'paid', text: L.paid, date: paidOn }
       // The automatic Paid stamp is Pro-only even in the preview: a free user's paid receipt shouldn't look Pro.
-      : opts.pro && t.total > 0 && t.amountPaid >= t.total ? { kind: 'paid', text: L.paid, date: formatDate(s.invoiceDate, locale) }
+      : opts.pro && settled ? { kind: 'paid', text: L.paid, date: paidOn }
       : null,
     font: extras ? s.fontChoice : 'auto',
     raw: t,

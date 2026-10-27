@@ -22,6 +22,33 @@ export function cropToInk(img: Pixels, pad = 4): Pixels | null {
   return { data: out, width: cw, height: ch };
 }
 
+/**
+ * Flatten onto white paper. A signature saved as a PNG with a transparent background reads as black
+ * where it's clear ([0,0,0,0]); on white, clear is paper and only the ink is ink.
+ */
+function onWhite(img: Pixels): Pixels {
+  const data = new Uint8ClampedArray(img.data);
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3] / 255;
+    if (a === 1) continue;
+    for (let k = 0; k < 3; k++) data[i + k] = Math.round(data[i + k] * a + 255 * (1 - a));
+    data[i + 3] = 255;
+  }
+  return { data, width: img.width, height: img.height };
+}
+
+/** Ink pixels → a PNG data URL at most `maxW` px wide, so signature files stay as small as logos. Browser only. */
+export function inkToPng(ink: Pixels, maxW = 600): string {
+  const scale = Math.min(1, maxW / ink.width);
+  const src = document.createElement('canvas');
+  src.width = ink.width; src.height = ink.height;
+  src.getContext('2d')!.putImageData(new ImageData(ink.data as Uint8ClampedArray<ArrayBuffer>, ink.width, ink.height), 0, 0);
+  const out = document.createElement('canvas');
+  out.width = Math.round(ink.width * scale); out.height = Math.round(ink.height * scale);
+  out.getContext('2d')!.drawImage(src, 0, 0, out.width, out.height);
+  return out.toDataURL('image/png');
+}
+
 /** The paper's brightness in each patch of the photo: phone photos are rarely lit evenly. */
 function paperMap(img: Pixels): { tile: number; cols: number; level: Float32Array } {
   const { data, width: w, height: h } = img;
@@ -44,7 +71,8 @@ function paperMap(img: Pixels): { tile: number; cols: number; level: Float32Arra
  * clear as well as white paper in good light. Pixels near the local paper level become see-through;
  * darker ones fade in to solid ink, which keeps the pen's soft edges instead of a jagged cut-out.
  */
-export function cleanSignature(img: Pixels): Pixels | null {
+export function cleanSignature(src: Pixels): Pixels | null {
+  const img = onWhite(src);
   const { data, width: w, height: h } = img;
   const map = paperMap(img);
   const out = new Uint8ClampedArray(data);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildInvoiceView, initials } from './invoiceView';
-import { defaultInvoiceState, type InvoiceState } from '../types/invoice';
+import { buildInvoiceView, initials, metaBesideSummary, summaryCells } from './invoiceView';
+import { defaultInvoiceState, isTemplate, usesProExtras, type InvoiceState } from '../types/invoice';
 import { SITE } from '../site';
 
 const MADE_WITH = `Made with ${SITE.name}, ${SITE.domain}`;
@@ -141,5 +141,95 @@ describe('initials for the Monogram medallion', () => {
     expect(initials('studio nordlicht GmbH')).toBe('SN');
     expect(initials('Ömer')).toBe('Ö');
     expect(initials('')).toBe('');
+  });
+});
+
+describe('a Paid stamp chosen by hand says paid everywhere', () => {
+  const s = { ...defaultInvoiceState(), stamp: 'paid' as const, paymentRail: 'iban' as const, countryKey: 'germany', currency: 'EUR',
+    iban: 'DE89370400440532013000', accountName: 'Max', items: [{ description: 'x', quantity: 1, unitPrice: 500 }] };
+  it('drops the "Scan to pay" QR code and shows the balance as 0', () => {
+    expect(buildInvoiceView({ ...s, stamp: 'auto' }, { pro: true }).qr?.kind).toBe('sepa'); // unpaid: the QR asks for 500
+    const v = buildInvoiceView(s, { pro: true });
+    expect(v.qr).toBeNull();
+    expect(v.raw.balanceDue).toBe(0);
+    expect(v.totals.at(-1)).toMatchObject({ kind: 'balance' });
+    expect(v.totals.at(-1)!.value).toMatch(/0[.,]00/);
+  });
+  it('settles a part-paid invoice too: no "Balance due 300" beside the stamp', () => {
+    const v = buildInvoiceView({ ...s, amountPaid: 200 }, { pro: true });
+    expect(v.raw.balanceDue).toBe(0);
+    expect(v.qr).toBeNull();
+  });
+  it('is dated with the day it was paid, not the invoice date', () => {
+    expect(buildInvoiceView({ ...s, invoiceDate: '2026-10-01', paidDate: '2026-10-20', labelsLang: 'en', countryKey: 'united-kingdom' }, { pro: true }).stamp?.date).toBe('20 Oct 2026');
+    expect(buildInvoiceView({ ...s, invoiceDate: '2026-10-01', paidDate: '' }, { pro: true }).stamp?.date).toBe(''); // no date rather than a wrong one
+  });
+  it('dates an automatic stamp on a receipt with the receipt’s own date', () => {
+    const r = { ...defaultInvoiceState(), countryKey: 'united-kingdom', docType: 'receipt' as const, invoiceDate: '2026-10-05', amountPaid: 50, items: [{ description: 'x', quantity: 1, unitPrice: 50 }] };
+    expect(buildInvoiceView(r, { pro: true }).stamp?.date).toBe('5 Oct 2026');
+  });
+});
+
+describe('documents that don’t ask for money', () => {
+  const items = [{ description: 'x', quantity: 1, unitPrice: 100 }];
+  it('a receipt headlines its total, never "Amount due", and has no "Scan to pay"', () => {
+    const v = make({ docType: 'receipt', items, paymentLink: 'https://pay.example.com/x' });
+    expect(v.amountDue.label).toBe('Total');
+    expect(v.amountDue.due).toBe('');
+    expect(v.qr).toBeNull();
+  });
+  it('a quote keeps its "Valid until" date as a validity date, not a due date', () => {
+    const v = make({ docType: 'quote', items, dueDate: '2026-11-10' });
+    expect(v.amountDue.label).toBe('Total');
+    expect(v.amountDue.due).toBe('');
+    expect(v.meta.map(m => m[0])).toContain('Valid until');
+  });
+  it('a credit note headlines its total, not an amount due', () => {
+    expect(make({ docType: 'credit-note', items, dueDate: '2026-11-10' }).amountDue.label).toBe('Total');
+  });
+  it('an invoice still asks for the amount due by its due date', () => {
+    const v = make({ items, dueDate: '2026-11-10' });
+    expect(v.amountDue.label).toBe('Amount due');
+    expect(v.amountDue.due).not.toBe('');
+  });
+});
+
+describe('what Accounts prints beside its summary boxes', () => {
+  it('keeps a reference when there is no due date', () => {
+    expect(metaBesideSummary(make({ reference: 'PO-4471' }))).toEqual([['Reference', 'PO-4471']]);
+  });
+  it('keeps a quote’s "Valid until" and leaves out a due date the boxes already show', () => {
+    expect(metaBesideSummary(make({ docType: 'quote', dueDate: '2026-11-10' })).map(m => m[0])).toEqual(['Valid until']);
+    const inv = make({ dueDate: '2026-11-10', items: [{ description: 'x', quantity: 1, unitPrice: 1 }] });
+    expect(summaryCells(inv).map(c => c[0])).toContain('Due');
+    expect(metaBesideSummary(inv)).toEqual([]);
+  });
+});
+
+describe('initials, the way companies are really named', () => {
+  it.each([
+    ['Acme (Pty) Ltd', 'A'], ['Müller AG', 'M'], ['Rossi S.p.A.', 'R'], ['Rossi Srl', 'R'], ['Acme Limited', 'A'],
+    ['Acme S.A.', 'A'], ['Kaveri Pvt Ltd', 'K'], ['SA Fuel Logistics', 'SF'], ['SA Fuel Logistics (Pty) Ltd', 'SF'],
+    ['Nordlicht Architektur GmbH & Co. KG', 'NA'],
+  ])('%s → %s', (name, want) => expect(initials(name)).toBe(want));
+});
+
+describe('usesProExtras: the one test behind the "Pro preview" badge and the download gate', () => {
+  const base = defaultInvoiceState();
+  it('counts a coloured amount on Minimal, which a free PDF would print in black', () => {
+    expect(usesProExtras({ ...base, template: 'minimal', brandColor: '#C2410C' })).toBe(true);
+    expect(usesProExtras({ ...base, template: 'minimal' })).toBe(false);
+    expect(usesProExtras({ ...base, template: 'classic', brandColor: '#C2410C' })).toBe(false); // not used there
+  });
+  it('counts the font, signature and a chosen stamp, but not the automatic one', () => {
+    expect(usesProExtras({ ...base, fontChoice: 'serif' })).toBe(true);
+    expect(usesProExtras({ ...base, signature: 'data:image/png;base64,AAAA' })).toBe(true);
+    expect(usesProExtras({ ...base, stamp: 'draft' })).toBe(true);
+    expect(usesProExtras({ ...base, stamp: 'auto' })).toBe(false);
+  });
+  it('isTemplate accepts real ids only', () => {
+    expect(isTemplate('monogram')).toBe(true);
+    expect(isTemplate('toString')).toBe(false);
+    expect(isTemplate(undefined)).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { defaultInvoiceState, computeTotals, isTemplate, PREMIUM_TEMPLATES, TEMPLATE_NAMES, type InvoiceState, type TaxLine } from '../types/invoice';
+import { defaultInvoiceState, computeTotals, isTemplate, usesProExtras, DEFAULT_BRAND, PREMIUM_TEMPLATES, TEMPLATE_NAMES, type InvoiceState, type TaxLine } from '../types/invoice';
 import { COUNTRY_BY_KEY, OTHER_COUNTRY, CURRENCIES, countriesByRegion, REGION_NAMES, countryPath, COUNTRIES,
   type CountryConfig, type PaymentRail, type TaxPreset } from '../data/countries';
 import { LABEL_LANGS, type DocType } from '../i18n/labels';
@@ -17,7 +17,7 @@ import InvoicePreview from './InvoicePreview.vue';
 import ProPanel from './ProPanel.vue';
 import SignaturePad from './SignaturePad.vue';
 import SignatureType from './SignatureType.vue';
-import { cleanSignature } from '../utils/signature';
+import { cleanSignature, inkToPng } from '../utils/signature';
 import { useProStatus } from '../utils/useProStatus';
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -40,8 +40,13 @@ function colourKeys(t: InvoiceState['template']): ColourKey[] {
   return ['brandColor'];
 }
 const COLOUR_LABEL: Record<ColourKey, string> = { classicAccent: 'Rules and total', modernHeader: 'Band', modernAccent: 'Accent', brandColor: 'Brand colour' };
-/** Pro options in use that a free download can't include. */
-const proExtrasUsed = computed(() => state.value.fontChoice !== 'auto' || !!state.value.signature || state.value.stamp === 'draft' || state.value.stamp === 'paid');
+/** Pro options in use that a free download can't include (the same test the preview's badge uses). */
+const proExtrasUsed = computed(() => usesProExtras(state.value));
+/** Minimal's amount in a colour is Pro; a free user who tried one can put it back to black in one click. */
+const minimalColoured = computed(() => state.value.template === 'minimal' && state.value.brandColor.toLowerCase() !== DEFAULT_BRAND.toLowerCase());
+/** Whether the document will carry a Paid stamp, so the form can ask when it was paid. */
+const stampsPaid = computed(() => state.value.stamp === 'paid'
+  || (state.value.stamp === 'auto' && pro.value && totals.value.total > 0 && totals.value.amountPaid >= totals.value.total));
 const isPremium = (t: InvoiceState['template']) => PREMIUM_TEMPLATES.includes(t);
 const savedAt = ref(0);
 const notice = ref('');          // inline message instead of alert()
@@ -160,6 +165,11 @@ const qrStatus = computed(() => {
 
 // ── Totals (for the form summary) ─────────────────────────────────────────────
 const totals = computed(() => computeTotals(state.value, { taxVisible: state.value.visible.tax }));
+// When a Paid stamp first appears, date it today (a receipt: its own date). Not on a reopened old document.
+watch(stampsPaid, paid => {
+  const s = state.value;
+  if (paid && !s.paidDate && ready.value && !locked.value) s.paidDate = s.docType === 'receipt' ? s.invoiceDate : localToday();
+});
 const money = (n: number) => formatMoney(n, state.value.currency, country.value.locale);
 function itemAmount(i: number) {
   const it = state.value.items[i];
@@ -267,6 +277,8 @@ function openEntry(h: HistoryEntry, duplicate: boolean) {
     state.value.invoiceDate = localToday();
     state.value.dueDate = '';
     state.value.amountPaid = 0;
+    state.value.stamp = 'auto';     // a copy isn't paid, and isn't a draft, just because the original was
+    state.value.paidDate = '';
     state.value.invoiceNumber = '';
     autoNumber = '';
     refreshNumber();
@@ -300,6 +312,7 @@ function newDocument() {
     invoiceNumber: '', invoiceDate: localToday(), dueDate: '', reference: '',
     clientName: '', clientEmail: '', clientAddress: '', clientTaxId: '',
     items: [{ description: '', quantity: 1, unitPrice: 0 }], discountValue: 0, shipping: 0, amountPaid: 0, notes: '',
+    stamp: 'auto', paidDate: '',
   });
   autoNumber = '';
   refreshNumber();
@@ -348,9 +361,9 @@ function imageToPng(e: Event, field: 'businessLogo' | 'signature') {
       // A photo of a signature: keep the ink, drop the paper, trim to the strokes
       const ink = cleanSignature(c2d.getImageData(0, 0, canvas.width, canvas.height));
       if (!ink) return flash('No signature found in that photo. Try a darker pen on plain paper, or draw it instead.');
-      canvas.width = ink.width; canvas.height = ink.height;
-      c2d.putImageData(new ImageData(ink.data, ink.width, ink.height), 0, 0);
       sigMode.value = null;
+      state.value.signature = inkToPng(ink);
+      return;
     }
     state.value[field] = canvas.toDataURL('image/png');
   };
@@ -412,7 +425,9 @@ async function output(action: 'download' | 'print') {
   if (SITE.pro.enabled && !pro.value && (isPremium(state.value.template) || proExtrasUsed.value)) {
     flash(isPremium(state.value.template)
       ? `${TEMPLATE_NAMES[state.value.template]} is a Pro template. Unlock Pro below, or pick Minimal, Letterhead or Band.`
-      : 'The font, signature and stamp are Pro options. Unlock Pro below, or switch them off under Pro options.');
+      : minimalColoured.value && !(state.value.fontChoice !== 'auto' || state.value.signature || state.value.stamp === 'paid' || state.value.stamp === 'draft')
+        ? 'A coloured amount on Minimal is a Pro option. Unlock Pro below, or set the amount colour back to black.'
+        : 'The font, signature, stamp and amount colour are Pro options. Unlock Pro below, or switch them off above.');
     document.getElementById('pro')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
@@ -550,6 +565,7 @@ const correctionHref = computed(() =>
                 </div>
               </div>
             </div>
+            <button v-if="key === 'brandColor' && minimalColoured && !pro" type="button" class="logo-remove-btn" @click="state.brandColor = DEFAULT_BRAND">Back to black</button>
           </div>
         </div>
 
@@ -569,14 +585,21 @@ const correctionHref = computed(() =>
             <div class="field field-grow">
               <label class="field-label" for="stamp-choice">Stamp</label>
               <select id="stamp-choice" v-model="state.stamp" class="form-select">
-                <option value="auto">Automatic: Paid when “Amount paid” covers the total</option>
+                <option value="auto">Automatic</option>
                 <option value="paid">Paid</option>
                 <option value="draft">Draft</option>
                 <option value="none">No stamp</option>
               </select>
             </div>
           </div>
-          <p v-if="state.stamp === 'auto'" class="card-hint">Automatic reads the “Amount paid” field under Totals: once it covers the total, the invoice is stamped Paid.</p>
+          <p v-if="state.stamp === 'auto'" class="card-hint">{{ pro
+            ? 'Automatic: once “Amount paid” under Totals covers the total, the invoice is stamped Paid.'
+            : 'Automatic: with Pro, once “Amount paid” under Totals covers the total, the invoice is stamped Paid.' }}</p>
+          <p v-else-if="state.stamp === 'paid'" class="card-hint">Marks the whole invoice as paid: the balance shows 0 and the payment QR code is left off.</p>
+          <div v-if="stampsPaid" class="field">
+            <label class="field-label" for="paid-date">Paid on <span class="field-optional">(printed on the stamp)</span></label>
+            <input id="paid-date" v-model="state.paidDate" type="date" class="form-input paid-date" />
+          </div>
           <div class="field">
             <span class="field-label">Signature</span>
             <SignaturePad v-if="sigMode === 'draw'" @save="useSignature" @cancel="sigMode = null" />
@@ -1126,7 +1149,7 @@ const correctionHref = computed(() =>
   gap: 0.75rem;
   flex-wrap: wrap;
 }
-/* Six template buttons need their own row, or they squeeze the country picker */
+/* The template buttons need their own row, or they squeeze the country picker */
 .top-bar > .field-grow { flex: 1 1 100%; }
 
 /* ── Form card ───────────────────────────────────────────────────────────── */
@@ -1228,6 +1251,7 @@ const correctionHref = computed(() =>
 /* ── Template pills ──────────────────────────────────────────────────────── */
 .template-pills {
   display: flex;
+  flex-wrap: wrap;   /* eight pills don't fit one row in a half-width form pane */
   gap: 0.375rem;
 }
 .tpl-pill {

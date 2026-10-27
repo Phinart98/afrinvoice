@@ -1,54 +1,79 @@
 <script setup lang="ts">
 // Sign with a mouse, finger or stylus. The canvas is transparent, so the saved PNG is ink only and
 // sits on any invoice like a real signature; it's trimmed to the strokes before it's handed back.
-import { onMounted, ref } from 'vue';
-import { cropToInk } from '../utils/signature';
+// Strokes are kept as points, so when the pad changes size (a phone rotates) the canvas is resized to
+// match and the signature redrawn: ink stays under the finger instead of drifting or being cut off.
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { cropToInk, inkToPng } from '../utils/signature';
 
 const emit = defineEmits<{ save: [dataUrl: string]; cancel: [] }>();
 const canvas = ref<HTMLCanvasElement | null>(null);
 const drawn = ref(false);
 let ctx: CanvasRenderingContext2D | null = null;
-let last: { x: number; y: number } | null = null;
-let mid: { x: number; y: number } | null = null;
+let observer: ResizeObserver | null = null;
+type Pt = { x: number; y: number; w: number };
+const strokes: Pt[][] = [];
+let current: Pt[] | null = null;
 const INK = '#1B2A6B';
 
-onMounted(() => {
+function fit() {
   const c = canvas.value!;
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
   const r = c.getBoundingClientRect();
-  c.width = Math.round(r.width * dpr);
-  c.height = Math.round(r.height * dpr);
+  const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+  if (!w || !h || (c.width === w && c.height === h)) return;
+  c.width = w; c.height = h;               // resizing clears the canvas and resets its state
   ctx = c.getContext('2d');
-  ctx!.scale(dpr, dpr);
+  ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx!.lineCap = 'round';
   ctx!.lineJoin = 'round';
   ctx!.strokeStyle = INK;
-});
+  ctx!.fillStyle = INK;
+  for (const s of strokes) drawStroke(s);
+}
 
-function point(e: PointerEvent) {
+/** A dot for a tap, as with a pen; otherwise smooth curves through the midpoints. */
+function drawStroke(s: Pt[], from = 1) {
+  if (!ctx) return;
+  if (from === 1) { ctx.beginPath(); ctx.arc(s[0].x, s[0].y, 1.2, 0, Math.PI * 2); ctx.fill(); }
+  for (let i = Math.max(1, from); i < s.length; i++) {
+    const a = s[i - 2] ?? s[i - 1], b = s[i - 1], p = s[i];
+    const m0 = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, m1 = { x: (b.x + p.x) / 2, y: (b.y + p.y) / 2 };
+    ctx.lineWidth = p.w;
+    ctx.beginPath(); ctx.moveTo(m0.x, m0.y); ctx.quadraticCurveTo(b.x, b.y, m1.x, m1.y); ctx.stroke();
+  }
+}
+
+onMounted(() => {
+  fit();
+  observer = new ResizeObserver(fit);
+  observer.observe(canvas.value!);
+});
+onBeforeUnmount(() => observer?.disconnect());
+
+function point(e: PointerEvent): Pt {
   const r = canvas.value!.getBoundingClientRect();
-  return { x: e.clientX - r.left, y: e.clientY - r.top };
+  // Pen pressure when the device reports it; a steady line otherwise
+  const w = e.pressure > 0 && e.pointerType === 'pen' ? 1.2 + e.pressure * 2.6 : 2.4;
+  return { x: e.clientX - r.left, y: e.clientY - r.top, w };
 }
 function down(e: PointerEvent) {
   canvas.value!.setPointerCapture(e.pointerId);
-  last = mid = point(e);
-  // A tap is a dot, as with a pen
-  ctx!.beginPath(); ctx!.arc(last.x, last.y, 1.2, 0, Math.PI * 2); ctx!.fillStyle = INK; ctx!.fill();
+  current = [point(e)];
+  strokes.push(current);
+  drawStroke(current);
   drawn.value = true;
 }
 function move(e: PointerEvent) {
-  if (!last || !ctx) return;
-  const p = point(e);
-  const m = { x: (last.x + p.x) / 2, y: (last.y + p.y) / 2 };
-  // Pen pressure when the device reports it; a steady line otherwise
-  ctx.lineWidth = e.pressure > 0 && e.pointerType === 'pen' ? 1.2 + e.pressure * 2.6 : 2.4;
-  ctx.beginPath(); ctx.moveTo(mid!.x, mid!.y); ctx.quadraticCurveTo(last.x, last.y, m.x, m.y); ctx.stroke();
-  last = p; mid = m;
+  if (!current) return;
+  current.push(point(e));
+  drawStroke(current, current.length - 1);
 }
-function up() { last = mid = null; }
+function up() { current = null; }
 
 function clear() {
   const c = canvas.value!;
+  strokes.length = 0;
   ctx!.save(); ctx!.setTransform(1, 0, 0, 1, 0, 0); ctx!.clearRect(0, 0, c.width, c.height); ctx!.restore();
   drawn.value = false;
 }
@@ -57,16 +82,7 @@ function save() {
   const c = canvas.value!;
   const img = ctx!.getImageData(0, 0, c.width, c.height);
   const crop = cropToInk({ data: img.data, width: img.width, height: img.height }, 6);
-  if (!crop) return;
-  // Keep files small: at most 600px wide, like logos
-  const scale = Math.min(1, 600 / crop.width);
-  const src = document.createElement('canvas');
-  src.width = crop.width; src.height = crop.height;
-  src.getContext('2d')!.putImageData(new ImageData(crop.data, crop.width, crop.height), 0, 0);
-  const out = document.createElement('canvas');
-  out.width = Math.round(crop.width * scale); out.height = Math.round(crop.height * scale);
-  out.getContext('2d')!.drawImage(src, 0, 0, out.width, out.height);
-  emit('save', out.toDataURL('image/png'));
+  if (crop) emit('save', inkToPng(crop));
 }
 </script>
 

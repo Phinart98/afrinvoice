@@ -104,3 +104,24 @@ describe('a first-time visitor', () => {
     expect(loadProfile().brandColor).toBe('#0F766E');
   });
 });
+
+describe('the stamp is per document', () => {
+  it('is not saved with the business profile, so one Paid or Draft never carries over', () => {
+    saveProfile({ ...defaultInvoiceState(), stamp: 'paid', paidDate: '2026-10-20' }, undefined, { pro: true });
+    expect(loadProfile()).not.toHaveProperty('stamp');
+    expect(loadProfile()).not.toHaveProperty('paidDate');
+  });
+  it('is dropped from a profile saved by the earlier version', () => {
+    localStorage.setItem(`${SITE.storagePrefix}_profile`, JSON.stringify({ businessName: 'Acme', stamp: 'draft' }));
+    localStorage.setItem(`${SITE.storagePrefix}_colours_v2`, 'true');
+    expect(loadProfile()).toEqual({ businessName: 'Acme' });
+  });
+});
+
+describe('a damaged saved template', () => {
+  it('is dropped on load (a restored backup goes through here too)', () => {
+    localStorage.setItem(`${SITE.storagePrefix}_profile`, JSON.stringify({ businessName: 'Acme', template: 'toString' }));
+    localStorage.setItem(`${SITE.storagePrefix}_colours_v2`, 'true');
+    expect(loadProfile()).not.toHaveProperty('template');
+  });
+});

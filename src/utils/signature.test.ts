@@ -11,18 +11,30 @@ function photo(w: number, h: number, paper: [number, number, number], ink: [numb
   }
   return { data, width: w, height: h };
 }
-const alphaAt = (img: { data: Uint8ClampedArray; width: number }, x: number, y: number) => img.data[(y * img.width + x) * 4 + 3];
+const alphaAt = (img: { data: Uint8ClampedArray; width: number } | null, x: number, y: number) => img!.data[(y * img!.width + x) * 4 + 3];
 
 describe('cleanSignature (a photo of a signature on paper)', () => {
+  it('keeps a signature saved as a PNG with a transparent background (ink only, no paper)', () => {
+    // How most signature files come: dark ink, and fully transparent ([0,0,0,0]) everywhere else
+    for (const rows of [[10], [8, 9, 10, 11, 12, 13]]) {
+      const w = 200, h = 80, data = new Uint8ClampedArray(w * h * 4);
+      for (const y of rows) for (let x = 20; x < 180; x++) data.set([20, 30, 90, 255], (y * w + x) * 4);
+      const out = cleanSignature({ data, width: w, height: h });
+      expect(out).not.toBeNull();
+      expect(alphaAt(out, 0, 0)).toBe(0);                // the clear background stays clear, not black
+      expect(alphaAt(out, Math.floor(out!.width / 2), Math.floor(out!.height / 2))).toBe(255);
+    }
+  });
+
   it('makes white paper transparent and keeps the ink solid', () => {
-    const out = cleanSignature(photo(40, 20, [250, 250, 250], [20, 30, 90], [9, 10], [5, 34]));
+    const out = cleanSignature(photo(40, 20, [250, 250, 250], [20, 30, 90], [9, 10], [5, 34]))!;
     expect(out.width).toBeLessThan(40);                  // trimmed to the ink
     expect(alphaAt(out, 0, 0)).toBe(0);                  // corner of the crop: paper → see-through
     expect(Math.max(...Array.from({ length: out.width }, (_, x) => alphaAt(out, x, Math.floor(out.height / 2))))).toBe(255);
   });
 
   it('handles grey or cream paper from a phone photo, not only pure white', () => {
-    const out = cleanSignature(photo(40, 20, [196, 190, 176], [35, 35, 45], [10], [8, 30]));
+    const out = cleanSignature(photo(40, 20, [196, 190, 176], [35, 35, 45], [10], [8, 30]))!;
     let opaquePaper = 0;
     for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++) {
       const i = (y * out.width + x) * 4;

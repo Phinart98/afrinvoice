@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SITE } from '../site';
-import { PREMIUM_TEMPLATES, defaultInvoiceState, type InvoiceState } from '../types/invoice';
+import { PREMIUM_TEMPLATES, defaultInvoiceState, isTemplate, type InvoiceState } from '../types/invoice';
 import type { ProRecord } from './proLicense';
 
 const KEY = {
@@ -28,7 +28,7 @@ export const PROFILE_FIELDS = [
   'paymentRail', 'bankName', 'accountName', 'accountNumber', 'bankCode', 'swiftCode', 'iban', 'bic',
   'momoProvider', 'momoNumber', 'momoName', 'upiId', 'paymentLink',
   'classicAccent', 'modernHeader', 'modernAccent', 'brandColor', 'footerNote',
-  'fontChoice', 'stamp', 'signature', 'signatureName',
+  'fontChoice', 'signature', 'signatureName',
 ] as const satisfies readonly (keyof InvoiceState)[];
 
 export type Profile = Partial<Pick<InvoiceState, typeof PROFILE_FIELDS[number]>>;
@@ -75,6 +75,11 @@ export function loadProfile(): Profile {
     write(KEY.colours, true); // nothing saved yet, so there are no old defaults to swap
     return migrateLegacy();
   }
+  // The stamp used to be saved here: one Paid or Draft then carried over to every later invoice.
+  // It's per document now, and a damaged or hand-edited template id must not reach the generator.
+  const p = profile as Record<string, unknown>;
+  if ('stamp' in p) { delete p.stamp; write(KEY.profile, profile); }
+  if (p.template !== undefined && !isTemplate(p.template)) delete p.template;
   if (!read<boolean>(KEY.colours, false)) {
     const fresh = defaultInvoiceState();
     for (const [k, old] of Object.entries(OLD_DEFAULTS) as [keyof Profile, string][]) {
