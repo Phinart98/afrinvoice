@@ -4,7 +4,7 @@ import { PREMIUM_TEMPLATES, effectiveTemplate, type InvoiceState } from '../type
 import { SITE } from '../site';
 import { buildInvoiceView } from '../utils/invoiceView';
 import { qrSvg } from '../utils/paymentQr';
-import { C_INK, hexToRgb, mutedOn, onFill, readable, rgbCss, tint } from '../utils/colour';
+import { C_INK, hexToRgb, mutedOn, onFill, readable, rgbCss, textOn } from '../utils/colour';
 
 const props = defineProps<{ state: InvoiceState; pro?: boolean }>();
 
@@ -38,8 +38,8 @@ const themeStyle = computed(() => {
     '--accent': rgbCss(readable(hexToRgb(s.classicAccent, [27, 31, 46]))),
     '--band': rgbCss(band),
     '--on-band': rgbCss(onFill(band)),
-    '--band-muted': rgbCss(onFill(band) === C_INK ? [91, 100, 117] : tint(band, 0.25)),
-    '--band-hi': rgbCss(onFill(band) === C_INK ? readable(bandAccent) : bandAccent),
+    '--band-muted': rgbCss(mutedOn(band, 0.25)),
+    '--band-hi': rgbCss(textOn(band, bandAccent)),
     '--band-accent': rgbCss(bandAccent),
     '--on-band-accent': rgbCss(onFill(bandAccent)),
     '--band-accent-text': rgbCss(readable(bandAccent)),
@@ -295,7 +295,7 @@ const keyRow = computed(() => {
 
 /* ── The page ─────────────────────────────────────────────────────────── */
 .inv {
-  --ink: #1B1F2E; --mid: #5B6475; --light: #949CAA; --rule: #DDE1E8; --alt: #F6F7FA;
+  --ink: #1B1F2E; --mid: #5B6475; --light: #6E7584; --rule: #DDE1E8; --alt: #F6F7FA;
   position: relative;
   background: #ffffff;
   width: 100%;

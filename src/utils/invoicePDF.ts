@@ -20,10 +20,10 @@ import { effectiveTemplate, type InvoiceState, type Template } from '../types/in
 import { buildInvoiceView, type InvoiceView } from './invoiceView';
 import { qrMatrix } from './paymentQr';
 import { SITE } from '../site';
-import { C_INK, C_WHITE, hexToRgb, mutedOn, onFill, readable, tint, type RGB } from './colour';
+import { C_INK, C_WHITE, hexToRgb, mutedOn, onFill, readable, textOn, type RGB } from './colour';
 
 const C_MID:   RGB = [91, 100, 117];
-const C_LIGHT: RGB = [148, 156, 170];
+const C_LIGHT: RGB = [110, 117, 132];   // still 4.5:1 on white: footers, page numbers, "incl." rows
 const C_ALT:   RGB = [246, 247, 250];
 const C_RULE:  RGB = [221, 225, 232];
 const C_PAID:  RGB = [31, 122, 77];
@@ -347,6 +347,10 @@ function payment(c: Ctx, b: Box, labelCol: RGB = C_MID) {
   if (!v.payment.length && !v.qr) return;
   if (v.signature && !v.qr) {
     const half = { x: b.x, w: b.w * 0.55 };
+    // Reserve room for both columns first: if the block moves to a new page, the signature must move with it
+    c.set(8.5);
+    const rowsH = v.payment.reduce((sum, [, value]) => sum + c.wrap(value, half.w - 42).length * LINE + 0.7, 0);
+    c.ensure(Math.max(rowsH + 15, 40));
     const top = c.y;
     paymentRows(c, half, labelCol, 0);
     const end = c.y;
@@ -397,6 +401,7 @@ function paymentStacked(c: Ctx, b: Box, labelCol: RGB, ink: RGB = C_INK, muted: 
 
 function notes(c: Ctx, b: Box, labelCol: RGB = C_MID) {
   if (!c.v.notes) return;
+  c.set(8.5, 'normal', C_MID); // measure in the size it's printed in, or long notes overrun the margin
   const l = c.wrap(c.v.notes, b.w);
   c.ensure(Math.min(l.length * LINE + 12, 60));
   c.rule(c.y, b.x, b.x + b.w); c.y += 6;
@@ -602,8 +607,8 @@ function layoutBand(c: Ctx, k: Colours) {
   const { v, doc, W } = c;
   const R = W - M, CW = W - 2 * M;
   const band = k.bandFill, txt = onFill(band);
-  const muted: RGB = txt === C_WHITE ? tint(band, 0.25).map(x => Math.min(255, x + 10)) as unknown as RGB : C_MID;
-  const hi = onFill(band) === C_WHITE ? k.bandAccent : readable(k.bandAccent);
+  const muted = mutedOn(band, 0.25);
+  const hi = textOn(band, k.bandAccent); // the accent on the band, unless it wouldn't be readable there
   // Measure, then paint the band behind the header so light text never lands on paper
   const top = 16;
   const probe = () => {
@@ -644,7 +649,7 @@ function layoutSidebar(c: Ctx, k: Colours) {
   const panel = k.brand;                    // solid brand colour, the template's signature
   const txt = onFill(panel);
   const muted = mutedOn(panel, 0.22);
-  const labelCol: RGB = txt === C_WHITE ? tint(panel, 0.3) : C_INK;
+  const labelCol = mutedOn(panel, 0.3);
   const brandText = readable(k.brand);
   const P: Box = { x: 10, w: PW - 18 };     // inside the panel
   const X = PW + 10, R = W - M, MW = R - X; // the main column

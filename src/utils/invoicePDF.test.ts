@@ -63,3 +63,32 @@ describe('premium fallback', () => {
     expect(await streams(t)).toEqual(await streams('minimal'));
   });
 });
+
+describe('long invoices', () => {
+  // A 40-line invoice with a signature and notes once put the signature over page 2's page number
+  // and pushed the notes onto an extra page. The block now moves as one, so no stray pages.
+  const pages = async (template: 'minimal' | 'classic' | 'modern' | 'executive' | 'ledger' | 'studio', lines = 40) => {
+    const s = { ...defaultInvoiceState(), template, businessName: 'Acme', clientName: 'Client', invoiceNumber: 'INV-1',
+      items: Array.from({ length: lines }, (_, i) => ({ description: `Item ${i + 1}`, quantity: 1, unitPrice: 10 })),
+      paymentRail: 'bank' as const, bankName: 'Bank', accountName: 'Acme', accountNumber: '123456',
+      notes: 'Payment within 14 days.', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', signatureName: 'A. Person' };
+    const pdf = Buffer.from(await (await invoicePdfBlob(s, { pro: true })).arrayBuffer()).toString('latin1');
+    // Each image's lowest edge in points from the page bottom ("w 0 0 h x y cm /Im Do")
+    const imageBottoms = [...pdf.matchAll(/[\d.]+ 0 0 [\d.]+ [\d.]+ ([\d.]+) cm\s*\/\S+ Do/g)].map(m => Number(m[1]));
+    return { count: (pdf.match(/\/Type \/Page\b/g) ?? []).length, imageBottoms };
+  };
+  it.each(['minimal', 'classic', 'modern', 'executive', 'ledger'] as const)('%s fits 40 lines, payment, notes and signature on 3 pages', async t => {
+    expect((await pages(t)).count).toBeLessThanOrEqual(3);
+  });
+  it('studio, with its roomier item list, stays within 4 pages', async () => {
+    expect((await pages('studio')).count).toBeLessThanOrEqual(4);
+  });
+  // Sweep the line count so the page break falls at every point around the payment block
+  it.each(['minimal', 'classic', 'modern', 'executive', 'ledger', 'studio'] as const)('%s never draws the signature in the bottom margin', async t => {
+    for (let lines = 20; lines <= 45; lines++) {
+      const { imageBottoms } = await pages(t, lines);
+      expect(imageBottoms.length).toBeGreaterThan(0);
+      for (const y of imageBottoms) expect(y, `${lines} lines`).toBeGreaterThan(16 * 72 / 25.4); // above the 16 mm footer zone
+    }
+  });
+});

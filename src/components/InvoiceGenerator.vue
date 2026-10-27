@@ -15,6 +15,8 @@ import { SITE } from '../site';
 import { checkedMonth } from '../utils/stamp';
 import InvoicePreview from './InvoicePreview.vue';
 import ProPanel from './ProPanel.vue';
+import SignaturePad from './SignaturePad.vue';
+import { cleanSignature } from '../utils/signature';
 import { useProStatus } from '../utils/useProStatus';
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -338,14 +340,25 @@ function imageToPng(e: Event, field: 'businessLogo' | 'signature') {
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(img.width * scale);
     canvas.height = Math.round(img.height * scale);
-    canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-    state.value[field] = canvas.toDataURL('image/png');
+    const c2d = canvas.getContext('2d')!;
+    c2d.drawImage(img, 0, 0, canvas.width, canvas.height);
     URL.revokeObjectURL(url);
+    if (field === 'signature') {
+      // A photo of a signature: keep the ink, drop the paper, trim to the strokes
+      const ink = cleanSignature(c2d.getImageData(0, 0, canvas.width, canvas.height));
+      if (!ink) return flash('No signature found in that photo. Try a darker pen on plain paper, or draw it instead.');
+      canvas.width = ink.width; canvas.height = ink.height;
+      c2d.putImageData(new ImageData(ink.data, ink.width, ink.height), 0, 0);
+      showPad.value = false;
+    }
+    state.value[field] = canvas.toDataURL('image/png');
   };
   img.onerror = () => { URL.revokeObjectURL(url); flash('Could not read that image.'); };
   img.src = url;
 }
 const handleLogoUpload = (e: Event) => imageToPng(e, 'businessLogo');
+const showPad = ref(false);
+function useDrawnSignature(dataUrl: string) { state.value.signature = dataUrl; showPad.value = false; }
 function removeLogo() { state.value.businessLogo = ''; }
 
 // ── Auto-save business profile ───────────────────────────────────────────────
@@ -562,14 +575,17 @@ const correctionHref = computed(() =>
           </div>
           <div class="field">
             <span class="field-label">Signature</span>
-            <div class="logo-row">
+            <SignaturePad v-if="showPad" @save="useDrawnSignature" @cancel="showPad = false" />
+            <div v-else class="logo-row">
               <img v-if="state.signature" :src="state.signature" class="logo-thumb sig-thumb" alt="Your signature" />
+              <button type="button" class="logo-btn" @click="showPad = true">{{ state.signature ? 'Draw again' : 'Draw signature' }}</button>
               <label class="logo-btn">
-                {{ state.signature ? 'Change signature' : 'Upload signature' }}
+                Upload a photo
                 <input type="file" accept="image/*" hidden @change="imageToPng($event, 'signature')" />
               </label>
               <button v-if="state.signature" type="button" class="logo-remove-btn" @click="state.signature = ''">Remove</button>
             </div>
+            <p v-if="!showPad && !state.signature" class="card-hint">A photo works too: the paper is removed so only the ink shows.</p>
           </div>
           <div v-if="state.signature" class="field">
             <label class="field-label" for="sig-name">Name under the signature <span class="field-optional">(optional)</span></label>
