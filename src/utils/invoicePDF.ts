@@ -468,6 +468,9 @@ function signature(c: Ctx, b: Box, inline = false) {
  * tilted, in stamp ink. Paid is green ink; Draft is grey. Drawn as rotated polygons
  * so it needs no PDF transform support.
  */
+/** How far below the last meta line (its y + 4.3) a stamp's centre goes, so the tilted outline clears the text. */
+const STAMP_CLEAR = 11;
+
 function stamp(c: Ctx, cx: number, cy: number) {
   const st = c.v.stamp;
   if (!st) return;
@@ -694,9 +697,9 @@ function layoutBand(c: Ctx, k: Colours) {
   const billTop = c.y;
   billTo(c, { x: M, w: CW * 0.55 }, readable(k.bandAccent));
   const metaEnd = metaLines(c, R, billTop, C_MID, CW * 0.4, metaWithoutDue(v));
-  c.y = Math.max(c.y, metaEnd);
-  stamp(c, R - 26, metaEnd + 9);
-  c.y += v.stamp ? 18 : 8;
+  const stampY = metaEnd + STAMP_CLEAR;
+  stamp(c, R - 26, stampY);
+  c.y = Math.max(c.y, metaEnd, v.stamp ? stampY + 13 : 0) + 8;
   itemsTable(c, { x: M, w: CW }, { head: 'fill', headFill: band, zebra: true });
   totals(c, { x: M + CW * 0.52, w: CW * 0.48 }, 'strip', k.bandAccent);
   taxNote(c, { x: M, w: CW });
@@ -811,9 +814,10 @@ function layoutAccounts(c: Ctx, k: Colours) {
   // Whatever isn't in the boxes: a quote's "Valid until", a reference or PO number
   const extra = metaBesideSummary(v);
   const metaEnd = metaLines(c, R, billTop, C_MID, CW * 0.4, extra);
-  const stampY = extra.length ? metaEnd + 8 : billTop + 6;
+  // Below the date lines with room for its tilt: the raised corner reaches 12.6 mm above the centre
+  const stampY = extra.length ? metaEnd + STAMP_CLEAR : billTop + 6;
   stamp(c, R - 26, stampY);
-  c.y = Math.max(c.y, metaEnd, v.stamp ? stampY + 12 : 0) + 9;
+  c.y = Math.max(c.y, metaEnd, v.stamp ? stampY + 13 : 0) + 9;
   itemsTable(c, { x: M, w: CW }, { head: 'caps', rows: 'hair', numbered: true, grid: true });
   totals(c, { x: M + CW * 0.52, w: CW * 0.48 }, 'double', C_INK);
   taxNote(c, { x: M, w: CW });

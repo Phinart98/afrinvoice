@@ -8,6 +8,8 @@ import { defaultInvoiceState, type InvoiceState, type Template } from '../types/
 // over anything else, nothing cut short.
 interface Drawn { page: number; text: string; x0: number; x1: number; top: number; bottom: number; W: number; H: number }
 const log = vi.hoisted(() => [] as Drawn[]);
+/** The stamp's outline: it's the only thing drawn as short slanted line segments (its tilted corners). */
+const slants = vi.hoisted(() => [] as { page: number; x: number; y: number }[]);
 
 vi.mock('jspdf', async (importOriginal) => {
   const actual = await importOriginal<typeof import('jspdf')>();
@@ -15,6 +17,14 @@ vi.mock('jspdf', async (importOriginal) => {
   function Spy(this: unknown, ...args: ConstructorParameters<typeof Real>) {
     const d = new Real(...args);
     const text = d.text.bind(d);
+    const line = d.line.bind(d);
+    d.line = ((x1: number, y1: number, x2: number, y2: number, style?: string | null) => {
+      if (x1 !== x2 && y1 !== y2 && Math.hypot(x2 - x1, y2 - y1) < 6) {
+        const page = d.getCurrentPageInfo().pageNumber;
+        slants.push({ page, x: x1, y: y1 }, { page, x: x2, y: y2 });
+      }
+      return line(x1, y1, x2, y2, style);
+    }) as typeof d.line;
     d.text = ((t: string | string[], x: number, y: number, opts?: { align?: 'left' | 'right' | 'center' | 'justify'; angle?: number }) => {
       if (!opts?.angle) { // the rotated stamp is checked by eye; everything else must sit level and apart
         const size = d.getFontSize() * 25.4 / 72;
@@ -60,7 +70,7 @@ const LONG: Partial<InvoiceState> = {
 };
 
 async function draw(s: Partial<InvoiceState>, template: Template): Promise<Drawn[]> {
-  log.length = 0;
+  log.length = 0; slants.length = 0;
   await invoicePdfBlob({ ...defaultInvoiceState(), ...s, template }, { pro: true });
   return [...log];
 }
@@ -87,6 +97,23 @@ describe.each(TEMPLATES)('%s with long German details', (template) => {
     const all = (await draw(LONG, template)).map(t => t.text).join(' ');
     expect(all).toContain('Hamburg');
     expect(all).toContain('PMB 1234');
+  });
+});
+
+describe.each(TEMPLATES)('%s with a dated Paid stamp', (template) => {
+  // Long German details, and a short paid invoice whose one date line sits right where the stamp goes
+  const SHORT: Partial<InvoiceState> = { countryKey: 'india', currency: 'INR', businessName: 'Kaveri Digital Services', clientName: 'Sahyadri Foods Pvt Ltd',
+    invoiceDate: '2026-10-26', dueDate: '2026-11-10', items: [{ description: 'Social media management', quantity: 1, unitPrice: 45000 }] };
+  it.each([['long', LONG], ['short', SHORT]] as const)('keeps the stamp clear of every line of text (%s)', async (_, set) => {
+    const texts = await draw({ ...set, stamp: 'paid', paidDate: '2026-10-28' }, template);
+    expect(slants.length).toBeGreaterThan(0);
+    const pages = [...new Set(slants.map(p => p.page))];
+    for (const page of pages) {
+      const pts = slants.filter(p => p.page === page);
+      const box = { x0: Math.min(...pts.map(p => p.x)), x1: Math.max(...pts.map(p => p.x)), top: Math.min(...pts.map(p => p.y)), bottom: Math.max(...pts.map(p => p.y)) };
+      const hit = texts.filter(t => t.page === page && t.x0 < box.x1 && box.x0 < t.x1 && t.top < box.bottom && box.top < t.bottom);
+      expect(hit.map(t => t.text)).toEqual([]);
+    }
   });
 });
 
