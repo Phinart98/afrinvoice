@@ -127,8 +127,9 @@ describe('country data', () => {
 });
 
 describe('templates', () => {
-  it('lists the two premium templates', () => {
-    expect(PREMIUM_TEMPLATES).toEqual(['executive', 'ledger']);
+  it('lists the three premium templates', () => {
+    expect(PREMIUM_TEMPLATES).toEqual(['executive', 'ledger', 'studio']);
+    expect(effectiveTemplate('studio', false)).toBe('minimal');
   });
   it('renders a premium template only for Pro; free falls back to minimal', () => {
     expect(effectiveTemplate('executive', true)).toBe('executive');

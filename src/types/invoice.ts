@@ -31,10 +31,20 @@ export interface InvoiceVisible {
   qr:            boolean;   // payment QR code (SEPA / UPI / payment link)
 }
 
-export type Template = 'classic' | 'modern' | 'minimal' | 'executive' | 'ledger';
+export type Template = 'classic' | 'modern' | 'minimal' | 'executive' | 'ledger' | 'studio';
 
 /** Pro-only PDF templates. Free users can preview them; downloads fall back to Minimal. */
-export const PREMIUM_TEMPLATES: readonly Template[] = ['executive', 'ledger'];
+export const PREMIUM_TEMPLATES: readonly Template[] = ['executive', 'ledger', 'studio'];
+
+/** What people see. The ids stay as they were so saved settings and links keep working. */
+export const TEMPLATE_NAMES: Record<Template, string> = {
+  minimal: 'Minimal', classic: 'Letterhead', modern: 'Band', executive: 'Sidebar', ledger: 'Accounts', studio: 'Studio',
+};
+
+/** 'auto' = the template's own type; sans or serif override it everywhere (Pro). */
+export type FontChoice = 'auto' | 'sans' | 'serif';
+/** 'auto' stamps Paid once the balance is settled (Pro). */
+export type StampChoice = 'auto' | 'none' | 'draft';
 
 export const effectiveTemplate = (t: Template, pro: boolean): Template =>
   !pro && PREMIUM_TEMPLATES.includes(t) ? 'minimal' : t;
@@ -101,7 +111,13 @@ export interface InvoiceState {
   classicAccent: string;
   modernHeader: string;
   modernAccent: string;
-  brandColor: string;          // premium templates (Executive, Ledger)
+  brandColor: string;          // Pro: Sidebar, Accounts, Studio, and the accent on Minimal
+
+  // ── Pro extras ─────────────────────────────────────────────────────────
+  fontChoice: FontChoice;
+  signature: string;           // base64 PNG data URL, or ''
+  signatureName: string;       // printed under the signature, e.g. "Ama Mensah, Director"
+  stamp: StampChoice;
 
   notes: string;
   footerNote: string;
@@ -147,6 +163,11 @@ export function defaultInvoiceState(): InvoiceState {
     modernHeader: '#0F172A',
     modernAccent: '#0EA5E9',
     brandColor: '#2E5BDA',
+
+    fontChoice: 'auto',
+    signature: '',
+    signatureName: '',
+    stamp: 'auto',
 
     notes: '',
     footerNote: '',

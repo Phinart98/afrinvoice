@@ -13,7 +13,11 @@ const rows: { what: string; free: string; pro: string }[] = [
   { what: 'Invoices, quotes, receipts, proformas and credit notes', free: 'Yes', pro: 'Yes' },
   { what: 'Any currency, 7 invoice languages, payment QR codes', free: 'Yes', pro: 'Yes' },
   { what: 'Saved clients, invoice history and backups', free: 'Yes', pro: 'Yes' },
-  { what: 'Templates', free: 'Minimal, Modern and Classic', pro: 'Also Executive and Ledger, in your brand colour' },
+  { what: 'Templates', free: 'Minimal, Letterhead and Band', pro: 'Also Sidebar, Accounts and Studio, in your brand colour' },
+  { what: 'Your logo on every template', free: 'Yes', pro: 'Yes' },
+  { what: 'Your signature and name under “Authorised signature”', free: 'No', pro: 'Yes' },
+  { what: 'A Paid stamp once the invoice is settled, or a Draft stamp', free: 'No', pro: 'Yes' },
+  { what: 'Sans or serif type, and your brand colour on Minimal', free: 'No', pro: 'Yes' },
   { what: `The small “Made with ${SITE.name}” line on the PDF`, free: 'Shown', pro: 'Removed' },
 ];
 
@@ -41,7 +45,7 @@ const url = abs('/pro/');
 
 <Base
   title={`${SITE.name} Pro: one payment, no subscription`}
-  description={`${SITE.name} Pro is a ${SITE.pro.price} one-time license: it removes the "Made with" line from your invoices and adds two premium templates. Everything else stays free.`}
+  description={`${SITE.name} Pro is a ${SITE.pro.price} one-time license: it removes the "Made with" line, adds three more invoice designs, your signature and a Paid stamp. Everything else stays free.`}
   schema={[breadcrumbSchema([{ name: SITE.name, url: abs('/') }, { name: 'Pro', url }]), faqSchema(faqs)]}
 >
   <section class="country-hero" aria-labelledby="pro-heading">
@@ -51,8 +55,8 @@ const url = abs('/pro/');
       </nav>
       <h1 id="pro-heading" class="country-heading">{SITE.name} Pro</h1>
       <p class="country-sub">
-        One payment of {SITE.pro.price} removes the small “Made with {SITE.name}” line from your invoices and adds
-        two more templates. Everything else is free and stays free.
+        One payment of {SITE.pro.price} adds three more invoice designs, your signature and a Paid stamp, and removes the small
+        “Made with {SITE.name}” line. Everything that is free stays free.
       </p>
     </div>
   </section>

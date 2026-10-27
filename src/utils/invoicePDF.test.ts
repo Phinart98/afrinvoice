@@ -30,24 +30,24 @@ describe('premium templates', () => {
   const BRAND: [number, number, number] = [0x12, 0x34, 0x56];
   const brandUses = (pdf: string) => [...pdf.matchAll(/([\d.]+) ([\d.]+) ([\d.]+) rg/g)]
     .filter(m => [1, 2, 3].every(i => Math.abs(Number(m[i]) * 255 - BRAND[i - 1]) <= 1.5)).length;
-  const render = async (template: 'executive' | 'ledger', pro: boolean) => {
+  const render = async (template: 'executive' | 'ledger' | 'studio', pro: boolean) => {
     const s = { ...defaultInvoiceState(), template, brandColor: '#123456', businessName: 'Acme',
       items: [{ description: 'a', quantity: 1, unitPrice: 10 }, { description: 'b', quantity: 1, unitPrice: 20 }, { description: 'c', quantity: 1, unitPrice: 30 }] };
     return Buffer.from(await (await invoicePdfBlob(s, { pro })).arrayBuffer()).toString('latin1');
   };
 
-  it.each(['executive', 'ledger'] as const)('%s uses the brand colour for Pro', async t => {
+  it.each(['executive', 'ledger', 'studio'] as const)('%s uses the brand colour for Pro', async t => {
     expect(brandUses(await render(t, true))).toBeGreaterThan(0);
   });
 
-  it.each(['executive', 'ledger'] as const)('%s falls back to Minimal (no brand colour) without Pro', async t => {
+  it.each(['executive', 'ledger', 'studio'] as const)('%s falls back to Minimal (no brand colour) without Pro', async t => {
     expect(brandUses(await render(t, false))).toBe(0);
   });
 
   // (Comparing whole PDFs would always "differ": every file carries its own creation timestamp.)
-  it('Executive spends the brand colour on the total strip only; Ledger also on the top bar and table head', async () => {
-    expect(brandUses(await render('executive', true))).toBe(1);
-    expect(brandUses(await render('ledger', true))).toBeGreaterThanOrEqual(3);
+  it('Sidebar fills its total strip with the brand colour; Accounts heads its summary boxes with it', async () => {
+    expect(brandUses(await render('executive', true))).toBeGreaterThanOrEqual(1);
+    expect(brandUses(await render('ledger', true))).toBeGreaterThanOrEqual(1);
   });
 });
 

@@ -16,7 +16,7 @@ const CASES = [
   { country: 'czech-republic', setup: /reverse charge/i },
   { country: 'germany', setup: /Kleinunternehmer/ },
 ];
-const TEMPLATES = ['Minimal', 'Modern', 'Classic'];
+const TEMPLATES = ['Minimal', 'Letterhead', 'Band']; // the free designs; Pro ones need a key
 
 function findChromium() {
   const base = join(process.env.LOCALAPPDATA ?? '', 'ms-playwright');

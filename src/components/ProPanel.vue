@@ -43,7 +43,7 @@ async function remove() {
   <section id="pro" class="pro" aria-labelledby="pro-title">
     <template v-if="pro">
       <h3 id="pro-title" class="pro-title">Pro is on in this browser</h3>
-      <p class="pro-text">No "Made with" line, plus the Pro templates. Thank you for supporting {{ SITE.name }}.</p>
+      <p class="pro-text">No "Made with" line, plus the Pro templates, signature, stamp and font. Thank you for supporting {{ SITE.name }}.</p>
       <button v-if="!confirmRemove" type="button" class="pro-link" @click="confirmRemove = true">Remove Pro from this browser</button>
       <p v-else class="pro-confirm">
         Remove Pro here? You can activate your key again in any browser.
@@ -54,7 +54,7 @@ async function remove() {
 
     <template v-else>
       <h3 id="pro-title" class="pro-title">{{ SITE.name }} Pro, {{ SITE.pro.price }} once</h3>
-      <p class="pro-text">Removes the small "Made with {{ SITE.name }}" line from your invoices and unlocks the Pro templates in your brand colour. One payment, no subscription, and the key works in every browser you use.</p>
+      <p class="pro-text">Adds three more designs, your signature and a Paid stamp, and removes the small "Made with {{ SITE.name }}" line. One payment, no subscription, and the key works in every browser you use.</p>
       <div class="pro-actions">
         <a :href="SITE.pro.checkoutUrl" class="pro-buy" target="_blank" rel="noopener" @click="track('pro_checkout_click')">Buy Pro, {{ SITE.pro.price }}</a>
         <button type="button" class="pro-link" :aria-expanded="showKey" @click="showKey = !showKey">I have a license key</button>

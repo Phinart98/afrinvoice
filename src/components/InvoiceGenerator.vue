@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { defaultInvoiceState, computeTotals, PREMIUM_TEMPLATES, type InvoiceState, type TaxLine } from '../types/invoice';
+import { defaultInvoiceState, computeTotals, PREMIUM_TEMPLATES, TEMPLATE_NAMES, type InvoiceState, type TaxLine } from '../types/invoice';
 import { COUNTRY_BY_KEY, OTHER_COUNTRY, CURRENCIES, countriesByRegion, REGION_NAMES, countryPath, COUNTRIES,
   type CountryConfig, type PaymentRail, type TaxPreset } from '../data/countries';
 import { LABEL_LANGS, type DocType } from '../i18n/labels';
@@ -26,7 +26,19 @@ const activeTab = ref<'form' | 'preview'>('form');
 const activeColorPicker = ref<'classicAccent' | 'modernHeader' | 'modernAccent' | 'brandColor' | null>(null);
 const { pro } = useProStatus();
 // Templates on offer: premium ones only once Pro is on sale (SITE.pro.enabled).
-const templateChoices = computed(() => (['minimal', 'modern', 'classic', ...(SITE.pro.enabled || pro.value ? PREMIUM_TEMPLATES : [])] as InvoiceState['template'][]));
+const templateChoices = computed(() => (['minimal', 'classic', 'modern', ...(SITE.pro.enabled || pro.value ? PREMIUM_TEMPLATES : [])] as InvoiceState['template'][]));
+// Pro extras (font, stamp, signature) are offered once Pro is on sale; free users can try them in the preview.
+const proOnSale = computed(() => SITE.pro.enabled || pro.value);
+type ColourKey = 'classicAccent' | 'modernHeader' | 'modernAccent' | 'brandColor';
+function colourKeys(t: InvoiceState['template']): ColourKey[] {
+  if (t === 'classic') return ['classicAccent'];
+  if (t === 'modern') return ['modernHeader', 'modernAccent'];
+  if (t === 'minimal') return proOnSale.value ? ['brandColor'] : [];
+  return ['brandColor'];
+}
+const COLOUR_LABEL: Record<ColourKey, string> = { classicAccent: 'Rules and total', modernHeader: 'Band', modernAccent: 'Accent', brandColor: 'Brand colour' };
+/** Pro options in use that a free download can't include. */
+const proExtrasUsed = computed(() => state.value.fontChoice !== 'auto' || !!state.value.signature || state.value.stamp === 'draft');
 const isPremium = (t: InvoiceState['template']) => PREMIUM_TEMPLATES.includes(t);
 const savedAt = ref(0);
 const notice = ref('');          // inline message instead of alert()
@@ -240,8 +252,8 @@ function forgetClient(name: string) { clients.value = deleteClient(name); }
 const history = ref<HistoryEntry[]>([]);
 const showHistory = ref(false);
 function openEntry(h: HistoryEntry, duplicate: boolean) {
-  const logo = state.value.businessLogo;
-  state.value = { ...defaultInvoiceState(), ...JSON.parse(JSON.stringify(h.state)), businessLogo: logo };
+  const { businessLogo: logo, signature } = state.value;
+  state.value = { ...defaultInvoiceState(), ...JSON.parse(JSON.stringify(h.state)), businessLogo: logo, signature };
   // The snapshot holds the business/bank details of the day it was issued. A duplicate is a new
   // document, so it takes today's saved details; an opened entry keeps its originals and is
   // never auto-saved back over the profile.
@@ -312,8 +324,8 @@ async function restoreBackup(e: Event) {
   flash('Backup restored.');
 }
 
-// ── Logo: any image → PNG, max 600px, so PDFs stay small and every format works
-function handleLogoUpload(e: Event) {
+// ── Logo and signature: any image → PNG, max 600px, so PDFs stay small and every format works
+function imageToPng(e: Event, field: 'businessLogo' | 'signature') {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
   input.value = '';
@@ -327,12 +339,13 @@ function handleLogoUpload(e: Event) {
     canvas.width = Math.round(img.width * scale);
     canvas.height = Math.round(img.height * scale);
     canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-    state.value.businessLogo = canvas.toDataURL('image/png');
+    state.value[field] = canvas.toDataURL('image/png');
     URL.revokeObjectURL(url);
   };
   img.onerror = () => { URL.revokeObjectURL(url); flash('Could not read that image.'); };
   img.src = url;
 }
+const handleLogoUpload = (e: Event) => imageToPng(e, 'businessLogo');
 function removeLogo() { state.value.businessLogo = ''; }
 
 // ── Auto-save business profile ───────────────────────────────────────────────
@@ -381,8 +394,10 @@ function track(action: 'download' | 'print') {
 async function output(action: 'download' | 'print') {
   if (busy.value) return;
   // A premium template is previewable for free, but downloading it needs Pro: say so, don't silently swap.
-  if (SITE.pro.enabled && isPremium(state.value.template) && !pro.value) {
-    flash('Executive and Ledger are Pro templates. Unlock Pro below, or pick Minimal, Modern or Classic.');
+  if (SITE.pro.enabled && !pro.value && (isPremium(state.value.template) || proExtrasUsed.value)) {
+    flash(isPremium(state.value.template)
+      ? `${TEMPLATE_NAMES[state.value.template]} is a Pro template. Unlock Pro below, or pick Minimal, Letterhead or Band.`
+      : 'The font, signature and Draft stamp are Pro options. Unlock Pro below, or switch them off under Pro options.');
     document.getElementById('pro')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
@@ -438,7 +453,7 @@ onMounted(() => {
   if (props.docPreset === 'receipt') state.value.visible.dueDate = false;
   // Template links use the hash (#template=…) so Google never sees duplicate URLs; ?template= still works for old links
   const urlTemplate = new URLSearchParams(window.location.hash.slice(1)).get('template') ?? new URLSearchParams(window.location.search).get('template');
-  if (urlTemplate === 'classic' || urlTemplate === 'modern' || urlTemplate === 'minimal') state.value.template = urlTemplate;
+  if (urlTemplate && urlTemplate in TEMPLATE_NAMES) state.value.template = urlTemplate as InvoiceState['template'];
 
   clients.value = loadClients();
   history.value = loadHistory();
@@ -490,17 +505,16 @@ const correctionHref = computed(() =>
             <div class="template-pills" role="group" aria-labelledby="tpl-label">
               <button v-for="t in templateChoices" :key="t" type="button"
                 :class="['tpl-pill', { active: state.template === t }]" :aria-pressed="state.template === t"
-                @click="selectTemplate(t)">{{ t[0].toUpperCase() + t.slice(1) }}<span v-if="isPremium(t) && !pro" class="tpl-pro"> Pro</span></button>
+                @click="selectTemplate(t)">{{ TEMPLATE_NAMES[t] }}<span v-if="isPremium(t) && !pro" class="tpl-pro"> Pro</span></button>
             </div>
           </div>
         </div>
 
         <!-- ── Template colours ───────────────────────────────────── -->
-        <div v-if="state.template !== 'minimal'" class="form-card modern-colors-card">
+        <div v-if="colourKeys(state.template).length" class="form-card modern-colors-card">
           <h2 class="card-title">Template colours</h2>
-          <div v-for="key in (state.template === 'classic' ? ['classicAccent'] : isPremium(state.template) ? ['brandColor'] : ['modernHeader', 'modernAccent']) as ('classicAccent' | 'modernHeader' | 'modernAccent' | 'brandColor')[]"
-            :key="key" class="color-row">
-            <span class="field-label">{{ key === 'modernHeader' ? 'Header' : key === 'modernAccent' ? 'Accent' : key === 'brandColor' ? 'Brand colour' : 'Total amount' }}</span>
+          <div v-for="key in colourKeys(state.template)" :key="key" class="color-row">
+            <span class="field-label">{{ key === 'brandColor' && state.template === 'minimal' ? 'Amount colour' : COLOUR_LABEL[key] }}<span v-if="key === 'brandColor' && state.template === 'minimal' && !pro" class="tpl-pro"> Pro</span></span>
             <div class="color-picker-wrap" @click.stop>
               <button type="button" class="color-trigger" :aria-expanded="activeColorPicker === key" @click="toggleColorPicker(key)">
                 <span class="color-preview" :style="{ background: state[key] }"></span>
@@ -520,6 +534,45 @@ const correctionHref = computed(() =>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- ── Pro options ────────────────────────────────────────── -->
+        <div v-if="proOnSale" class="form-card">
+          <h2 class="card-title">Pro options<span v-if="!pro" class="tpl-pro"> Pro</span></h2>
+          <p v-if="!pro" class="card-hint">Try them here and the preview shows them. Downloading with them needs Pro.</p>
+          <div class="field-row">
+            <div class="field field-grow">
+              <label class="field-label" for="font-choice">Font</label>
+              <select id="font-choice" v-model="state.fontChoice" class="form-select">
+                <option value="auto">The template’s own</option>
+                <option value="sans">Sans serif everywhere</option>
+                <option value="serif">Serif everywhere</option>
+              </select>
+            </div>
+            <div class="field field-grow">
+              <label class="field-label" for="stamp-choice">Stamp</label>
+              <select id="stamp-choice" v-model="state.stamp" class="form-select">
+                <option value="auto">Paid, once fully paid</option>
+                <option value="draft">Draft</option>
+                <option value="none">No stamp</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-label">Signature</span>
+            <div class="logo-row">
+              <img v-if="state.signature" :src="state.signature" class="logo-thumb sig-thumb" alt="Your signature" />
+              <label class="logo-btn">
+                {{ state.signature ? 'Change signature' : 'Upload signature' }}
+                <input type="file" accept="image/*" hidden @change="imageToPng($event, 'signature')" />
+              </label>
+              <button v-if="state.signature" type="button" class="logo-remove-btn" @click="state.signature = ''">Remove</button>
+            </div>
+          </div>
+          <div v-if="state.signature" class="field">
+            <label class="field-label" for="sig-name">Name under the signature <span class="field-optional">(optional)</span></label>
+            <input id="sig-name" v-model="state.signatureName" class="form-input" placeholder="Ama Mensah, Director" />
           </div>
         </div>
 
@@ -1050,6 +1103,8 @@ const correctionHref = computed(() =>
   gap: 0.75rem;
   flex-wrap: wrap;
 }
+/* Six template buttons need their own row, or they squeeze the country picker */
+.top-bar > .field-grow { flex: 1 1 100%; }
 
 /* ── Form card ───────────────────────────────────────────────────────────── */
 .form-card {
@@ -1194,6 +1249,7 @@ const correctionHref = computed(() =>
   align-items: center;
   gap: 0.625rem;
 }
+.sig-thumb { width: 96px; background: #fff; }
 .logo-thumb {
   width: 40px;
   height: 40px;

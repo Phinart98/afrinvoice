@@ -28,6 +28,7 @@ export const PROFILE_FIELDS = [
   'paymentRail', 'bankName', 'accountName', 'accountNumber', 'bankCode', 'swiftCode', 'iban', 'bic',
   'momoProvider', 'momoNumber', 'momoName', 'upiId', 'paymentLink',
   'classicAccent', 'modernHeader', 'modernAccent', 'brandColor', 'footerNote',
+  'fontChoice', 'stamp', 'signature', 'signatureName',
 ] as const satisfies readonly (keyof InvoiceState)[];
 
 export type Profile = Partial<Pick<InvoiceState, typeof PROFILE_FIELDS[number]>>;
@@ -164,7 +165,7 @@ export function loadHistory(): HistoryEntry[] {
 }
 
 export function addToHistory(state: InvoiceState, total: number): HistoryEntry[] {
-  const snapshot: InvoiceState = JSON.parse(JSON.stringify({ ...state, businessLogo: '' }));
+  const snapshot: InvoiceState = JSON.parse(JSON.stringify({ ...state, businessLogo: '', signature: '' })); // images live in the profile
   const entry: HistoryEntry = {
     id: `${state.invoiceNumber}-${Date.now()}`,
     savedAt: new Date().toISOString(),

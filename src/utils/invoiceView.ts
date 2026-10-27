@@ -6,7 +6,7 @@
 
 import { COUNTRY_BY_KEY, OTHER_COUNTRY } from '../data/countries';
 import { LABELS, type Labels } from '../i18n/labels';
-import { computeTotals, type InvoiceState, type Totals } from '../types/invoice';
+import { computeTotals, type FontChoice, type InvoiceState, type Totals } from '../types/invoice';
 import { docLocale, formatDate, formatMoney } from './money';
 import { paymentQr } from './paymentQr';
 import { SITE } from '../site';
@@ -17,7 +17,10 @@ export interface InvoiceView {
   L: Labels;
   locale: string;
   paper: 'A4' | 'Letter';
+  /** Upper case, for layouts that print the title as a heading in capitals. */
   title: string;
+  /** Natural case ("Proforma invoice", "Rechnung"): Letterhead, Sidebar and Studio. A custom title stays as typed. */
+  titleText: string;
   number: string;
   meta: [string, string][];
   sender: { name: string; lines: string[]; logo: string };
@@ -32,6 +35,12 @@ export interface InvoiceView {
   footer: string;
   /** The free version's credit line; null for Pro. Printed small, apart from the user's own footer. */
   madeWith: string | null;
+  /** What the client still has to pay (balance after payments, else the total), and when. */
+  amountDue: { label: string; value: string; due: string; settled: boolean };
+  // Pro extras: present with Pro, or in the preview (free users can try them; the download is gated).
+  signature: { image: string; name: string; label: string } | null;
+  stamp: { kind: 'paid' | 'draft'; text: string; date: string } | null;
+  font: FontChoice;
   raw: Totals;
 }
 
@@ -44,7 +53,16 @@ const groupIban = (iban: string) => iban.replace(/\s+/g, '').toUpperCase().repla
 /** "USt-IdNr. / Steuernummer" → "USt-IdNr." — one label is enough on the page. */
 const shortLabel = (label: string) => label.split(' / ')[0];
 
-export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean } = {}): InvoiceView {
+/** "PROFORMA INVOICE" → "Proforma invoice"; German capitalises every noun, so every word. */
+function naturalCase(upper: string, lang: string): string {
+  const lower = upper.toLocaleLowerCase(lang);
+  return lang === 'de'
+    ? lower.replace(/(^|[\s-])(\p{L})/gu, (_, sep: string, ch: string) => sep + ch.toLocaleUpperCase(lang))
+    : lower.charAt(0).toLocaleUpperCase(lang) + lower.slice(1);
+}
+
+export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean; preview?: boolean } = {}): InvoiceView {
+  const extras = !!(opts.pro || opts.preview);
   const country = COUNTRY_BY_KEY[s.countryKey] ?? OTHER_COUNTRY;
   const L = LABELS[s.labelsLang] ?? LABELS.en;
   const locale = docLocale(country.locale, s.labelsLang);
@@ -131,6 +149,7 @@ export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean } = {}):
   return {
     L, locale, paper: s.paper,
     title: (s.titleOverride.trim() || L.docTitle[s.docType]).toUpperCase(),
+    titleText: s.titleOverride.trim() || naturalCase(L.docTitle[s.docType], s.labelsLang),
     number: s.invoiceNumber,
     meta,
     sender: { name: s.businessName.trim(), lines: senderLines, logo: s.businessLogo },
@@ -144,6 +163,22 @@ export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean } = {}):
     notes: s.notes.trim(),
     footer: s.footerNote.trim(),
     madeWith: opts.pro ? null : `Made with ${SITE.name}, ${SITE.domain}`,
+    // Once fully paid, the headline shows the total (the Paid stamp says the rest), not "Amount due 0.00".
+    amountDue: t.total > 0 && t.amountPaid >= t.total
+      ? { label: L.total, value: money(t.total), due: '', settled: true }
+      : {
+        label: L.amountDue,
+        value: money(t.amountPaid > 0 ? t.balanceDue : t.total),
+        due: s.dueDate && s.visible.dueDate && s.docType !== 'receipt' ? formatDate(s.dueDate, locale) : '',
+        settled: false,
+      },
+    signature: extras && s.signature ? { image: s.signature, name: s.signatureName.trim(), label: L.signature } : null,
+    stamp: !extras || s.stamp === 'none' ? null
+      : s.stamp === 'draft' ? { kind: 'draft', text: L.draft, date: '' }
+      // The automatic Paid stamp is Pro-only even in the preview: a free user's paid receipt shouldn't look Pro.
+      : opts.pro && t.total > 0 && t.amountPaid >= t.total ? { kind: 'paid', text: L.paid, date: formatDate(s.invoiceDate, locale) }
+      : null,
+    font: extras ? s.fontChoice : 'auto',
     raw: t,
   };
 }

@@ -83,3 +83,39 @@ describe('buildInvoiceView', () => {
     expect(v.sender.lines).toContain('GSTIN: 29ABCDE1234F1Z5');
   });
 });
+
+describe('Pro extras on the view (signature, stamp, font)', () => {
+  const paidUp = { items: [{ description: 'x', quantity: 1, unitPrice: 100 }], amountPaid: 100 };
+
+  it('stamps Paid automatically once the balance is settled, and only for Pro', () => {
+    expect(buildInvoiceView({ ...defaultInvoiceState(), ...paidUp }, { pro: true }).stamp?.text).toBe('Paid');
+    expect(buildInvoiceView({ ...defaultInvoiceState(), ...paidUp }).stamp).toBeNull();
+    expect(buildInvoiceView({ ...defaultInvoiceState(), items: [{ description: 'x', quantity: 1, unitPrice: 100 }], amountPaid: 40 }, { pro: true }).stamp).toBeNull();
+  });
+
+  it('stamps Draft on request and never stamps an empty invoice Paid', () => {
+    expect(buildInvoiceView({ ...defaultInvoiceState(), stamp: 'draft', labelsLang: 'de' }, { pro: true }).stamp?.text).toBe('Entwurf');
+    expect(buildInvoiceView({ ...defaultInvoiceState(), amountPaid: 0 }, { pro: true }).stamp).toBeNull();
+    expect(buildInvoiceView({ ...defaultInvoiceState(), ...paidUp, stamp: 'none' }, { pro: true }).stamp).toBeNull();
+  });
+
+  it('keeps the signature and font choice for Pro, or when previewing Pro features', () => {
+    const s = { ...defaultInvoiceState(), signature: 'data:image/png;base64,AAAA', signatureName: 'Ama Mensah', fontChoice: 'serif' as const };
+    expect(buildInvoiceView(s).signature).toBeNull();
+    expect(buildInvoiceView(s).font).toBe('auto');
+    expect(buildInvoiceView(s, { pro: true }).signature).toEqual({ image: 'data:image/png;base64,AAAA', name: 'Ama Mensah', label: 'Authorised signature' });
+    expect(buildInvoiceView(s, { preview: true }).font).toBe('serif');
+  });
+
+  it('gives the amount due: the balance after payments, else the total', () => {
+    const base = { ...defaultInvoiceState(), currency: 'USD', items: [{ description: 'x', quantity: 2, unitPrice: 50 }] };
+    expect(buildInvoiceView(base).amountDue.value).toMatch(/100\.00/);
+    expect(buildInvoiceView({ ...base, amountPaid: 30 }).amountDue.value).toMatch(/70\.00/);
+  });
+
+  it('has a natural-case title for layouts that don\'t shout', () => {
+    expect(make({ docType: 'proforma' }).titleText).toBe('Proforma invoice');
+    expect(make({ labelsLang: 'de', docType: 'proforma' }).titleText).toBe('Proformarechnung');
+    expect(make({ titleOverride: 'Statement of work' }).titleText).toBe('Statement of work');
+  });
+});
