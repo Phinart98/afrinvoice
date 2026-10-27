@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildInvoiceView } from './invoiceView';
+import { buildInvoiceView, initials } from './invoiceView';
 import { defaultInvoiceState, type InvoiceState } from '../types/invoice';
 import { SITE } from '../site';
 
@@ -117,5 +117,29 @@ describe('Pro extras on the view (signature, stamp, font)', () => {
     expect(make({ docType: 'proforma' }).titleText).toBe('Proforma invoice');
     expect(make({ labelsLang: 'de', docType: 'proforma' }).titleText).toBe('Proformarechnung');
     expect(make({ titleOverride: 'Statement of work' }).titleText).toBe('Statement of work');
+  });
+});
+
+describe('the Paid stamp chosen by hand', () => {
+  it('stamps Paid even when no payment is entered (receipts), for Pro and in the preview', () => {
+    const s = { ...defaultInvoiceState(), stamp: 'paid' as const, items: [{ description: 'x', quantity: 1, unitPrice: 50 }] };
+    expect(buildInvoiceView(s, { pro: true }).stamp?.kind).toBe('paid');
+    expect(buildInvoiceView(s, { preview: true }).stamp?.kind).toBe('paid');
+    expect(buildInvoiceView(s).stamp).toBeNull();
+  });
+  it('shows the total, not an amount due, in the headline once marked Paid by hand', () => {
+    const s = { ...defaultInvoiceState(), stamp: 'paid' as const, items: [{ description: 'x', quantity: 1, unitPrice: 50 }] };
+    expect(buildInvoiceView(s, { pro: true }).amountDue.settled).toBe(true);
+    expect(buildInvoiceView(s).amountDue.settled).toBe(false);
+  });
+});
+
+describe('initials for the Monogram medallion', () => {
+  it('takes the first letters of the first two words, skipping company suffixes', () => {
+    expect(initials('Brightside Consulting Ltd')).toBe('BC');
+    expect(initials('Kaveri Digital Services')).toBe('KD');
+    expect(initials('studio nordlicht GmbH')).toBe('SN');
+    expect(initials('Ömer')).toBe('Ö');
+    expect(initials('')).toBe('');
   });
 });

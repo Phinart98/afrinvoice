@@ -6,9 +6,9 @@ import { SITE, abs } from '../../site';
 
 const pageUrl   = abs('/invoice-templates/');
 const schema    = webAppSchema(
-  'Free invoice templates in six PDF designs',
+  'Free invoice templates in eight PDF designs',
   pageUrl,
-  'Free invoice templates you fill in online: Minimal, Letterhead and Band PDF designs free, plus Sidebar, Accounts and Studio with Pro. Your logo, country tax presets and payment QR codes. No sign-up.',
+  'Free invoice templates you fill in online: Minimal, Letterhead and Band PDF designs free, plus Sidebar, Accounts, Studio, Swiss and Monogram with Pro. Your logo, country tax presets and payment QR codes. No sign-up.',
 );
 const breadcrumb = breadcrumbSchema([
   { name: SITE.name, url: abs('/') },
@@ -36,12 +36,18 @@ const templates = [
   { id: 'studio', name: 'Studio', pro: true,
     description: 'The amount due is the headline, large on a block of your brand colour. Items read as a list, each with its quantity and price underneath.',
     best: 'Designers, photographers and other creatives' },
+  { id: 'swiss', name: 'Swiss', pro: true,
+    description: 'A strict grid: a narrow column on the left names each part (From, Details, Bill to, Payment) and everything else lines up on one edge. A heavy rule opens the page.',
+    best: 'Architects, developers and design studios' },
+  { id: 'monogram', name: 'Monogram', pro: true,
+    description: 'Boutique stationery: a thin double frame in your colour, a round medallion with your initials or logo, and a centred serif letterhead.',
+    best: 'Events, weddings, beauty and other personal services' },
 ];
 
 const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   {
     q: 'Are these invoice templates free to download?',
-    a: 'Minimal, Letterhead and Band are free with no account and no hidden fees. The PDF has no watermark across it, only one small credit line at the bottom. Sidebar, Accounts and Studio come with <a href="/pro/">Pro</a>, a one-time payment that also removes the credit line.',
+    a: 'Minimal, Letterhead and Band are free with no account and no hidden fees. The PDF has no watermark across it, only one small credit line at the bottom. Sidebar, Accounts, Studio, Swiss and Monogram come with <a href="/pro/">Pro</a>, a one-time payment that also removes the credit line.',
   },
   {
     q: 'Do the templates work for my country?',
@@ -53,18 +59,18 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   },
   {
     q: 'Can I add my logo and signature?',
-    a: 'Your logo is free on every template: upload it in the Your business section. A signature with your name under it is a Pro option, along with a Paid or Draft stamp and a choice of sans or serif type.',
+    a: 'Your logo is free on every template: upload it in the Your business section. A signature is a Pro option: draw it, type your name in a handwriting style, or upload a photo (the paper is removed so only the ink shows). Pro also adds a Paid or Draft stamp and a choice of sans or serif type.',
   },
   {
     q: 'Which template should I use?',
-    a: '<strong>Minimal</strong> is accepted everywhere. <strong>Letterhead</strong> suits formal clients. <strong>Band</strong> puts the amount due first. With Pro, <strong>Sidebar</strong> fits long payment details, <strong>Accounts</strong> suits finance teams, and <strong>Studio</strong> is for creative work.',
+    a: '<strong>Minimal</strong> is accepted everywhere. <strong>Letterhead</strong> suits formal clients. <strong>Band</strong> puts the amount due first. With Pro, <strong>Sidebar</strong> fits long payment details, <strong>Accounts</strong> suits finance teams, <strong>Studio</strong> is for creative work, <strong>Swiss</strong> for studios that like a grid, and <strong>Monogram</strong> for personal services.',
   },
 ];
 ---
 
 <Base
   title="Free Invoice Templates to Fill In Online and Download as PDF"
-  description="Six invoice designs you fill in online and download as PDF: Minimal, Letterhead and Band free, Sidebar, Accounts and Studio with Pro. Your logo, local taxes, any currency."
+  description="Eight invoice designs you fill in online and download as PDF: Minimal, Letterhead and Band free, five more with Pro. Your logo, local taxes, any currency."
   schema={[schema, breadcrumb, faqSchema(faqs)]}
 >
 
@@ -77,8 +83,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
       </nav>
       <h1 id="tpl-heading" class="tpl-heading">Invoice templates you fill in online</h1>
       <p class="tpl-sub">
-        Six PDF designs, each with your logo and the right taxes for your country. Three are free;
-        three more come with <a href="/pro/">Pro</a>. Pick one, fill in your details and download the PDF.
+        Eight PDF designs, each with your logo and the right taxes for your country. Three are free;
+        five more come with <a href="/pro/">Pro</a>. Pick one, fill in your details and download the PDF.
       </p>
     </div>
   </section>
@@ -124,8 +130,8 @@ const faqs: import('../../components/FaqSection.astro').FaqItem[] = [
   .tpl-heading { font-size: clamp(1.875rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -0.03em; color: var(--text); margin-bottom: 1.25rem; max-width: 38rem; }
   .tpl-sub { font-size: clamp(1rem, 2vw, 1.0625rem); color: var(--text-3); line-height: 1.75; max-width: 36rem; margin: 0; }
 
-  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-  @media (max-width: 960px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
+  .gallery { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  @media (max-width: 1180px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 600px) { .gallery { grid-template-columns: 1fr; } }
 
   .tpl-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; }

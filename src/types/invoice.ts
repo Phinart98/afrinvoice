@@ -31,20 +31,21 @@ export interface InvoiceVisible {
   qr:            boolean;   // payment QR code (SEPA / UPI / payment link)
 }
 
-export type Template = 'classic' | 'modern' | 'minimal' | 'executive' | 'ledger' | 'studio';
+export type Template = 'classic' | 'modern' | 'minimal' | 'executive' | 'ledger' | 'studio' | 'swiss' | 'monogram';
 
 /** Pro-only PDF templates. Free users can preview them; downloads fall back to Minimal. */
-export const PREMIUM_TEMPLATES: readonly Template[] = ['executive', 'ledger', 'studio'];
+export const PREMIUM_TEMPLATES: readonly Template[] = ['executive', 'ledger', 'studio', 'swiss', 'monogram'];
 
 /** What people see. The ids stay as they were so saved settings and links keep working. */
 export const TEMPLATE_NAMES: Record<Template, string> = {
   minimal: 'Minimal', classic: 'Letterhead', modern: 'Band', executive: 'Sidebar', ledger: 'Accounts', studio: 'Studio',
+  swiss: 'Swiss', monogram: 'Monogram',
 };
 
 /** 'auto' = the template's own type; sans or serif override it everywhere (Pro). */
 export type FontChoice = 'auto' | 'sans' | 'serif';
-/** 'auto' stamps Paid once the balance is settled (Pro). */
-export type StampChoice = 'auto' | 'none' | 'draft';
+/** 'auto' stamps Paid once "Amount paid" covers the total; 'paid' and 'draft' are chosen by hand (Pro). */
+export type StampChoice = 'auto' | 'paid' | 'draft' | 'none';
 
 /** A real template id (own key only: "toString" from a crafted link or old data must not pass). */
 export const isTemplate = (t: unknown): t is Template => typeof t === 'string' && Object.hasOwn(TEMPLATE_NAMES, t);

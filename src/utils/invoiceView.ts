@@ -23,7 +23,8 @@ export interface InvoiceView {
   titleText: string;
   number: string;
   meta: [string, string][];
-  sender: { name: string; lines: string[]; logo: string };
+  /** Up to two initials from the business name, for the Monogram medallion when there is no logo. */
+  sender: { name: string; lines: string[]; logo: string; initials: string };
   client: { name: string; lines: string[] };
   columns: [string, string, string, string];
   items: { description: string; qty: string; unit: string; amount: string }[];
@@ -52,6 +53,12 @@ const groupIban = (iban: string) => iban.replace(/\s+/g, '').toUpperCase().repla
 
 /** "USt-IdNr. / Steuernummer" → "USt-IdNr." — one label is enough on the page. */
 const shortLabel = (label: string) => label.split(' / ')[0];
+
+/** "Brightside Consulting Ltd" → "BC"; one word → its first letter. Letters only, any script. */
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(w => /\p{L}/u.test(w) && !/^(ltd|llc|inc|gmbh|sarl|sa|bv|plc|pty|co)\.?$/i.test(w));
+  return words.slice(0, 2).map(w => (w.match(/\p{L}/u) ?? [''])[0].toLocaleUpperCase()).join('');
+}
 
 /** "PROFORMA INVOICE" → "Proforma invoice"; German capitalises every noun, so every word. */
 function naturalCase(upper: string, lang: string): string {
@@ -152,7 +159,7 @@ export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean; preview
     titleText: s.titleOverride.trim() || naturalCase(L.docTitle[s.docType], s.labelsLang),
     number: s.invoiceNumber,
     meta,
-    sender: { name: s.businessName.trim(), lines: senderLines, logo: s.businessLogo },
+    sender: { name: s.businessName.trim(), lines: senderLines, logo: s.businessLogo, initials: initials(s.businessName) },
     client: { name: s.clientName.trim(), lines: clientLines },
     columns: [s.itemLabel.trim() || L.description, L.qty, L.unitPrice, L.amount],
     items,
@@ -164,7 +171,8 @@ export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean; preview
     footer: s.footerNote.trim(),
     madeWith: opts.pro ? null : `Made with ${SITE.name}, ${SITE.domain}`,
     // Once fully paid, the headline shows the total (the Paid stamp says the rest), not "Amount due 0.00".
-    amountDue: t.total > 0 && t.amountPaid >= t.total
+    // A Paid stamp chosen by hand is the user saying it's settled, so the headline agrees with it.
+    amountDue: t.total > 0 && (t.amountPaid >= t.total || (extras && s.stamp === 'paid'))
       ? { label: L.total, value: money(t.total), due: '', settled: true }
       : {
         label: L.amountDue,
@@ -175,6 +183,7 @@ export function buildInvoiceView(s: InvoiceState, opts: { pro?: boolean; preview
     signature: extras && s.signature ? { image: s.signature, name: s.signatureName.trim(), label: L.signature } : null,
     stamp: !extras || s.stamp === 'none' ? null
       : s.stamp === 'draft' ? { kind: 'draft', text: L.draft, date: '' }
+      : s.stamp === 'paid' ? { kind: 'paid', text: L.paid, date: formatDate(s.invoiceDate, locale) }
       // The automatic Paid stamp is Pro-only even in the preview: a free user's paid receipt shouldn't look Pro.
       : opts.pro && t.total > 0 && t.amountPaid >= t.total ? { kind: 'paid', text: L.paid, date: formatDate(s.invoiceDate, locale) }
       : null,

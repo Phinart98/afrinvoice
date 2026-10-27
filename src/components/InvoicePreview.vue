@@ -13,7 +13,7 @@ const props = defineProps<{ state: InvoiceState; pro?: boolean }>();
 const onSale = SITE.pro.enabled;
 const tpl = computed(() => effectiveTemplate(props.state.template, onSale || !!props.pro));
 const proPreview = computed(() => !props.pro && (PREMIUM_TEMPLATES.includes(tpl.value)
-  || props.state.fontChoice !== 'auto' || !!props.state.signature || props.state.stamp === 'draft'));
+  || props.state.fontChoice !== 'auto' || !!props.state.signature || props.state.stamp === 'draft' || props.state.stamp === 'paid'));
 
 // Same view model the PDF renders, so the preview can't drift from the download.
 const v = computed(() => buildInvoiceView(props.state, { pro: props.pro, preview: onSale }));
@@ -25,6 +25,7 @@ const fontClass = computed(() => {
   if (v.value.font === 'serif') return 'f-serif';
   if (tpl.value === 'classic') return 'f-serif';
   if (tpl.value === 'studio') return 'f-head-serif';
+  if (tpl.value === 'monogram') return 'f-serif';
   return 'f-sans';
 });
 
@@ -169,6 +170,35 @@ const keyRow = computed(() => {
             </table>
           </header>
 
+          <header v-else-if="tpl === 'swiss'" class="hd hd-swiss">
+            <div class="sw-top">
+              <p class="sw-doc"><b>{{ v.titleText }}</b><span class="inv-dim">{{ v.number || '—' }}</span></p>
+              <div class="sw-name">
+                <img v-if="v.sender.logo" :src="v.sender.logo" class="inv-logo" alt="" />
+                <p class="inv-biz-name">{{ v.sender.name || 'Your Business Name' }}</p>
+              </div>
+              <p class="sw-due"><span class="inv-dim">{{ v.amountDue.label }}</span><b>{{ v.amountDue.value }}</b></p>
+            </div>
+            <div class="sw-row">
+              <p class="inv-section-label">From</p>
+              <div><p v-for="(line, i) in v.sender.lines" :key="i" class="sw-line">{{ line }}</p></div>
+            </div>
+            <div class="sw-row">
+              <p class="inv-section-label">Details</p>
+              <div class="sw-meta"><div v-for="[label, value] in v.meta.slice(0, 3)" :key="label"><span class="inv-dim">{{ label }}</span><b>{{ value }}</b></div></div>
+            </div>
+          </header>
+
+          <header v-else-if="tpl === 'monogram'" class="hd hd-mono">
+            <img v-if="v.sender.logo" :src="v.sender.logo" class="mono-logo" alt="" />
+            <p v-else class="mono-medal" aria-hidden="true"><span>{{ v.sender.initials || '·' }}</span></p>
+            <p class="inv-biz-name mono-name">{{ v.sender.name || 'Your Business Name' }}</p>
+            <p class="inv-dim mono-contact"><span v-for="(line, i) in v.sender.lines" :key="i">{{ line }}</span></p>
+            <div class="mono-rule" />
+            <p class="mono-title">{{ v.titleText }}</p>
+            <p class="inv-dim mono-contact"><span>{{ v.L.number }} {{ v.number || '—' }}</span><span v-for="[label, value] in v.meta" :key="label">{{ label }} {{ value }}</span></p>
+          </header>
+
           <header v-else class="hd hd-studio">
             <div class="hd-row">
               <div class="inv-sender">
@@ -198,6 +228,11 @@ const keyRow = computed(() => {
             <div class="hd-right bt-right">
               <template v-if="tpl === 'modern'">
                 <p v-for="[label, value] in metaNoDue" :key="label" class="inv-dim">{{ label }}: {{ value }}</p>
+              </template>
+              <template v-else-if="tpl === 'monogram'">
+                <p class="inv-dim">{{ v.amountDue.label }}</p>
+                <p class="mono-amount">{{ v.amountDue.value }}</p>
+                <p v-if="v.amountDue.due" class="inv-dim">{{ v.L.due }} {{ v.amountDue.due }}</p>
               </template>
               <template v-else-if="tpl === 'ledger'">
                 <p v-for="[label, value] in v.meta.slice(2)" :key="label" class="inv-dim">{{ label }}: {{ value }}</p>
@@ -470,4 +505,41 @@ const keyRow = computed(() => {
 .st-items li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0; border-bottom: 1px solid var(--rule); font-size: 0.8125rem; }
 .st-items li:last-child { border-bottom: none; }
 .st-desc small { display: block; font-size: 0.6875rem; color: var(--mid); }
+
+/* ══ Swiss (Pro): a label column on the left, everything else on one vertical edge ══ */
+.tpl-swiss { --lc: 26%; border-top: 0; }
+.hd-swiss { border-top: 5px solid var(--ink); padding-top: 1rem; margin-bottom: 0; }
+.sw-top { display: grid; grid-template-columns: var(--lc) 1fr auto; gap: 0.75rem; align-items: start; padding-bottom: 1rem; }
+.sw-doc { display: flex; flex-direction: column; font-size: 0.75rem; }
+.sw-name { display: flex; align-items: center; gap: 0.6rem; }
+.sw-name .inv-biz-name { font-size: 1.1rem; margin: 0 !important; }
+.sw-due { display: flex; flex-direction: column; text-align: right; }
+.sw-due b { font-size: 1.15rem; color: var(--brand-text); }
+.sw-row, .tpl-swiss .inv-bill-to, .tpl-swiss .inv-payment, .tpl-swiss .inv-notes-section {
+  position: relative; padding: 0.75rem 0 0.75rem var(--lc); border-top: 1px solid var(--rule); margin: 0; }
+.sw-row .inv-section-label, .tpl-swiss .inv-bill-to .inv-section-label, .tpl-swiss .inv-payment .inv-section-label,
+.tpl-swiss .inv-notes-section .inv-section-label { position: absolute; left: 0; top: 0.8rem; color: var(--brand-text); }
+.sw-line { font-size: 0.75rem; }
+.sw-meta { display: flex; gap: 1.5rem; }
+.sw-meta div { display: flex; flex-direction: column; font-size: 0.75rem; }
+.tpl-swiss .inv-table { margin-left: var(--lc); width: calc(100% - var(--lc)); margin-top: 1rem; }
+.tpl-swiss .inv-grand .inv-total-val { color: var(--brand-text); }
+.tpl-swiss .inv-taxnote { margin-left: var(--lc) !important; }
+
+/* ══ Monogram (Pro): a framed page, a medallion, a centred serif letterhead ══ */
+.tpl-monogram { box-shadow: inset 0 0 0 10px #fff, inset 0 0 0 11.5px var(--brand), inset 0 0 0 14px #fff, inset 0 0 0 14.6px var(--brand); padding: 2.4rem 2.4rem 2rem; }
+.hd-mono { text-align: center; }
+.mono-logo { max-height: 52px; max-width: 120px; object-fit: contain; display: block; margin: 0 auto 0.6rem; }
+.mono-medal { width: 54px; height: 54px; margin: 0 auto 0.7rem !important; border-radius: 50%; background: var(--brand); color: var(--on-brand);
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 3px #fff, 0 0 0 4px var(--brand); }
+.mono-medal span { font-weight: 700; font-size: 1.1rem; }
+.mono-name { font-size: 1.15rem; }
+.mono-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 1rem; }
+.mono-rule { width: 80px; margin: 0.8rem auto; border-top: 1px solid var(--brand); }
+.mono-title { font-size: 1.45rem; font-weight: 700; }
+.mono-amount { font-size: 1.45rem; font-weight: 700; color: var(--brand-text); line-height: 1.2; }
+.tpl-monogram .inv-section-label { color: var(--brand-text); }
+.tpl-monogram .inv-th, .tpl-monogram .inv-tr:last-child { border-color: var(--brand-text); }
+.tpl-monogram .inv-grand { border-top-color: var(--brand-text); }
+.tpl-monogram .inv-grand .inv-total-val { color: var(--brand-text); }
 </style>

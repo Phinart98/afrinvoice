@@ -86,6 +86,7 @@ function familiesFor(tpl: Template, v: InvoiceView): { head: Family; body: Famil
   if (v.font === 'serif') return { head: 'serif', body: 'serif' };
   if (tpl === 'classic') return { head: 'serif', body: 'serif' };
   if (tpl === 'studio') return { head: 'serif', body: 'sans' };
+  if (tpl === 'monogram') return { head: 'serif', body: 'serif' };
   return { head: 'sans', body: 'sans' };
 }
 
@@ -762,9 +763,148 @@ function layoutStudio(c: Ctx, k: Colours) {
   signature(c, { x: M, w: CW });
 }
 
+/**
+ * Swiss (Pro): a strict two-column grid. A narrow label column on the left names each part of the
+ * invoice; everything else hangs from one vertical edge. A heavy ink rule opens the page.
+ */
+function layoutSwiss(c: Ctx, k: Colours) {
+  const { v, doc, W } = c;
+  const R = W - M;
+  const LX = M, X = M + 44, CW = R - X;   // label column, content column
+  const brand = readable(k.brand);
+  const row = (name: string) => {          // a hairline across both columns, the label in the left one
+    c.rule(c.y, M, R, 0.2, C_RULE); c.y += 6;
+    label(c, name, LX, c.y, brand);
+  };
+  c.rule(16, M, R, 1.6, C_INK);
+  c.y = 28;
+  // Header: the document in the label column, the sender's name in the content column, amount due on the right
+  c.set(9, 'bold', C_INK); doc.text(v.titleText, LX, c.y);
+  c.set(8, 'normal', C_MID); doc.text(v.number || '—', LX, c.y + 4.5);
+  const logo = logoBox(c, 18, 14);
+  let nx = X;
+  if (logo) { doc.addImage(v.sender.logo, logo.fmt, X, c.y - 5, logo.w, logo.h); nx = X + logo.w + 4; }
+  c.set(15, 'bold', C_INK, 'head'); doc.text(c.wrap(v.sender.name || 'Your Business', CW * 0.55), nx, c.y + 1);
+  c.set(8, 'normal', C_MID); doc.text(v.amountDue.label, R, c.y - 3, { align: 'right' });
+  c.set(17, 'bold', brand, 'head'); doc.text(v.amountDue.value, R, c.y + 5, { align: 'right' });
+  c.y += 16;
+  row('From');
+  c.set(8.5, 'normal', C_INK);
+  for (const l of v.sender.lines.length ? v.sender.lines : ['—']) { const w = c.wrap(l, CW * 0.6); doc.text(w, X, c.y); c.y += w.length * LINE; }
+  c.y += 4;
+  row('Details');
+  const y0 = c.y;
+  const cols = Math.max(1, Math.min(v.meta.length, 3));
+  v.meta.slice(0, 3).forEach(([lbl, value], i) => {
+    const x = X + (CW / cols) * i;
+    c.set(7, 'normal', C_MID); doc.text(lbl, x, y0);
+    c.set(9, 'bold', C_INK); doc.text(value, x, y0 + 4.5);
+  });
+  c.y = y0 + 11;
+  row(v.L.billTo);
+  const billTop = c.y;
+  c.set(10, 'bold', C_INK, 'head'); doc.text(v.client.name || '—', X, c.y); c.y += 4.9;
+  c.set(8.5, 'normal', C_MID);
+  for (const l of v.client.lines) { doc.text(c.wrap(l, CW * 0.6)[0], X, c.y); c.y += LINE; }
+  stamp(c, R - 24, billTop + 5);
+  c.y = Math.max(c.y, billTop + (v.stamp ? 18 : 0)) + 4;
+  c.rule(c.y, M, R, 0.2, C_RULE); c.y += 6;
+  itemsTable(c, { x: X, w: CW }, { head: 'rule', rows: 'hair' });
+  totals(c, { x: X + CW * 0.4, w: CW * 0.6 }, 'text', brand);
+  taxNote(c, { x: X, w: CW });
+  c.y += 2;
+  if (v.payment.length || v.qr) {
+    c.ensure(30);
+    row(v.L.paymentDetails);
+    const top = c.y;
+    const qr = v.qr ? 26 : 0;
+    for (const [lbl, value] of v.payment) {
+      c.set(8.5, 'normal', C_MID); doc.text(lbl, X, c.y);
+      c.set(8.5, 'normal', C_INK);
+      const val = c.wrap(value, CW - 34 - qr - 6);
+      doc.text(val, X + 34, c.y); c.y += val.length * LINE + 0.6;
+    }
+    if (v.qr) { drawQr(c, R - qr, top - 3, qr); c.y = Math.max(c.y, top - 3 + qr + 6); }
+    c.y += 3;
+  }
+  if (v.notes) {
+    c.set(8.5, 'normal', C_MID);
+    const l = c.wrap(v.notes, CW);
+    c.ensure(Math.min(l.length * LINE + 12, 50));
+    row(v.L.notes);
+    c.set(8.5, 'normal', C_MID);
+    for (const line of l) { c.ensure(LINE); doc.text(line, X, c.y); c.y += LINE; }
+    c.y += 2;
+  }
+  signature(c, { x: X, w: CW });
+}
+
+/**
+ * Monogram (Pro): boutique stationery. A thin double frame in the brand colour, a round medallion with
+ * the business's initials (or its logo), a centred serif letterhead, and the amount due set beside the client.
+ */
+function layoutMonogram(c: Ctx, k: Colours) {
+  const { v, doc, W, H } = c;
+  const R = W - M, CW = W - 2 * M;
+  const brand = readable(k.brand);
+  const frame = () => {
+    doc.setDrawColor(...k.brand);
+    doc.setLineWidth(0.5); doc.rect(7, 7, W - 14, H - 14, 'S');
+    doc.setLineWidth(0.15); doc.rect(8.6, 8.6, W - 17.2, H - 17.2, 'S');
+  };
+  frame();
+  c.onNewPage = frame;
+  c.topY = 20;
+  c.y = 22;
+  // The medallion: the logo if there is one, else the initials on a brand-colour disc
+  const logo = logoBox(c, 30, 20);
+  if (logo) {
+    doc.addImage(v.sender.logo, logo.fmt, (W - logo.w) / 2, c.y - 2, logo.w, logo.h);
+    c.y += logo.h + 5;
+  } else {
+    const r = 10;
+    c.fill(k.brand); doc.circle(W / 2, c.y + r - 2, r, 'F');
+    doc.setDrawColor(...k.brand); doc.setLineWidth(0.25); doc.circle(W / 2, c.y + r - 2, r + 1.6, 'S');
+    c.set(v.sender.initials.length > 1 ? 15 : 18, 'bold', onFill(k.brand), 'head');
+    doc.text(v.sender.initials || '·', W / 2, c.y + r + 3.2, { align: 'center' });
+    c.y += 2 * r + 7;
+  }
+  c.set(16, 'bold', C_INK, 'head');
+  doc.text(c.wrap(v.sender.name || 'Your Business', CW), W / 2, c.y, { align: 'center' });
+  c.y += 5.5;
+  c.set(7.8, 'normal', C_MID);
+  const contact = c.wrap(v.sender.lines.join('     '), CW - 10);
+  doc.text(contact, W / 2, c.y, { align: 'center' }); c.y += contact.length * 3.8 + 4;
+  c.rule(c.y, W / 2 - 15, W / 2 + 15, 0.4, k.brand);
+  c.y += 10;
+  // The document, centred: title, then number and dates on one line
+  c.set(19, 'bold', C_INK, 'head'); doc.text(v.titleText, W / 2, c.y, { align: 'center' });
+  c.y += 6;
+  c.set(8.5, 'normal', C_MID);
+  const facts = [`${v.L.number} ${v.number || '—'}`, ...v.meta.map(([l, val]) => `${l} ${val}`)];
+  doc.text(c.wrap(facts.join('      '), CW)[0], W / 2, c.y, { align: 'center' });
+  c.y += 12;
+  // The client on the left; what is owed on the right
+  const billTop = c.y;
+  billTo(c, { x: M, w: CW * 0.55 }, brand);
+  c.set(8, 'normal', C_MID); doc.text(v.amountDue.label, R, billTop, { align: 'right' });
+  c.set(20, 'bold', brand, 'head'); doc.text(v.amountDue.value, R, billTop + 9, { align: 'right' });
+  if (v.amountDue.due) { c.set(8.5, 'normal', C_INK); doc.text(`${v.L.due} ${v.amountDue.due}`, R, billTop + 15, { align: 'right' }); }
+  stamp(c, R - 26, billTop + 30);
+  c.y = Math.max(c.y, billTop + (v.stamp ? 44 : 18)) + 6;
+  itemsTable(c, { x: M, w: CW }, { head: 'rule', rows: 'hair', ruleColor: brand });
+  totals(c, { x: M + CW * 0.52, w: CW * 0.48 }, 'text', brand);
+  taxNote(c, { x: M, w: CW });
+  c.y += 4;
+  payment(c, { x: M, w: CW }, brand);
+  notes(c, { x: M, w: CW }, brand);
+  signature(c, { x: M, w: CW });
+}
+
 const LAYOUTS: Record<Template, (c: Ctx, k: Colours) => void> = {
   minimal: layoutMinimal, classic: layoutLetterhead, modern: layoutBand,
   executive: layoutSidebar, ledger: layoutAccounts, studio: layoutStudio,
+  swiss: layoutSwiss, monogram: layoutMonogram,
 };
 
 function coloursFor(s: InvoiceState, pro: boolean): Colours {

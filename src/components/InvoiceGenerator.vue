@@ -16,6 +16,7 @@ import { checkedMonth } from '../utils/stamp';
 import InvoicePreview from './InvoicePreview.vue';
 import ProPanel from './ProPanel.vue';
 import SignaturePad from './SignaturePad.vue';
+import SignatureType from './SignatureType.vue';
 import { cleanSignature } from '../utils/signature';
 import { useProStatus } from '../utils/useProStatus';
 
@@ -40,7 +41,7 @@ function colourKeys(t: InvoiceState['template']): ColourKey[] {
 }
 const COLOUR_LABEL: Record<ColourKey, string> = { classicAccent: 'Rules and total', modernHeader: 'Band', modernAccent: 'Accent', brandColor: 'Brand colour' };
 /** Pro options in use that a free download can't include. */
-const proExtrasUsed = computed(() => state.value.fontChoice !== 'auto' || !!state.value.signature || state.value.stamp === 'draft');
+const proExtrasUsed = computed(() => state.value.fontChoice !== 'auto' || !!state.value.signature || state.value.stamp === 'draft' || state.value.stamp === 'paid');
 const isPremium = (t: InvoiceState['template']) => PREMIUM_TEMPLATES.includes(t);
 const savedAt = ref(0);
 const notice = ref('');          // inline message instead of alert()
@@ -349,7 +350,7 @@ function imageToPng(e: Event, field: 'businessLogo' | 'signature') {
       if (!ink) return flash('No signature found in that photo. Try a darker pen on plain paper, or draw it instead.');
       canvas.width = ink.width; canvas.height = ink.height;
       c2d.putImageData(new ImageData(ink.data, ink.width, ink.height), 0, 0);
-      showPad.value = false;
+      sigMode.value = null;
     }
     state.value[field] = canvas.toDataURL('image/png');
   };
@@ -357,8 +358,9 @@ function imageToPng(e: Event, field: 'businessLogo' | 'signature') {
   img.src = url;
 }
 const handleLogoUpload = (e: Event) => imageToPng(e, 'businessLogo');
-const showPad = ref(false);
-function useDrawnSignature(dataUrl: string) { state.value.signature = dataUrl; showPad.value = false; }
+/** Which way of signing is open: draw on a pad, type a name in a handwriting font, or neither. */
+const sigMode = ref<'draw' | 'type' | null>(null);
+function useSignature(dataUrl: string) { state.value.signature = dataUrl; sigMode.value = null; }
 function removeLogo() { state.value.businessLogo = ''; }
 
 // ── Auto-save business profile ───────────────────────────────────────────────
@@ -410,7 +412,7 @@ async function output(action: 'download' | 'print') {
   if (SITE.pro.enabled && !pro.value && (isPremium(state.value.template) || proExtrasUsed.value)) {
     flash(isPremium(state.value.template)
       ? `${TEMPLATE_NAMES[state.value.template]} is a Pro template. Unlock Pro below, or pick Minimal, Letterhead or Band.`
-      : 'The font, signature and Draft stamp are Pro options. Unlock Pro below, or switch them off under Pro options.');
+      : 'The font, signature and stamp are Pro options. Unlock Pro below, or switch them off under Pro options.');
     document.getElementById('pro')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
@@ -567,25 +569,29 @@ const correctionHref = computed(() =>
             <div class="field field-grow">
               <label class="field-label" for="stamp-choice">Stamp</label>
               <select id="stamp-choice" v-model="state.stamp" class="form-select">
-                <option value="auto">Paid, once fully paid</option>
+                <option value="auto">Automatic: Paid when “Amount paid” covers the total</option>
+                <option value="paid">Paid</option>
                 <option value="draft">Draft</option>
                 <option value="none">No stamp</option>
               </select>
             </div>
           </div>
+          <p v-if="state.stamp === 'auto'" class="card-hint">Automatic reads the “Amount paid” field under Totals: once it covers the total, the invoice is stamped Paid.</p>
           <div class="field">
             <span class="field-label">Signature</span>
-            <SignaturePad v-if="showPad" @save="useDrawnSignature" @cancel="showPad = false" />
-            <div v-else class="logo-row">
+            <SignaturePad v-if="sigMode === 'draw'" @save="useSignature" @cancel="sigMode = null" />
+            <SignatureType v-else-if="sigMode === 'type'" :initial="state.signatureName.split(',')[0] || state.businessName" @save="useSignature" @cancel="sigMode = null" />
+            <div v-else class="logo-row sig-row">
               <img v-if="state.signature" :src="state.signature" class="logo-thumb sig-thumb" alt="Your signature" />
-              <button type="button" class="logo-btn" @click="showPad = true">{{ state.signature ? 'Draw again' : 'Draw signature' }}</button>
+              <button type="button" class="logo-btn" @click="sigMode = 'draw'">Draw</button>
+              <button type="button" class="logo-btn" @click="sigMode = 'type'">Type</button>
               <label class="logo-btn">
                 Upload a photo
                 <input type="file" accept="image/*" hidden @change="imageToPng($event, 'signature')" />
               </label>
               <button v-if="state.signature" type="button" class="logo-remove-btn" @click="state.signature = ''">Remove</button>
             </div>
-            <p v-if="!showPad && !state.signature" class="card-hint">A photo works too: the paper is removed so only the ink shows.</p>
+            <p v-if="!sigMode && !state.signature" class="card-hint">Draw it, type your name or initials, or upload a photo (the paper is removed so only the ink shows).</p>
           </div>
           <div v-if="state.signature" class="field">
             <label class="field-label" for="sig-name">Name under the signature <span class="field-optional">(optional)</span></label>
@@ -1267,6 +1273,7 @@ const correctionHref = computed(() =>
   gap: 0.625rem;
 }
 .sig-thumb { width: 96px; background: #fff; }
+.sig-row { flex-wrap: wrap; }
 .logo-thumb {
   width: 40px;
   height: 40px;

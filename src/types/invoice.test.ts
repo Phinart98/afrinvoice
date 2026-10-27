@@ -127,8 +127,8 @@ describe('country data', () => {
 });
 
 describe('templates', () => {
-  it('lists the three premium templates', () => {
-    expect(PREMIUM_TEMPLATES).toEqual(['executive', 'ledger', 'studio']);
+  it('lists the five premium templates', () => {
+    expect(PREMIUM_TEMPLATES).toEqual(['executive', 'ledger', 'studio', 'swiss', 'monogram']);
     expect(effectiveTemplate('studio', false)).toBe('minimal');
   });
   it('treats inherited names from a crafted link as unknown, falling back to Minimal', () => {
