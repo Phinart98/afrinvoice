@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" fill="none">
-  <!-- Same mark as the nav logo (Nav.astro): an ink sheet with a coral check -->
-  <rect x="3" y="1" width="16" height="21" rx="3" fill="#1B1F2E"/>
-  <path d="M7 7.5h8M7 11.5h8M7 15.5h4.5" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
-  <circle cx="19.5" cy="19.5" r="5.5" fill="#E4572E"/>
-  <path d="M17 19.6l1.7 1.7 3.2-3.3" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 26 26"><rect width="16" height="21" x="3" y="1" fill="#1B1F2E" rx="3"/><path stroke="#FFF" stroke-linecap="round" stroke-width="1.8" d="M7 7.5h8M7 11.5h8M7 15.5h4.5"/><circle cx="19.5" cy="19.5" r="5.5" fill="#E4572E"/><path stroke="#FFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 19.6l1.7 1.7 3.2-3.3"/></svg>
