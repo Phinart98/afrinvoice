@@ -11,7 +11,7 @@ const props = defineProps<{ state: InvoiceState; pro?: boolean }>();
 // While Pro is on sale, free users may PREVIEW Pro templates and options (try before buying); the download is
 // what's gated. Before Pro exists, a stored premium template simply shows as Minimal, like the PDF.
 const onSale = SITE.pro.enabled;
-const tpl = computed(() => (onSale ? props.state.template : effectiveTemplate(props.state.template, !!props.pro)));
+const tpl = computed(() => effectiveTemplate(props.state.template, onSale || !!props.pro));
 const proPreview = computed(() => !props.pro && (PREMIUM_TEMPLATES.includes(tpl.value)
   || props.state.fontChoice !== 'auto' || !!props.state.signature || props.state.stamp === 'draft'));
 

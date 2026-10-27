@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { computeTotals, defaultInvoiceState, effectiveTemplate, PREMIUM_TEMPLATES, type InvoiceState } from './invoice';
+import { computeTotals, defaultInvoiceState, effectiveTemplate, isTemplate, PREMIUM_TEMPLATES, type InvoiceState } from './invoice';
 import { COUNTRIES, COUNTRY_BY_KEY } from '../data/countries';
 import { docLocale, formatDate, formatMoney, localToday, minorDigits, roundMoney } from '../utils/money';
 
@@ -130,6 +130,12 @@ describe('templates', () => {
   it('lists the three premium templates', () => {
     expect(PREMIUM_TEMPLATES).toEqual(['executive', 'ledger', 'studio']);
     expect(effectiveTemplate('studio', false)).toBe('minimal');
+  });
+  it('treats inherited names from a crafted link as unknown, falling back to Minimal', () => {
+    for (const bad of ['toString', 'constructor', '__proto__', 'hasOwnProperty', ''])
+      expect(effectiveTemplate(bad as never, true)).toBe('minimal');
+    expect(isTemplate('toString')).toBe(false);
+    expect(isTemplate('studio')).toBe(true);
   });
   it('renders a premium template only for Pro; free falls back to minimal', () => {
     expect(effectiveTemplate('executive', true)).toBe('executive');

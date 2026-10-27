@@ -46,8 +46,12 @@ export type FontChoice = 'auto' | 'sans' | 'serif';
 /** 'auto' stamps Paid once the balance is settled (Pro). */
 export type StampChoice = 'auto' | 'none' | 'draft';
 
+/** A real template id (own key only: "toString" from a crafted link or old data must not pass). */
+export const isTemplate = (t: unknown): t is Template => typeof t === 'string' && Object.hasOwn(TEMPLATE_NAMES, t);
+
+/** What actually gets drawn: unknown ids fall back to Minimal, and so do Pro templates without Pro. */
 export const effectiveTemplate = (t: Template, pro: boolean): Template =>
-  !pro && PREMIUM_TEMPLATES.includes(t) ? 'minimal' : t;
+  !isTemplate(t) || (!pro && PREMIUM_TEMPLATES.includes(t)) ? 'minimal' : t;
 
 export interface InvoiceState {
   // ── Template, country, document ─────────────────────────────────────────

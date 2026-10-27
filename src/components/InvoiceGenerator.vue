@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
-import { defaultInvoiceState, computeTotals, PREMIUM_TEMPLATES, TEMPLATE_NAMES, type InvoiceState, type TaxLine } from '../types/invoice';
+import { defaultInvoiceState, computeTotals, isTemplate, PREMIUM_TEMPLATES, TEMPLATE_NAMES, type InvoiceState, type TaxLine } from '../types/invoice';
 import { COUNTRY_BY_KEY, OTHER_COUNTRY, CURRENCIES, countriesByRegion, REGION_NAMES, countryPath, COUNTRIES,
   type CountryConfig, type PaymentRail, type TaxPreset } from '../data/countries';
 import { LABEL_LANGS, type DocType } from '../i18n/labels';
@@ -453,7 +453,8 @@ onMounted(() => {
   if (props.docPreset === 'receipt') state.value.visible.dueDate = false;
   // Template links use the hash (#template=…) so Google never sees duplicate URLs; ?template= still works for old links
   const urlTemplate = new URLSearchParams(window.location.hash.slice(1)).get('template') ?? new URLSearchParams(window.location.search).get('template');
-  if (urlTemplate && urlTemplate in TEMPLATE_NAMES) state.value.template = urlTemplate as InvoiceState['template'];
+  if (isTemplate(urlTemplate)) state.value.template = urlTemplate;
+  if (!isTemplate(state.value.template)) state.value.template = 'minimal'; // a damaged saved profile
 
   clients.value = loadClients();
   history.value = loadHistory();
